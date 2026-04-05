@@ -2,23 +2,37 @@ import os
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-# 1. Ayarlar
+# 1. Konfiqurasiya
 load_dotenv()
-API_KEY = os.getenv("GEMINI_API_KEY") # Sənin aldığın o kod bura gələcək
+API_KEY = os.getenv("GEMINI_API_KEY") 
 genai.configure(api_key=API_KEY)
 
-class KortexEngine:
+class KortexAI:
     def __init__(self):
+        # Gemini 1.5 Flash - sürətli və ağıllı biznes analizi üçün
         self.model = genai.GenerativeModel('gemini-1.5-flash')
-        print("✅ KORTEX-AI Beyni Aktivləşdirildi.")
+        self.history = []
+        print("✅ KORTEX-AI: Beyin mərkəzi aktivdir.")
 
-    def ask_strategy(self, prompt):
-        # Bu hissə Sİ-yə biznesmen kimi düşünmək tapşırığını verir
-        full_prompt = f"Sən KORTEX-AI Strateji Məsləhətçisisən. Bu biznes problemini analiz et və 3 konkret addım de: {prompt}"
-        response = self.model.generate_content(full_prompt)
+    def analyze_business_case(self, sector, problem):
+        """Müştəri üçün strateji analiz hazırlayır"""
+        prompt = f"""
+        Sən KORTEX-AI sistemisən. Rolun: Yüksək səviyyəli biznes strateqi.
+        Sektor: {sector}
+        Problem: {problem}
+        
+        Tapşırıq: Bu biznesi 100,000$ mənfəətə çatdırmaq üçün 3 konkret, 
+        riyazi əsaslandırılmış və Sİ dəstəkli addım təklif et. 
+        Cavabı peşəkar biznes dilində ver.
+        """
+        response = self.model.generate_content(prompt)
         return response.text
 
-# İcra hissəsi
+# --- SİSTEMİN İŞƏ SALINMASI ---
 if __name__ == "__main__":
-    kortex = KortexEngine()
-    print(kortex.ask_strategy("Azərbaycanda Sİ əsaslı aqrar biznes qurmaq üçün ən böyük imkan haradadır?"))
+    kortex = KortexAI()
+    
+    # Nümunə Ssenari: Bir logistika şirkəti xərcləri azaltmaq istəyir
+    print("\n[KORTEX-AI ANALİZİ BAŞLAYIR...]\n")
+    result = kortex.analyze_business_case("Logistika və Daşıma", "Yanacaq xərcləri və sürücü vaxtı itkisi.")
+    print(result)
