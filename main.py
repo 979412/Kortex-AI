@@ -37,9 +37,8 @@ Duyğulara yer yoxdur, yalnız sərt rəqəmlər, dərin analizlər və reallıq
 """
 
 if "model" not in st.session_state:
-    # "Flash" modeli 0.6 saniyədə cavab vermək üçün xüsusi dizayn edilib
     st.session_state.model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash", 
+        model_name="gemini 3 pro", 
         system_instruction=instruction
     )
     st.session_state.chat = st.session_state.model.start_chat(history=[])
@@ -56,7 +55,7 @@ for msg in st.session_state.messages:
         if "image" in msg:
             st.image(msg["image"], width=400)
 
-prompt = st.chat_input("Əmr et, Memar...", accept_file=True)
+prompt = st.chat_input("sual yazin...", accept_file=True)
 
 if prompt:
     user_text = prompt.text if prompt.text else "Bu məlumatı analiz et."
@@ -71,19 +70,29 @@ if prompt:
             st.image(img_obj, width=400)
             st.session_state.messages[-1]["image"] = img_obj
 
-    # KORTEX-AI CAVABI (Sürətli və Donmayan)
+    # KORTEX-AI CAVABI
     with st.chat_message("assistant"):
-        try:
-            if img_obj:
-                response = st.session_state.model.generate_content([user_text, img_obj])
-            else:
-                response = st.session_state.chat.send_message(user_text)
-            
-            st.markdown(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
-            
-        except Exception as e:
-            # Əgər API və ya açar xətası olarsa, donub qalmayacaq, xətanı qırmızı rəngdə deyəcək
-            st.error(f"Sistem xətası baş verdi: {e}")
+        # 1. HİYLƏGƏR ADDIM: Salamı özümüz cavablayırıq (0.01 saniyə!)
+        if user_text.lower().strip() in ["salam", "hi", "hello", "salam aleykum", "salam."]:
+            hazir_cavab = "Salam, Memar. Sizi dinləyirəm. Hansı strateji məsələ üzərində işləyək?"
+            st.markdown(hazir_cavab)
+            st.session_state.messages.append({"role": "assistant", "content": hazir_cavab})
+        
+        # 2. ƏSL BEYİN: Əgər sual ciddidirsə, KORTEX düşünür
+        else:
+            try:
+                if img_obj:
+                    response = st.session_state.model.generate_content([user_text, img_obj])
+                else:
+                    response = st.session_state.chat.send_message(user_text)
+                
+                if response.text:
+                    st.markdown(response.text)
+                    st.session_state.messages.append({"role": "assistant", "content": response.text})
+                else:
+                    st.error("KORTEX-AI bu sorğuya cavab verə bilmədi.")
+                
+            except Exception as e:
+                st.error(f"Sistem dalğalanması: {e} (API açarınızı yoxlayın)")
 
 st.markdown('<script>window.scrollTo(0, document.body.scrollHeight);</script>', unsafe_allow_html=True)
