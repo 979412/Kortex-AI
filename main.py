@@ -1,38 +1,38 @@
 import os
+from reader import KortexReader
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-# 1. Konfiqurasiya
 load_dotenv()
-API_KEY = os.getenv("GEMINI_API_KEY") 
-genai.configure(api_key=API_KEY)
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-class KortexAI:
+class KortexSystem:
     def __init__(self):
-        # Gemini 1.5 Flash - sürətli və ağıllı biznes analizi üçün
         self.model = genai.GenerativeModel('gemini-1.5-flash')
-        self.history = []
-        print("✅ KORTEX-AI: Beyin mərkəzi aktivdir.")
+        self.reader = KortexReader()
+        print("🧠 KORTEX-AI Tam Sistem (Brain + Reader) İşə Düşdü.")
 
-    def analyze_business_case(self, sector, problem):
-        """Müştəri üçün strateji analiz hazırlayır"""
-        prompt = f"""
-        Sən KORTEX-AI sistemisən. Rolun: Yüksək səviyyəli biznes strateqi.
-        Sektor: {sector}
-        Problem: {problem}
+    def audit_document(self, file_path):
+        print(f"📄 {file_path} analiz edilir...")
         
-        Tapşırıq: Bu biznesi 100,000$ mənfəətə çatdırmaq üçün 3 konkret, 
-        riyazi əsaslandırılmış və Sİ dəstəkli addım təklif et. 
-        Cavabı peşəkar biznes dilində ver.
+        # 1. Sənədi oxu
+        doc_text = self.reader.read_pdf(file_path)
+        
+        # 2. Sİ-yə tapşırıq ver
+        prompt = f"""
+        Sən KORTEX-AI-san. Aşağıdakı biznes sənədini analiz et. 
+        Məqsədimiz 100,000$ mənfəətə çatmaqdır. 
+        Sənəddəki maliyyə risklərini və böyümə imkanlarını tap:
+        
+        SƏNƏD MƏTNİ:
+        {doc_text[:5000]} # İlk 5000 simvolu göndəririk (limitə görə)
         """
+        
         response = self.model.generate_content(prompt)
         return response.text
 
-# --- SİSTEMİN İŞƏ SALINMASI ---
 if __name__ == "__main__":
-    kortex = KortexAI()
-    
-    # Nümunə Ssenari: Bir logistika şirkəti xərcləri azaltmaq istəyir
-    print("\n[KORTEX-AI ANALİZİ BAŞLAYIR...]\n")
-    result = kortex.analyze_business_case("Logistika və Daşıma", "Yanacaq xərcləri və sürücü vaxtı itkisi.")
-    print(result)
+    kortex = KortexSystem()
+    # Müştərinin PDF hesabatını bura daxil edirik
+    # report = kortex.audit_document("musteri_hesabati.pdf")
+    # print(report)
