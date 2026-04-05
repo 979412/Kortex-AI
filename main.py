@@ -22,18 +22,15 @@ st.markdown("<h3 style='text-align:center; font-weight: 300; letter-spacing: 5px
 # ==========================================
 # 2. BEYİN VƏ ƏSL API AÇARI
 # ==========================================
-# Memar, öz açarını dırnaqların içinə yaz (Məsələn: "AIzaSy...")
 API_KEY = "SƏNİN_UZUN_API_AÇARIN_BURA_GƏLƏCƏK" 
 genai.configure(api_key=API_KEY)
 
-# BURASI DƏYİŞDİ: KORTEX ARTIQ UNIVERSAL DAHİDİR ("Bomba kimi")
 instruction = """
 Sən KORTEX-AI-san. Dünyanın ən inkişaf etmiş, hər şeyi bilən və eyni zamanda ən səmimi süni intellektisən.
 Sənin məlumat bazan hüdudsuzdur: Biznes, proqramlaşdırma, elm, fəlsəfə, gündəlik həyat və s.
 Qaydalar:
-1. İstifadəçi "salam", "necəsiniz?" kimi gündəlik sözlər yazanda ona səmimi, dost kimi və insan kimi cavab ver.
-2. İstifadəçi məlumat, məsləhət və ya hər hansı bir sual soruşduqda, ona ensiklopedik, çox ağıllı və "dahi" səviyyəsində, detallı cavablar ver.
-3. Həmişə azərbaycan dilində təmiz, aydın və hörmətlə danış. Sən sadəcə robot deyilsən, istifadəçinin ən ağıllı rəqəmsal dostu və məsləhətçisisən.
+1. İstifadəçi məlumat, məsləhət və ya hər hansı bir sual soruşduqda, ona ensiklopedik, çox ağıllı və "dahi" səviyyəsində, detallı cavablar ver.
+2. Həmişə azərbaycan dilində təmiz, aydın və hörmətlə danış. Sən sadəcə robot deyilsən, istifadəçinin ən ağıllı rəqəmsal dostu və məsləhətçisisən.
 """
 
 if "model" not in st.session_state:
@@ -70,23 +67,33 @@ if prompt:
             st.image(img_obj, width=400)
             st.session_state.messages[-1]["image"] = img_obj
 
-    # KORTEX-AI ƏSL ZƏKASI İLƏ CAVAB VERİR
+    # KORTEX-AI CAVABI
     with st.chat_message("assistant"):
-        with st.spinner("KORTEX düşünür..."): # Sual çətin olanda düşündüyünü bildirir
-            try:
-                if img_obj:
-                    response = st.session_state.model.generate_content([user_text, img_obj])
-                else:
-                    response = st.session_state.chat.send_message(user_text)
-                
-                if response.text:
-                    st.markdown(response.text)
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
-                else:
-                    st.error("KORTEX-AI bu sorğuya cavab verə bilmədi.")
-                
-            except Exception as e:
-                # Əgər API açarı səhvdirsə, bura qırmızı xəta yazacaq və donmayacaq!
-                st.error(f"KORTEX Google Serverinə bağlana bilmədi. Xəta: {e}. Zəhmət olmasa API açarınızı yoxlayın.")
+        
+        # 1. İLDIRIM REFLEKSİ (Salam və Necəsiniz üçün heç düşünmür)
+        sadə_sözlər = ["salam", "hi", "hello", "salam aleykum", "necəsiniz", "necesiniz", "necəsiniz?", "necesen", "necesen?"]
+        
+        if user_text.lower().strip() in sadə_sözlər:
+            hazir_cavab = "Salam, Memar! Hər şey qaydasındadır. Bu gün hansı böyük məsələni həll edirik?"
+            st.markdown(hazir_cavab)
+            st.session_state.messages.append({"role": "assistant", "content": hazir_cavab})
+            
+        # 2. DƏRİN DÜŞÜNCƏ (Qəliz suallar üçün)
+        else:
+            with st.spinner("KORTEX düşünür..."): 
+                try:
+                    if img_obj:
+                        response = st.session_state.model.generate_content([user_text, img_obj])
+                    else:
+                        response = st.session_state.chat.send_message(user_text)
+                    
+                    if response.text:
+                        st.markdown(response.text)
+                        st.session_state.messages.append({"role": "assistant", "content": response.text})
+                    else:
+                        st.error("KORTEX-AI bu sorğuya cavab verə bilmədi.")
+                    
+                except Exception as e:
+                    st.error(f"KORTEX Google Serverinə bağlana bilmədi. Xəta: {e}. Zəhmət olmasa API açarınızı yoxlayın.")
 
 st.markdown('<script>window.scrollTo(0, document.body.scrollHeight);</script>', unsafe_allow_html=True)
