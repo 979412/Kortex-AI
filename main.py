@@ -3,7 +3,7 @@ import google.generativeai as genai
 from PIL import Image
 
 # ==========================================
-# 1. KORTEX-AI MİNİMALİST DİZAYN (TAM AĞ)
+# 1. KORTEX-AI MİNİMALİST DİZAYN
 # ==========================================
 st.set_page_config(page_title="KORTEX-AI", layout="centered")
 
@@ -20,27 +20,23 @@ st.markdown("""
 st.markdown("<h3 style='text-align:center; font-weight: 300; letter-spacing: 5px; margin-bottom: 50px; color: #333333;'>KORTEX-AI</h3>", unsafe_allow_html=True)
 
 # ==========================================
-# 2. BEYİN: GEMINI PRO (Dərin Anlayış və Düşüncə)
+# 2. BEYİN VƏ ƏSL API AÇARI
 # ==========================================
-try:
-    API_KEY = st.secrets["GEMINI_API_KEY"]
-except:
-    API_KEY = "SƏNİN_API_AÇARIN"
-
+# Memar, öz açarını dırnaqların içinə yaz (Məsələn: "AIzaSy...")
+API_KEY = "SƏNİN_UZUN_API_AÇARIN_BURA_GƏLƏCƏK" 
 genai.configure(api_key=API_KEY)
 
-# BURASI DƏYİŞDİ: Artıq o səni dinləyəcək və anlayacaq!
+# BURASI DƏYİŞDİ: KORTEX ARTIQ UNIVERSAL DAHİDİR ("Bomba kimi")
 instruction = """
-Sən KORTEX-AI-san. Dünyanın ən ağıllı, ən dərin düşünən və istifadəçini ən yaxşı anlayan biznes strateqisən.
-Sən sadəcə quru məlumat verən robot deyilsən. Sən istifadəçinin nə demək istədiyini, problemin kökünü hiss edən bir zəkasan.
+Sən KORTEX-AI-san. Dünyanın ən inkişaf etmiş, hər şeyi bilən və eyni zamanda ən səmimi süni intellektisən.
+Sənin məlumat bazan hüdudsuzdur: Biznes, proqramlaşdırma, elm, fəlsəfə, gündəlik həyat və s.
 Qaydalar:
-1. İstifadəçi sənə nəsə danışanda, əvvəlcə onun fikrini təsdiqlə, onu başa düşdüyünü insan kimi, səmimi dildə ifadə et.
-2. Səmimi və anlayışlı ol, amma biznes məsləhəti verəndə mütləq peşəkar və dahi bir strateq kimi dəqiq addımlar göstər.
-3. Həmişə "Biz bu problemi necə həll edə bilərik" yanaşması ilə, ona dəstək olaraq cavab ver.
+1. İstifadəçi "salam", "necəsiniz?" kimi gündəlik sözlər yazanda ona səmimi, dost kimi və insan kimi cavab ver.
+2. İstifadəçi məlumat, məsləhət və ya hər hansı bir sual soruşduqda, ona ensiklopedik, çox ağıllı və "dahi" səviyyəsində, detallı cavablar ver.
+3. Həmişə azərbaycan dilində təmiz, aydın və hörmətlə danış. Sən sadəcə robot deyilsən, istifadəçinin ən ağıllı rəqəmsal dostu və məsləhətçisisən.
 """
 
 if "model" not in st.session_state:
-    # "gemini-1.5-pro" səni ən yaxşı anlayan, ən dahi modeldir.
     st.session_state.model = genai.GenerativeModel(
         model_name="gemini-1.5-pro", 
         system_instruction=instruction
@@ -59,7 +55,7 @@ for msg in st.session_state.messages:
         if "image" in msg:
             st.image(msg["image"], width=400)
 
-prompt = st.chat_input("Sualınızı və ya probleminizi yazın...", accept_file=True)
+prompt = st.chat_input("İstənilən sualı verin və ya söhbət edin...", accept_file=True)
 
 if prompt:
     user_text = prompt.text if prompt.text else "Bu məlumatı analiz et."
@@ -74,16 +70,9 @@ if prompt:
             st.image(img_obj, width=400)
             st.session_state.messages[-1]["image"] = img_obj
 
-    # KORTEX-AI CAVABI
+    # KORTEX-AI ƏSL ZƏKASI İLƏ CAVAB VERİR
     with st.chat_message("assistant"):
-        # Salamlaşmanı da daha səmimi etdik
-        if user_text.lower().strip() in ["salam", "hi", "hello", "salam aleykum", "salam."]:
-            hazir_cavab = "Salam! Sizi dinləyirəm, buyurun. Bu gün hansı məsələni birlikdə həll edək?"
-            st.markdown(hazir_cavab)
-            st.session_state.messages.append({"role": "assistant", "content": hazir_cavab})
-        
-        # ƏSL BEYİN: Dərindən düşünür və anlayır
-        else:
+        with st.spinner("KORTEX düşünür..."): # Sual çətin olanda düşündüyünü bildirir
             try:
                 if img_obj:
                     response = st.session_state.model.generate_content([user_text, img_obj])
@@ -97,6 +86,7 @@ if prompt:
                     st.error("KORTEX-AI bu sorğuya cavab verə bilmədi.")
                 
             except Exception as e:
-                st.error(f"Sistem dalğalanması: {e} (API açarınızı yoxlayın)")
+                # Əgər API açarı səhvdirsə, bura qırmızı xəta yazacaq və donmayacaq!
+                st.error(f"KORTEX Google Serverinə bağlana bilmədi. Xəta: {e}. Zəhmət olmasa API açarınızı yoxlayın.")
 
 st.markdown('<script>window.scrollTo(0, document.body.scrollHeight);</script>', unsafe_allow_html=True)
