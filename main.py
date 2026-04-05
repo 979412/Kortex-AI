@@ -109,7 +109,6 @@ if prompt:
                 st.session_state.messages.append({"role": "assistant", "content": ans})
 
             except Exception as e:
-                # Heç bir "yenidən daxil edin" yoxdur, birbaşa vəhşi cavab!
                 st.markdown("Memar, sistemdə anlıq dalğalanma oldu, amma mən hazıram. Əmrinizi gözləyirəm!")
 
 st.markdown('<script>window.scrollTo(0, document.body.scrollHeight);</script>', unsafe_allow_html=True)
