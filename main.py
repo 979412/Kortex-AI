@@ -3,9 +3,9 @@ import google.generativeai as genai
 from PIL import Image
 
 # ==========================================
-# 1. ULTRA MİNİMALİST DİZAYN (TAM AĞ)
+# 1. KORTEX-AI MİNİMALİST DİZAYN (TAM AĞ)
 # ==========================================
-st.set_page_config(page_title="ZƏKA ULTRA", layout="centered")
+st.set_page_config(page_title="KORTEX-AI", layout="centered")
 
 st.markdown("""
     <style>
@@ -17,10 +17,10 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h3 style='text-align:center; font-weight: 300; letter-spacing: 5px; margin-bottom: 50px; color: #333333;'>ZƏKA ULTRA</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align:center; font-weight: 300; letter-spacing: 5px; margin-bottom: 50px; color: #333333;'>KORTEX-AI</h3>", unsafe_allow_html=True)
 
 # ==========================================
-# 2. BEYİN: GEMINI PRO (Ən güclü versiya)
+# 2. BEYİN: GEMINI FLASH (İldırım sürəti)
 # ==========================================
 try:
     API_KEY = st.secrets["GEMINI_API_KEY"]
@@ -30,15 +30,16 @@ except:
 genai.configure(api_key=API_KEY)
 
 instruction = """
-Sən ZƏKA ULTRA-san. Qlobal biznes sahibləri üçün elit, minimalist və dahi bir strateqsən.
+Sən KORTEX-AI-san. Qlobal biznes sahibləri üçün elit, minimalist və dahi bir strateqsən.
 Duyğulara yer yoxdur, yalnız sərt rəqəmlər, dərin analizlər və reallıq.
-1. Əgər istifadəçi "salam" yazarsa: "Salam, Memar. Sizi dinləyirəm. Hansı strateji məsələ üzərində işləyək?"
-2. Digər sorğularda birbaşa, ən yüksək intellektual səviyyədə cavab ver.
+1. Əgər istifadəçi sadəcə "salam" yazarsa: "Salam, Memar. Sizi dinləyirəm. Hansı strateji məsələ üzərində işləyək?"
+2. Digər sorğularda lazımsız giriş sözləri olmadan, birbaşa və ən yüksək intellektual səviyyədə cavab ver.
 """
 
 if "model" not in st.session_state:
+    # "Flash" modeli 0.6 saniyədə cavab vermək üçün xüsusi dizayn edilib
     st.session_state.model = genai.GenerativeModel(
-        model_name="gemini-1.5-pro-latest", 
+        model_name="gemini-1.5-flash", 
         system_instruction=instruction
     )
     st.session_state.chat = st.session_state.model.start_chat(history=[])
@@ -47,7 +48,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # ==========================================
-# 3. İNTERFEYS VƏ CANLI AXIN (STREAMING)
+# 3. İNTERFEYS VƏ MƏNTİQ
 # ==========================================
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
@@ -70,24 +71,19 @@ if prompt:
             st.image(img_obj, width=400)
             st.session_state.messages[-1]["image"] = img_obj
 
-    # 0.6 SANİYƏ REAKSİYA ÜÇÜN CANLI YAZMA SİSTEMİ
+    # KORTEX-AI CAVABI (Sürətli və Donmayan)
     with st.chat_message("assistant"):
         try:
-            # Gözləmə animasiyasını ləğv etdik ki, vaxt itirməyək
             if img_obj:
-                response = st.session_state.model.generate_content([user_text, img_obj], stream=True)
+                response = st.session_state.model.generate_content([user_text, img_obj])
             else:
-                response = st.session_state.chat.send_message(user_text, stream=True)
+                response = st.session_state.chat.send_message(user_text)
             
-            # Sözləri gəldiyi anda ekrana "tüpürür"
-            def stream_generator():
-                for chunk in response:
-                    yield chunk.text
-                    
-            full_response = st.write_stream(stream_generator())
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
+            st.markdown(response.text)
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
             
         except Exception as e:
-            st.error("Gözlənilməz dalğalanma.")
+            # Əgər API və ya açar xətası olarsa, donub qalmayacaq, xətanı qırmızı rəngdə deyəcək
+            st.error(f"Sistem xətası baş verdi: {e}")
 
 st.markdown('<script>window.scrollTo(0, document.body.scrollHeight);</script>', unsafe_allow_html=True)
