@@ -1,5 +1,5 @@
 google-generativeai
 python-dotenv
-pandas
 langchain
 pypdf
+pandas
