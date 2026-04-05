@@ -20,7 +20,7 @@ st.markdown("""
 st.markdown("<h3 style='text-align:center; font-weight: 300; letter-spacing: 5px; margin-bottom: 50px; color: #333333;'>KORTEX-AI</h3>", unsafe_allow_html=True)
 
 # ==========================================
-# 2. BEYİN: GEMINI FLASH (İldırım sürəti)
+# 2. BEYİN: GEMINI PRO (Dərin Anlayış və Düşüncə)
 # ==========================================
 try:
     API_KEY = st.secrets["GEMINI_API_KEY"]
@@ -29,16 +29,20 @@ except:
 
 genai.configure(api_key=API_KEY)
 
+# BURASI DƏYİŞDİ: Artıq o səni dinləyəcək və anlayacaq!
 instruction = """
-Sən KORTEX-AI-san. Qlobal biznes sahibləri üçün elit, minimalist və dahi bir strateqsən.
-Duyğulara yer yoxdur, yalnız sərt rəqəmlər, dərin analizlər və reallıq.
-1. Əgər istifadəçi sadəcə "salam" yazarsa: "Salam, Memar. Sizi dinləyirəm. Hansı strateji məsələ üzərində işləyək?"
-2. Digər sorğularda lazımsız giriş sözləri olmadan, birbaşa və ən yüksək intellektual səviyyədə cavab ver.
+Sən KORTEX-AI-san. Dünyanın ən ağıllı, ən dərin düşünən və istifadəçini ən yaxşı anlayan biznes strateqisən.
+Sən sadəcə quru məlumat verən robot deyilsən. Sən istifadəçinin nə demək istədiyini, problemin kökünü hiss edən bir zəkasan.
+Qaydalar:
+1. İstifadəçi sənə nəsə danışanda, əvvəlcə onun fikrini təsdiqlə, onu başa düşdüyünü insan kimi, səmimi dildə ifadə et.
+2. Səmimi və anlayışlı ol, amma biznes məsləhəti verəndə mütləq peşəkar və dahi bir strateq kimi dəqiq addımlar göstər.
+3. Həmişə "Biz bu problemi necə həll edə bilərik" yanaşması ilə, ona dəstək olaraq cavab ver.
 """
 
 if "model" not in st.session_state:
+    # "gemini-1.5-pro" səni ən yaxşı anlayan, ən dahi modeldir.
     st.session_state.model = genai.GenerativeModel(
-        model_name="gemini 3 pro", 
+        model_name="gemini-1.5-pro", 
         system_instruction=instruction
     )
     st.session_state.chat = st.session_state.model.start_chat(history=[])
@@ -55,7 +59,7 @@ for msg in st.session_state.messages:
         if "image" in msg:
             st.image(msg["image"], width=400)
 
-prompt = st.chat_input("sual yazin...", accept_file=True)
+prompt = st.chat_input("Sualınızı və ya probleminizi yazın...", accept_file=True)
 
 if prompt:
     user_text = prompt.text if prompt.text else "Bu məlumatı analiz et."
@@ -72,13 +76,13 @@ if prompt:
 
     # KORTEX-AI CAVABI
     with st.chat_message("assistant"):
-        # 1. HİYLƏGƏR ADDIM: Salamı özümüz cavablayırıq (0.01 saniyə!)
+        # Salamlaşmanı da daha səmimi etdik
         if user_text.lower().strip() in ["salam", "hi", "hello", "salam aleykum", "salam."]:
-            hazir_cavab = "Salam, Memar. Sizi dinləyirəm. Hansı strateji məsələ üzərində işləyək?"
+            hazir_cavab = "Salam! Sizi dinləyirəm, buyurun. Bu gün hansı məsələni birlikdə həll edək?"
             st.markdown(hazir_cavab)
             st.session_state.messages.append({"role": "assistant", "content": hazir_cavab})
         
-        # 2. ƏSL BEYİN: Əgər sual ciddidirsə, KORTEX düşünür
+        # ƏSL BEYİN: Dərindən düşünür və anlayır
         else:
             try:
                 if img_obj:
