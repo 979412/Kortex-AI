@@ -1,5 +1,4 @@
-google-generativeai
 streamlit
-pypdf
-pandas
-python-dotenv
+requests
+groq
+Pillow
