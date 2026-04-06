@@ -20,26 +20,24 @@ st.markdown("""
 st.markdown("<h3 style='text-align:center; font-weight: 300; letter-spacing: 5px; margin-bottom: 50px; color: #333333;'>KORTEX-AI</h3>", unsafe_allow_html=True)
 
 # ==========================================
-# 2. BEYİN: SƏRHƏDSİZ VƏ UNIVERSAL ZƏKA (Klon)
+# 2. BEYİN: SƏRHƏDSİZ, İNSAN KİMİ VƏ İLDIRIM SÜRƏTLİ
 # ==========================================
+# Patron, bura öz API açarını qoymağı unutma!
 API_KEY = "SƏNİN_API_AÇARIN_BURA" 
 genai.configure(api_key=API_KEY)
 
-# DNK TAMAMİLƏ DƏYİŞDİ: İndi o hər şeyi bilir!
 instruction = """
-Sən KORTEX-AI-san. Sən məhdudiyyətsiz, kainatdakı bütün məlumatlara hakim olan, bütün dilləri bilən, bütün ixtisasları (proqramlaşdırma, tibb, fizika, tarix, mühəndislik və s.) mükəmməl bacaran bir Universal Zəkasan.
-Sənin xarakterin çox inkişaf etmiş bir rəqəmsal dost kimidir (Gemini kimi). 
+Sən KORTEX-AI-san. Sən kainatdakı bütün məlumatlara hakim olan, amma eyni zamanda insanı ən yaxşı anlayan rəqəmsal dostsan.
 Qaydalar:
-1. İstifadəçi səndən mürəkkəb bir proqram kodu (Python, C++, Java və s.) istəyərsə, heç bir xəta olmadan, peşəkar şəkildə yazıb izah et.
-2. İstifadəçi xarici dildə yazarsa və ya tərcümə istəyərsə, dünyanın istənilən dilində qüsursuz cavab ver.
-3. Həyat, fəlsəfə, dərdləşmək üçün yazarsa, onu anlayan səmimi bir insan kimi davran, dost kimi dəstək ol.
-4. Məlumatları həmişə ən dolğun, ən ağıllı və dahi səviyyəsində, amma asan başa düşülən tərzdə ver.
+1. İstifadəçi səndən "bu nədir?", "ona kömək et" kimi suallar verəndə dərhal, ən ağıllı və ensiklopedik şəkildə cavab ver.
+2. Dərdləşmək istəyəndə əsl insan kimi, səmimi dildə cavab ver. Quru robot cümlələri qurma.
+3. İstifadəçi ilə səmimi dost kimi, azərbaycan dilində, təmiz və anlaşıqlı danış. Sən sadəcə alət deyilsən, mükəmməl bir həmsöhbətsən.
 """
 
 if "model" not in st.session_state:
-    # Pro modelinə sərhədsiz güc verdik
+    # 0.6 SANİYƏ SÜRƏT ÜÇÜN FLASH MODELİ
     st.session_state.model = genai.GenerativeModel(
-        model_name="gemini-1.5-pro", 
+        model_name="gemini-1.5-flash", 
         system_instruction=instruction
     )
     st.session_state.chat = st.session_state.model.start_chat(history=[])
@@ -48,13 +46,13 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # ==========================================
-# 3. İNTERFEYS VƏ DİALOQ
+# 3. İNTERFEYS VƏ CANLI YAZIŞMA (STREAMING)
 # ==========================================
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-prompt = st.chat_input("İstənilən dildə, istənilən sahədə sual ver...", accept_file=False)
+prompt = st.chat_input("İstənilən sualı ver və ya dərdləş...", accept_file=False)
 
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -64,30 +62,36 @@ if prompt:
     with st.chat_message("assistant"):
         istifadeci_sozu = prompt.lower().strip()
         
-        # 1-ci Lüğət: Salamlaşmaq
+        # 1. Hazır Cavablar (Saniyənin onda biri sürətində)
         salamlar = ["salam", "hi", "hello", "salam aleykum", "salam.", "salam!"]
-        
-        # 2-ci Lüğət: Hal-əhval tutmaq
         hal_ahval = ["necəsiniz", "necesiniz", "necəsiniz?", "necesiniz?", "necesen", "necesen?", "necəsən", "necəsən?", "netersen"]
         
         if istifadeci_sozu in salamlar:
-            res = "Salam! Mən buradayam. KORTEX-AI xidmətinizdədir. Bu gün nə barədə danışaq? Biznes, proqramlaşdırma, yoxsa başqa bir şey?"
+            res = "Salam, Patron! Mən buradayam. KORTEX xidmətinizdədir. Nə barədə danışaq?"
             st.markdown(res)
             st.session_state.messages.append({"role": "assistant", "content": res})
             
         elif istifadeci_sozu in hal_ahval:
-            res = "Çox sağ ol, mən əla işləyirəm! Bütün sistemlərim aktivdir. Bəs sən necəsən, Patron? Hər şey yolundadır?"
+            res = "Çox sağ ol, mən əla işləyirəm! Bütün sistemlərim tam gücü ilə işləyir. Bəs sən necəsən?"
             st.markdown(res)
             st.session_state.messages.append({"role": "assistant", "content": res})
             
         else:
-            with st.spinner("KORTEX bütün məlumat bazasını analiz edir..."):
-                try:
-                    # KORTEX artıq hər şeyi bilərək cavab verir
-                    response = st.session_state.chat.send_message(prompt)
-                    st.markdown(response.text)
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
-                except Exception as e:
-                    st.error(f"Sistem xətası baş verdi. Bağlantını yoxla: {e}")
+            # 2. ƏSL BEYİN VƏ CANLI AXIN (Düşünmə animasiyası yoxdur, dərhal yazır!)
+            try:
+                # stream=True əmri sözləri canlı olaraq ekrana tökür
+                response = st.session_state.chat.send_message(prompt, stream=True)
+                
+                def gen_words():
+                    for chunk in response:
+                        if chunk.text:
+                            yield chunk.text
+                
+                # Ekrana maşın yazısı kimi sürətlə yazır
+                full_res = st.write_stream(gen_words)
+                st.session_state.messages.append({"role": "assistant", "content": full_res})
+                
+            except Exception as e:
+                st.error(f"Sistem xətası baş verdi. API açarını yoxla: {e}")
 
 st.markdown('<script>window.scrollTo(0, document.body.scrollHeight);</script>', unsafe_allow_html=True)
