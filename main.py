@@ -1,5 +1,8 @@
+from duckduckgo_search import DDGS
 import streamlit as st
+
 import google.generativeai as genai
+
 
 # 1. SƏHİFƏNİN DİZAYNI VƏ BAŞLIĞI
 st.set_page_config(page_title="KORTEX-AI", page_icon="🧠", layout="centered")
