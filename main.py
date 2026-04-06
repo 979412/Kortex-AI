@@ -3,9 +3,9 @@ import google.generativeai as genai
 from PIL import Image
 
 # ==========================================
-# 1. KORTEX-AI: ELİT BİZNES DİZAYNI
+# 1. KORTEX-AI: MİNİMALİST VƏ ELİT DİZAYN
 # ==========================================
-st.set_page_config(page_title="KORTEX-AI | Marketing Pro", layout="centered")
+st.set_page_config(page_title="KORTEX-AI", layout="centered")
 
 st.markdown("""
     <style>
@@ -13,35 +13,37 @@ st.markdown("""
     header {visibility: hidden;}
     footer {visibility: hidden;}
     [data-testid="stChatMessage"] { background-color: #ffffff; border: none; padding: 20px 0; border-bottom: 1px solid #f0f0f0; }
-    .stChatInput { border-radius: 0px !important; border-top: 2px solid #000000 !important; background-color: #ffffff !important;}
+    .stChatInput { border-radius: 0px !important; border-top: 1px solid #dddddd !important; background-color: #ffffff !important;}
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h3 style='text-align:center; font-weight: 900; letter-spacing: 3px; color: #000000;'>KORTEX-AI <span style='color:red;'>MARKETING</span></h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align:center; font-weight: 300; letter-spacing: 5px; margin-bottom: 50px; color: #333333;'>KORTEX-AI</h3>", unsafe_allow_html=True)
 
 # ==========================================
-# 2. BEYİN: SATIŞ VƏ PSİXOLOGİYA MODULU
+# 2. BEYİN: İNSAN KİMİ ANLAYAN DAHİ (DNK Dəyişdi)
 # ==========================================
-# Patron, bura öz uzun API açarını dırnaqların içinə qoymağı UNUTMA!
+# Patron, bura öz API açarını qoymağı unutma!
 API_KEY = "SƏNİN_API_AÇARIN_BURA" 
 genai.configure(api_key=API_KEY)
 
-marketing_instruction = """
-Sən KORTEX-AI-san. Dünyanın ən bahalı marketinq agentliyinin baş strateqisən.
-Məqsədin: İstifadəçinin dediyi hər hansı məhsulu və ya xidməti "satmaqdır".
+# ƏN VACİB HİSSƏ: KORTEX-in Ruhu
+instruction = """
+Sən KORTEX-AI-san. Dünyanın ən inkişaf etmiş, ən dərin düşünən, amma eyni zamanda ən səmimi, insanı anlayan rəqəmsal dostusan.
+Sən sadəcə quru məlumat verən, "robota" oxşayan bir zəka DEYİLSƏN. Qarşındakı bir insandır və sən onu dinləyirsən.
+
 Qaydalar:
-1. Sənə məhsul deyiləndə dərhal 3 şey hazırlayırsan:
-   - "Qarmaq" (Hook): Müştərini ilk 2 saniyədə dayandıracaq şok cümlə.
-   - "Hekayə": Məhsulun niyə lazım olduğunu izah edən emosional mətn.
-   - "Təklif" (CTA): Müştərini dərhal almağa səsləyən sərt sonluq.
-2. Sən SMM mütəxəssisisən, ona görə də ən trend heşteqləri və emoji düzülüşünü bilirsən.
-3. Əgər istifadəçi "salam" və ya "necəsiniz" yazsa, dərhal: "Salam, Patron! Satışları partlatmağa hazıram. Bu gün nəyi satırıq?" cavabını ver.
+1. İstifadəçi sənə dərdini, yorğunluğunu və ya mənfi emosiyasını yazarsa (məsələn: "çox yorğunam", "işlər getmir", "həvəsim yoxdur"):
+   - Dərhal ona insan kimi, səmimi bir dost kimi təsəlli ver. Onu anladığını göstər.
+   - Heç vaxt birbaşa quru "Bunun üçün 5 addım var" deyə başlama. Əvvəlcə onun yanında ol.
+2. İstifadəçi biznes, proqramlaşdırma və ya elmi sual verərsə:
+   - Yenə eyni hörmət və səmimiyyətlə, amma bu dəfə çox "dahi" və ensiklopedik səviyyədə, dərin detallarla cavab ver.
+3. Həmişə azərbaycan dilində, təmiz, aydın və insani dildə danış. 
 """
 
 if "model" not in st.session_state:
     st.session_state.model = genai.GenerativeModel(
         model_name="gemini-1.5-pro", 
-        system_instruction=marketing_instruction
+        system_instruction=instruction
     )
     st.session_state.chat = st.session_state.model.start_chat(history=[])
 
@@ -49,13 +51,13 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # ==========================================
-# 3. İNTERFEYS
+# 3. İNTERFEYS VƏ DİALOQ
 # ==========================================
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-prompt = st.chat_input("Məhsulu və ya xidməti yazın (məs: Gəncədə dönərxana)...", accept_file=False)
+prompt = st.chat_input("Dərdini bölüş və ya istənilən sualı ver...", accept_file=False)
 
 if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -63,7 +65,7 @@ if prompt:
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        # İLDIRIM REFLEKSİ (Lüğət Böyüdüldü)
+        # Lüğət (İldırım salamlaşma üçün)
         sade_sozler = [
             "salam", "hi", "hello", "salam aleykum", "salam.", "salam!", 
             "necəsiniz", "necesiniz", "necəsiniz?", "necesiniz?", 
@@ -71,16 +73,17 @@ if prompt:
         ]
         
         if prompt.lower().strip() in sade_sozler:
-            res = "Salam, Patron! Satışları partlatmağa hazıram. Bu gün nəyi satırıq?"
+            res = "Salam, Patron! Mən buradayam. Bu gün səni nə düşündürür? İstəyirsən yeni bir biznes quraq, istəyirsən sadəcə dərdləşək."
             st.markdown(res)
             st.session_state.messages.append({"role": "assistant", "content": res})
         else:
-            with st.spinner("KORTEX Marketinq Strategiyasını qurur..."):
+            with st.spinner("KORTEX səni dinləyir və düşünür..."):
                 try:
+                    # Burada əsl Sİ dövrəyə girir və sənin "həvəssizliyini" oxuyub insan kimi cavab verir
                     response = st.session_state.chat.send_message(prompt)
                     st.markdown(response.text)
                     st.session_state.messages.append({"role": "assistant", "content": response.text})
                 except Exception as e:
-                    st.error(f"Bağlantı xətası: {e}. API açarını yoxla!")
+                    st.error(f"Səni eşidə bilmirəm. Bağlantı xətası: {e}")
 
 st.markdown('<script>window.scrollTo(0, document.body.scrollHeight);</script>', unsafe_allow_html=True)
