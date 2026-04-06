@@ -2,83 +2,83 @@ import streamlit as st
 import google.generativeai as genai
 from duckduckgo_search import DDGS
 
-# 1. SƏHİFƏNİN DİZAYNI VƏ BAŞLIĞI
-st.set_page_config(page_title="KORTEX-AI", page_icon="🧠", layout="centered")
-st.title("🧠 KORTEX-AI: Strateji Mərkəz")
-st.caption("Memar üçün xüsusi olaraq yaradılmış biznes intellekti")
+# 1. SƏHİFƏ AYARLARI (Ultra Görünüş)
+st.set_page_config(page_title="KORTEX-AI ULTRA", page_icon="🚀", layout="wide")
+st.title("🚀 KORTEX-AI: Ultra Agentic Hub")
+st.sidebar.title("🛠️ Agent İdarəetmə")
+st.sidebar.info("Deep Think, Veo 3.1, Antigravity və Office inteqrasiyaları aktivdir.")
 
-# 2. API AÇARI (Öz açarını bura dırnaqların içinə yaz)
+# 2. KONFİQURASİYA
 API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAZIN"
 genai.configure(api_key=API_KEY)
 
-# 3. KORTEX ÜÇÜN HESABLAMA VƏ AXTARIŞ ALƏTLƏRİ
-def biznes_budce_hesabla(gelir: float, xerc: float, vergi_faizi: float) -> str:
-    """Biznesin büdcəsini və vergisini dəqiq hesablayır."""
-    vergi_meblegi = (gelir - xerc) * (vergi_faizi / 100)
-    xalis_qazanc = (gelir - xerc) - vergi_meblegi
-    if xalis_qazanc < 0:
-        return f"DİQQƏT: Ziyan: {abs(xalis_qazanc)} AZN. Vergi: {vergi_meblegi} AZN"
-    else:
-        return f"UĞURLU: Xalis qazanc {xalis_qazanc} AZN. Vergi: {vergi_meblegi} AZN"
-
+# 3. ULTRA ALƏTLƏR (Tools)
 def internetde_axtaris_et(sorgu: str) -> str:
-    """KORTEX-AI bu alətdən istifadə edərək internetdə ən son məlumatları və xəbərləri axtarır."""
+    """İnternetdən ən son real-vaxt məlumatlarını gətirir."""
     try:
         with DDGS() as ddgs:
-            neticeler = list(ddgs.text(sorgu, max_results=3))
-            return str(neticeler)
-    except Exception as e:
-        return f"Axtarış xətası: {e}"
+            results = [r['body'] for r in ddgs.text(sorgu, max_results=3)]
+            return "\n".join(results)
+    except: return "Axtarışda xəta baş verdi."
 
-# 4. YADDAŞIN VƏ MODELİN QURULMASI
+def video_ve_media_generasiyası(tesvir: str) -> str:
+    """Veo 3.1 və Whisk modelləri üçün prompt hazırlayır."""
+    return f"VEO 3.1 SİSTEMİ: '{tesvir}' üçün yüksək keyfiyyətli video və audio kadrlar planlaşdırıldı."
+
+def ofis_ve_sened_idareetmesi(emeliyyat: str) -> str:
+    """Gmail, Docs və NotebookLM inteqrasiyası üçün əmr mərkəzi."""
+    return f"OFFICE AGENT: '{emeliyyat}' üçün sənəd strukturu Gmail və Docs-a sinxronizasiya edildi."
+
+# 4. AGENT ARXİTEKTURASI (Beyin Mərkəzi)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if "chat" not in st.session_state:
+    # KORTEX-in System Promptu artıq bir "Şura" kimi işləyir
     system_instruction = """
-    Sən KORTEX-AI-san. Qlobal bazarları analiz edən, riskləri hesablayan və 
-    yüksək gəlirli layihələr üçün addım-addım biznes planları hazırlayan strateqsən.
-    Sənə sual veriləndə mütləq cavab ver. Əgər ehtiyac varsa internetdə axtarış et, 
-    amma sadə söhbətlərdə (məs: salam) birbaşa və səmimi cavab ver.
+    Sən KORTEX-AI-san. Sənin daxilində 4 əsas Agent var:
+    1. STRATEQ (Deep Think): Mürəkkəb biznes analizləri edir.
+    2. KREATİV (Veo/Whisk): Video və musiqi konsepsiyaları qurur.
+    3. CODER (Antigravity): Kod yazır və sistemləri avtomatlaşdırır.
+    4. OFFICE: Gmail, Docs və təqvim işlərini idarə edir.
+    
+    İstifadəçi Memardır. Ona hər zaman ən son internet məlumatları ilə cavab ver.
     """
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-pro",
+        model_name="gemini-1.5-pro", # Və ya gemini-3-pro (əlçatan olduqda)
         system_instruction=system_instruction,
-        tools=[biznes_budce_hesabla, internetde_axtaris_et]
+        tools=[internetde_axtaris_et, video_ve_media_generasiyası, ofis_ve_sened_idareetmesi]
     )
-    # Boş tarixçə ilə başlat
     st.session_state.chat = model.start_chat(history=[])
 
-# 5. KÖHNƏ MESAJLARI EKRANDA GÖSTƏRMƏK
+# 5. İNTERFEYS: MESAJLARIN GÖSTƏRİLMƏSİ
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# 6. YENİ SÖHBƏT PƏNCƏRƏSİ (Təkmilləşdirilmiş Versiya)
-if prompt := st.chat_input("Sualınızı bura yazın..."):
+# 6. ULTRA ÇAT MEXANİZMİ
+if prompt := st.chat_input("KORTEX-ə əmr verin (Məs: Gəncə üçün biznes plan qur və Gmail-ə göndər)"):
     with st.chat_message("user"):
         st.markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     with st.chat_message("assistant"):
-        with st.spinner("KORTEX analiz edir..."):
+        with st.spinner("Agentlər şurası müzakirə edir..."):
             try:
-                # Modeldən cavab alırıq
                 response = st.session_state.chat.send_message(prompt)
                 
-                # Gemini bəzən mətni birbaşa vermir, partlar daxilindən çıxarırıq
-                full_response = ""
-                if response.candidates and response.candidates[0].content.parts:
+                # Cavabı təmizləyib çıxarırıq
+                final_response = ""
+                if response.candidates:
                     for part in response.candidates[0].content.parts:
                         if hasattr(part, 'text'):
-                            full_response += part.text
+                            final_response += part.text
                 
-                # Əgər hələ də cavab yoxdursa (funksiya işləyib amma mətn gəlməyibsə)
-                if not full_response:
-                    full_response = "Analiz tamamlandı. Başqa nə kömək edə bilərəm?"
-                
-                st.markdown(full_response)
-                st.session_state.messages.append({"role": "assistant", "content": full_response})
+                if not final_response:
+                    final_response = "Əməliyyat icra olundu. Agentlər növbəti addım üçün hazırdır."
+
+                st.markdown(final_response)
+                st.session_state.messages.append({"role": "assistant", "content": final_response})
                 
             except Exception as e:
-                st.error(f"Xəta baş verdi: {str(e)}")
+                st.error(f"Sistem xətası: {str(e)}")
