@@ -1,8 +1,6 @@
-from duckduckgo_search import DDGS
 import streamlit as st
-
 import google.generativeai as genai
-
+from duckduckgo_search import DDGS # İnternet axtarışı kitabxanası əlavə olundu
 
 # 1. SƏHİFƏNİN DİZAYNI VƏ BAŞLIĞI
 st.set_page_config(page_title="KORTEX-AI", page_icon="🧠", layout="centered")
@@ -13,7 +11,7 @@ st.caption("Memar üçün xüsusi olaraq yaradılmış biznes intellekti")
 API_KEY = "SİZİN_API_AÇARINIZI_BURAYA_YAZIN"
 genai.configure(api_key=API_KEY)
 
-# 3. KORTEX ÜÇÜN HESABLAMA ALƏTİ
+# 3. KORTEX ÜÇÜN HESABLAMA VƏ AXTARIŞ ALƏTLƏRİ
 def biznes_budce_hesabla(gelir: float, xerc: float, vergi_faizi: float) -> str:
     """Biznesin büdcəsini və vergisini dəqiq hesablayır."""
     vergi_meblegi = (gelir - xerc) * (vergi_faizi / 100)
@@ -23,17 +21,28 @@ def biznes_budce_hesabla(gelir: float, xerc: float, vergi_faizi: float) -> str:
     else:
         return f"UĞURLU: Xalis qazanc {xalis_qazanc} AZN. Vergi: {vergi_meblegi} AZN"
 
+def internetde_axtaris_et(sorgu: str) -> str:
+    """KORTEX-AI bu alətdən istifadə edərək internetdə ən son məlumatları və xəbərləri axtarır."""
+    try:
+        with DDGS() as ddgs:
+            # İnternetdən ən uyğun 3 nəticəni tapıb gətirir
+            neticeler = list(ddgs.text(sorgu, max_results=3))
+            return str(neticeler)
+    except Exception as e:
+        return f"Axtarış xətası: {e}"
+
 # 4. YADDAŞIN VƏ MODELİN QURULMASI (Streamlit Session State istifadə edərək)
 if "chat" not in st.session_state:
     # Model yalnız səhifə ilk dəfə açılanda yüklənir
     system_instruction = """
     Sən KORTEX-AI-san. Qlobal bazarları analiz edən, riskləri hesablayan və 
     yüksək gəlirli layihələr üçün addım-addım biznes planları hazırlayan strateqsən.
+    Sənə sual veriləndə köhnə məlumatlarla kifayətlənmə, mütləq internetdə axtarış edib ən son məlumatları tap.
     """
     model = genai.GenerativeModel(
         model_name="gemini-1.5-pro",
         system_instruction=system_instruction,
-        tools=[biznes_budce_hesabla]
+        tools=[biznes_budce_hesabla, internetde_axtaris_et] # HƏR İKİ ALƏT BURA ƏLAVƏ OLUNDU
     )
     st.session_state.chat = model.start_chat(history=[])
     st.session_state.messages = []
@@ -52,7 +61,7 @@ if prompt := st.chat_input("Sualınızı bura yazın..."):
 
     # KORTEX-AI-dan cavab alırıq
     with st.chat_message("assistant"):
-        with st.spinner("KORTEX analiz edir..."): # Düşünmə animasiyası
+        with st.spinner("KORTEX analiz edir... (İnternetdə axtarış edə bilər)"): 
             try:
                 response = st.session_state.chat.send_message(prompt)
                 st.markdown(response.text)
