@@ -5,11 +5,11 @@ import google.generativeai as genai
 st.set_page_config(page_title="KORTEX-AI", page_icon="🧠")
 st.title("🧠 KORTEX-AI: Ultra Beyin")
 
-# 2. API AÇARINI QEYD EDİRİK (Sənin verdiyin açarı bura yerləşdirdim)
+# 2. API AÇARI (Sənin verdiyin açar bura yerləşdirilib)
 API_KEY = "AIzaSyAvgUNZUco4-KxQxtFOcKnoh4oUOyjIxmk"
 genai.configure(api_key=API_KEY)
 
-# 3. YADDAŞ SİSTEMİ
+# 3. YADDAŞ SİSTEMİ (Müvəqqəti olaraq sadə saxlayırıq)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -27,17 +27,14 @@ if prompt := st.chat_input("Bura 'Salam' yazaraq yoxla..."):
 
     # KORTEX-in cavabı
     with st.chat_message("assistant"):
-        with st.spinner("KORTEX düşünür..."):
+        with st.spinner("KORTEX əlaqə qurur..."):
             try:
-                # Modeli ən sadə variantda çağırırıq (Xəta çıxmaması üçün)
-                model = genai.GenerativeModel("gemini-1.5-pro")
+                # XƏTANIN HƏLLİ: Modeli 'gemini-1.5-flash' olaraq dəyişdik
+                # Bu model 404 xətası vermədən dərhal açılmalıdır
+                model = genai.GenerativeModel("gemini-1.5-flash")
                 
-                # Yaddaş tarixçəsini hazırlayırıq
-                history = [{"role": m["role"], "parts": [m["content"]]} for m in st.session_state.messages[:-1]]
-                chat = model.start_chat(history=history)
-                
-                # Mesajı göndəririk
-                response = chat.send_message(prompt)
+                # Mesajı birbaşa göndəririk (ən sadə və sürətli yol)
+                response = model.generate_content(prompt)
                 
                 # Cavabı ekrana çıxarırıq
                 if response.text:
@@ -47,6 +44,5 @@ if prompt := st.chat_input("Bura 'Salam' yazaraq yoxla..."):
                     st.warning("Model cavab qaytarmadı.")
             
             except Exception as e:
-                st.error(f"Xəta baş verdi: {str(e)}")
-                if "API_KEY_INVALID" in str(e):
-                    st.info("İpucu: API açarını Google AI Studio-dan yenidən yoxlayın.")
+                st.error(f"Sistem xətası: {str(e)}")
+                st.info("İpucu: Əgər yenə 404 xətası versə, 'gemini-pro' yazıb yoxlayın.")
