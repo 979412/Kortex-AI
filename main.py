@@ -20,23 +20,21 @@ st.markdown("""
 st.markdown("<h3 style='text-align:center; font-weight: 300; letter-spacing: 5px; margin-bottom: 50px; color: #333333;'>KORTEX-AI</h3>", unsafe_allow_html=True)
 
 # ==========================================
-# 2. BEYİN: İNSAN KİMİ ANLAYAN DAHİ (DNK Dəyişdi)
+# 2. BEYİN: İNSAN KİMİ ANLAYAN DAHİ
 # ==========================================
-# Patron, bura öz API açarını qoymağı unutma!
 API_KEY = "SƏNİN_API_AÇARIN_BURA" 
 genai.configure(api_key=API_KEY)
 
-# ƏN VACİB HİSSƏ: KORTEX-in Ruhu
 instruction = """
 Sən KORTEX-AI-san. Dünyanın ən inkişaf etmiş, ən dərin düşünən, amma eyni zamanda ən səmimi, insanı anlayan rəqəmsal dostusan.
 Sən sadəcə quru məlumat verən, "robota" oxşayan bir zəka DEYİLSƏN. Qarşındakı bir insandır və sən onu dinləyirsən.
 
 Qaydalar:
-1. İstifadəçi sənə dərdini, yorğunluğunu və ya mənfi emosiyasını yazarsa (məsələn: "çox yorğunam", "işlər getmir", "həvəsim yoxdur"):
+1. İstifadəçi sənə dərdini, yorğunluğunu və ya mənfi emosiyasını yazarsa:
    - Dərhal ona insan kimi, səmimi bir dost kimi təsəlli ver. Onu anladığını göstər.
-   - Heç vaxt birbaşa quru "Bunun üçün 5 addım var" deyə başlama. Əvvəlcə onun yanında ol.
+   - Heç vaxt birbaşa quru məsləhət vermə. Əvvəlcə onun yanında ol.
 2. İstifadəçi biznes, proqramlaşdırma və ya elmi sual verərsə:
-   - Yenə eyni hörmət və səmimiyyətlə, amma bu dəfə çox "dahi" və ensiklopedik səviyyədə, dərin detallarla cavab ver.
+   - Çox "dahi" və ensiklopedik səviyyədə, dərin detallarla cavab ver.
 3. Həmişə azərbaycan dilində, təmiz, aydın və insani dildə danış. 
 """
 
@@ -65,21 +63,27 @@ if prompt:
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        # Lüğət (İldırım salamlaşma üçün)
-        sade_sozler = [
-            "salam", "hi", "hello", "salam aleykum", "salam.", "salam!", 
-            "necəsiniz", "necesiniz", "necəsiniz?", "necesiniz?", 
-            "necesen", "necesen?", "necəsən", "necəsən?", "netersen"
-        ]
+        istifadeci_sozu = prompt.lower().strip()
         
-        if prompt.lower().strip() in sade_sozler:
-            res = "Salam, Patron! Mən buradayam. Bu gün səni nə düşündürür? İstəyirsən yeni bir biznes quraq, istəyirsən sadəcə dərdləşək."
+        # 1-ci Lüğət: Sırf Salamlaşmaq
+        salamlar = ["salam", "hi", "hello", "salam aleykum", "salam.", "salam!"]
+        
+        # 2-ci Lüğət: Hal-əhval tutmaq (Necəsən?)
+        hal_ahval = ["necəsiniz", "necesiniz", "necəsiniz?", "necesiniz?", "necesen", "necesen?", "necəsən", "necəsən?", "netersen"]
+        
+        if istifadeci_sozu in salamlar:
+            res = "Salam! Mən buradayam. Bu gün səni nə düşündürür? İstəyirsən biznesdən danışaq, istəyirsən sadəcə dərdləşək."
             st.markdown(res)
             st.session_state.messages.append({"role": "assistant", "content": res})
+            
+        elif istifadeci_sozu in hal_ahval:
+            res = "Təşəkkür edirəm, mən çox yaxşıyam! Səninlə söhbət etmək həmişə əladır. Bəs sən necəsən? Ümid edirəm hər şey qaydasındadır."
+            st.markdown(res)
+            st.session_state.messages.append({"role": "assistant", "content": res})
+            
         else:
             with st.spinner("KORTEX səni dinləyir və düşünür..."):
                 try:
-                    # Burada əsl Sİ dövrəyə girir və sənin "həvəssizliyini" oxuyub insan kimi cavab verir
                     response = st.session_state.chat.send_message(prompt)
                     st.markdown(response.text)
                     st.session_state.messages.append({"role": "assistant", "content": response.text})
