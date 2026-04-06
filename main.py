@@ -1,6 +1,6 @@
 import streamlit as st
 import google.generativeai as genai
-from duckduckgo_search import DDGS # İnternet axtarışı kitabxanası əlavə olundu
+from duckduckgo_search import DDGS
 
 # 1. SƏHİFƏNİN DİZAYNI VƏ BAŞLIĞI
 st.set_page_config(page_title="KORTEX-AI", page_icon="🧠", layout="centered")
@@ -25,47 +25,60 @@ def internetde_axtaris_et(sorgu: str) -> str:
     """KORTEX-AI bu alətdən istifadə edərək internetdə ən son məlumatları və xəbərləri axtarır."""
     try:
         with DDGS() as ddgs:
-            # İnternetdən ən uyğun 3 nəticəni tapıb gətirir
             neticeler = list(ddgs.text(sorgu, max_results=3))
             return str(neticeler)
     except Exception as e:
         return f"Axtarış xətası: {e}"
 
-# 4. YADDAŞIN VƏ MODELİN QURULMASI (Streamlit Session State istifadə edərək)
+# 4. YADDAŞIN VƏ MODELİN QURULMASI
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
 if "chat" not in st.session_state:
-    # Model yalnız səhifə ilk dəfə açılanda yüklənir
     system_instruction = """
     Sən KORTEX-AI-san. Qlobal bazarları analiz edən, riskləri hesablayan və 
     yüksək gəlirli layihələr üçün addım-addım biznes planları hazırlayan strateqsən.
-    Sənə sual veriləndə köhnə məlumatlarla kifayətlənmə, mütləq internetdə axtarış edib ən son məlumatları tap.
+    Sənə sual veriləndə mütləq cavab ver. Əgər ehtiyac varsa internetdə axtarış et, 
+    amma sadə söhbətlərdə (məs: salam) birbaşa və səmimi cavab ver.
     """
     model = genai.GenerativeModel(
         model_name="gemini-1.5-pro",
         system_instruction=system_instruction,
-        tools=[biznes_budce_hesabla, internetde_axtaris_et] # HƏR İKİ ALƏT BURA ƏLAVƏ OLUNDU
+        tools=[biznes_budce_hesabla, internetde_axtaris_et]
     )
+    # Boş tarixçə ilə başlat
     st.session_state.chat = model.start_chat(history=[])
-    st.session_state.messages = []
 
 # 5. KÖHNƏ MESAJLARI EKRANDA GÖSTƏRMƏK
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# 6. YENİ SÖHBƏT PƏNCƏRƏSİ
+# 6. YENİ SÖHBƏT PƏNCƏRƏSİ (Təkmilləşdirilmiş Versiya)
 if prompt := st.chat_input("Sualınızı bura yazın..."):
-    # Sənin yazdığını ekrana çıxarırıq və yaddaşa salırıq
     with st.chat_message("user"):
         st.markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # KORTEX-AI-dan cavab alırıq
     with st.chat_message("assistant"):
-        with st.spinner("KORTEX analiz edir... (İnternetdə axtarış edə bilər)"): 
+        with st.spinner("KORTEX analiz edir..."):
             try:
+                # Modeldən cavab alırıq
                 response = st.session_state.chat.send_message(prompt)
-                st.markdown(response.text)
-                # KORTEX-in cavabını da yaddaşa salırıq
-                st.session_state.messages.append({"role": "assistant", "content": response.text})
+                
+                # Gemini bəzən mətni birbaşa vermir, partlar daxilindən çıxarırıq
+                full_response = ""
+                if response.candidates and response.candidates[0].content.parts:
+                    for part in response.candidates[0].content.parts:
+                        if hasattr(part, 'text'):
+                            full_response += part.text
+                
+                # Əgər hələ də cavab yoxdursa (funksiya işləyib amma mətn gəlməyibsə)
+                if not full_response:
+                    full_response = "Analiz tamamlandı. Başqa nə kömək edə bilərəm?"
+                
+                st.markdown(full_response)
+                st.session_state.messages.append({"role": "assistant", "content": full_response})
+                
             except Exception as e:
-                st.error(f"Xəta baş verdi: {e}")
+                st.error(f"Xəta baş verdi: {str(e)}")
