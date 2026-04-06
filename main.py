@@ -41,12 +41,14 @@ st.markdown("""
 def encode_image(image_file):
     return base64.b64encode(image_file.read()).decode('utf-8')
 
-# API setup
+# ==========================================================
+# API SETUP - Açar birbaşa koda əlavə edildi
+# ==========================================================
 try:
-    api_key = st.secrets["GROQ_API_KEY"]
+    api_key = "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"
     client = Groq(api_key=api_key)
-except:
-    st.error("API Key tapılmadı! Lütfən Secrets hissəsinə 'GROQ_API_KEY' əlavə edin.")
+except Exception as e:
+    st.error(f"API Bağlantı Xətası: {e}")
     st.stop()
 
 # ==========================================================
