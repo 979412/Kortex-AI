@@ -22,7 +22,7 @@ st.markdown("<h3 style='text-align:center; font-weight: 900; letter-spacing: 3px
 # ==========================================
 # 2. BEYİN: SATIŞ VƏ PSİXOLOGİYA MODULU
 # ==========================================
-# Patron, bura öz AIzaSy... ilə başlayan açarını dırnaqların içinə qoy!
+# Patron, bura öz uzun API açarını dırnaqların içinə qoymağı UNUTMA!
 API_KEY = "SƏNİN_API_AÇARIN_BURA" 
 genai.configure(api_key=API_KEY)
 
@@ -63,8 +63,14 @@ if prompt:
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        # İldırım sürətli salam refleksi
-        if prompt.lower().strip() in ["salam", "necəsiniz", "necesen", "hi"]:
+        # İLDIRIM REFLEKSİ (Lüğət Böyüdüldü)
+        sade_sozler = [
+            "salam", "hi", "hello", "salam aleykum", "salam.", "salam!", 
+            "necəsiniz", "necesiniz", "necəsiniz?", "necesiniz?", 
+            "necesen", "necesen?", "necəsən", "necəsən?", "netersen"
+        ]
+        
+        if prompt.lower().strip() in sade_sozler:
             res = "Salam, Patron! Satışları partlatmağa hazıram. Bu gün nəyi satırıq?"
             st.markdown(res)
             st.session_state.messages.append({"role": "assistant", "content": res})
@@ -75,6 +81,6 @@ if prompt:
                     st.markdown(response.text)
                     st.session_state.messages.append({"role": "assistant", "content": response.text})
                 except Exception as e:
-                    st.error(f"Bağlantı xətası: {e}")
+                    st.error(f"Bağlantı xətası: {e}. API açarını yoxla!")
 
 st.markdown('<script>window.scrollTo(0, document.body.scrollHeight);</script>', unsafe_allow_html=True)
