@@ -1,48 +1,33 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. SƏHİFƏ AYARLARI
-st.set_page_config(page_title="KORTEX-AI", page_icon="🧠")
-st.title("🧠 KORTEX-AI: Ultra Beyin")
+st.set_page_config(page_title="API Açarının Analizi", page_icon="🔍")
+st.title("🔍 API Açarının Modelləri")
 
-# 2. API AÇARI (Sənin verdiyin açar bura yerləşdirilib)
 API_KEY = "AIzaSyAvgUNZUco4-KxQxtFOcKnoh4oUOyjIxmk"
 genai.configure(api_key=API_KEY)
 
-# 3. YADDAŞ SİSTEMİ (Müvəqqəti olaraq sadə saxlayırıq)
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+st.write("Sizin API açarınızın dəstəklədiyi modellər axtarılır...")
 
-# 4. KÖHNƏ MESAJLARI EKRANDA GÖSTƏRMƏK
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-
-# 5. ÇAT MEXANİZMİ
-if prompt := st.chat_input("Bura 'Salam' yazaraq yoxla..."):
-    # İstifadəçinin mesajı
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    st.session_state.messages.append({"role": "user", "content": prompt})
-
-    # KORTEX-in cavabı
-    with st.chat_message("assistant"):
-        with st.spinner("KORTEX əlaqə qurur..."):
-            try:
-                # XƏTANIN HƏLLİ: Modeli 'gemini-1.5-flash' olaraq dəyişdik
-                # Bu model 404 xətası vermədən dərhal açılmalıdır
-                model = genai.GenerativeModel("gemini-1.5-flash")
-                
-                # Mesajı birbaşa göndəririk (ən sadə və sürətli yol)
-                response = model.generate_content(prompt)
-                
-                # Cavabı ekrana çıxarırıq
-                if response.text:
-                    st.markdown(response.text)
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
-                else:
-                    st.warning("Model cavab qaytarmadı.")
+try:
+    # Açarın dəstəklədiyi bütün modelləri siyahıya alırıq
+    modeller = []
+    for model in genai.list_models():
+        # Yalnız 'generateContent' dəstəyi olanları (yəni çat edə bilənləri) seçirik
+        if 'generateContent' in model.supported_generation_methods:
+            modeller.append(model.name)
+    
+    if modeller:
+        st.success(f"Tapıldı! API açarınız {len(modeller)} ədəd modeli dəstəkləyir:")
+        
+        # Modelləri siyahı şəklində göstəririk
+        for m in modeller:
+            st.code(m)
             
-            except Exception as e:
-                st.error(f"Sistem xətası: {str(e)}")
-                st.info("İpucu: Əgər yenə 404 xətası versə, 'gemini-pro' yazıb yoxlayın.")
+        st.info("KORTEX-AI kodunda `model_name=` hissəsinə yuxarıdakı siyahıdan ən güclü görünənini (məsələn, 'models/gemini-1.5-pro' və ya 'models/gemini-pro') yazmalısınız.")
+    else:
+        st.error("Sizin API açarınız heç bir mətn yaratma (generateContent) modelini dəstəkləmir.")
+
+except Exception as e:
+    st.error(f"Kritik Xəta: {e}")
+    st.warning("Bu açar bloklanmış, səhv kopyalanmış və ya regional məhdudiyyətə (məsələn, IP bloku) düşmüş ola bilər.")
