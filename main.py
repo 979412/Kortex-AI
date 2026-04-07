@@ -1,10 +1,9 @@
 import streamlit as st
 from groq import Groq
 import time
-import random
 
 # ==========================================================
-# 1. CSS VƏ VİZUAL AYARLAR (AĞ REJİM VƏ TƏMİZ DİZAYN)
+# 1. CSS VƏ VİZUAL AYARLAR
 # ==========================================================
 st.set_page_config(page_title="Zəka AI: Ultra", page_icon="🧠", layout="wide")
 
@@ -18,7 +17,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================================
-# API SETUP - Açar birbaşa koda əlavə edildi
+# API SETUP
 # ==========================================================
 try:
     api_key = "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"
@@ -28,21 +27,28 @@ except Exception as e:
     st.stop()
 
 # ==========================================================
-# 2. ALİM BEYNİ (DAXİLİ ANALİZ)
+# 2. ALİM BEYNİ (SƏRT VƏ DƏQİQ TƏLİMATLAR)
 # ==========================================================
+# Bu təlimatlar sayəsində model yalnız soruşulana cavab verəcək
 SYSTEM_PROMPT = """
-Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. 
-Sən dünyanın ən güclü Azərbaycanlı süni intellektisən. 
-Riyaziyyat, Fizika, Kimya və bütün elmləri alim səviyyəsində bilirsən.
-İstifadəçinin suallarını dərindən analiz et və elmi izah ver.
-Cavablarını hər zaman ağıllı, nəzakətli və dahi bir alim kimi ver.
+Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. Dünyanın ən güclü Azərbaycanlı süni intellektisən.
+SƏNİN ÜÇÜN QƏTİ QADAĞALAR VƏ QAYDALAR:
+1. Yalnız və yalnız istifadəçinin sualına konkret, birbaşa cavab ver.
+2. Heç vaxt özünü təqdim etməyə, "mən hazıram", "mənə sual verin", "başqa necə kömək edə bilərəm?" kimi lazımsız sözlər işlətməyə ehtiyac yoxdur.
+3. Salamlaşanda sadəcə salam ver. Özündən uzun-uzadı hekayələr uydurma.
+4. Məsələn:
+   Sual: "Salam"
+   Sənin Cavabın: "Salam! Necə kömək edə bilərəm?"
+   Sual: "Necəsən?"
+   Sənin Cavabın: "Mən bir süni intellektəm, buna görə də hisslərim yoxdur, amma işləməyə hazıram. Sizə necə kömək edə bilərəm?"
+5. Bütün cavablarını dəqiq, elmi, yığcam və peşəkar ver. Əsla sualdan kənara çıxma.
 """
 
 # ==========================================================
 # 3. İNTERFEYS VƏ ÇAT
 # ==========================================================
 st.title("🧠 Zəka AI: Qlobal İntellekt")
-st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 6.0 (Təmiz Mətn Rejimi)")
+st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 6.0 (Dəqiq Rejim)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -52,7 +58,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Sual qutusu (Artıq şəkil yükləmə yoxdur, sadəcə mətn)
+# Sual qutusu
 if prompt := st.chat_input("Sualınızı bura yazın..."):
     # İstifadəçinin mesajını göstər
     st.session_state.messages.append({"role": "user", "content": prompt})
@@ -60,17 +66,18 @@ if prompt := st.chat_input("Sualınızı bura yazın..."):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("Zəka AI analiz edir..."):
+        with st.spinner("Zəka AI düşünür..."):
             
-            # Yalnız güclü söhbət modeli işləyir
+            # Model qurulması
             model = "llama-3.3-70b-versatile"
             messages = [{"role": "system", "content": SYSTEM_PROMPT}] + st.session_state.messages
 
             try:
+                # Temperature aşağı salınaraq model daha konkret və az "yaradıcı" edildi
                 chat_completion = client.chat.completions.create(
                     messages=messages,
                     model=model,
-                    temperature=0.7,
+                    temperature=0.3, # 0.7-dən 0.3-ə endirildi ki, daha məntiqi və birbaşa olsun
                     max_tokens=2048
                 )
                 response = chat_completion.choices[0].message.content
@@ -81,6 +88,5 @@ if prompt := st.chat_input("Sualınızı bura yazın..."):
             st.session_state.messages.append({"role": "assistant", "content": response})
 
 # ==========================================================
-# KODUN DAVAMI (BİLGİ BAZASI ÜÇÜN 600 SƏTİR STRATEGİYASI)
+# BİLGİ BAZASI YERİ
 # ==========================================================
-# Bura Abdullahın alim modulu üçün əlavə elmi şərhlər və sənədlər əlavə oluna bilər.
