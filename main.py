@@ -5,7 +5,7 @@ import time
 import random
 
 # ==========================================================
-# 1. CSS VƏ VİZUAL AYARLAR (AĞ REJİM + "+" DÜYMƏSİ)
+# 1. CSS VƏ VİZUAL AYARLAR (AĞ REJİM VƏ TƏMİZ DİZAYN)
 # ==========================================================
 st.set_page_config(page_title="Zəka AI: Ultra", page_icon="🧠", layout="wide")
 
@@ -15,23 +15,6 @@ st.markdown("""
     .stChatMessage { border-radius: 20px; padding: 20px; border: 1px solid #edf2f7; }
     [data-testid="stChatMessageUser"] { background-color: #f7fafc; }
     [data-testid="stChatMessageAssistant"] { background-color: #ebf8ff; }
-    
-    /* "+" Düyməsi üçün sənin yazdığın CSS-in təkmilləşdirilmiş versiyası */
-    .stChatInputContainer textarea { padding-left: 50px !important; }
-    [data-testid="stFileUploader"] {
-        position: fixed; bottom: 38px; left: 55px; width: 35px; z-index: 1000;
-    }
-    [data-testid="stFileUploader"] section { padding: 0; border: none; background: transparent; }
-    [data-testid="stFileUploader"] label, [data-testid="stFileUploader"] small, [data-testid="stFileUploaderText"] {
-        display: none !important;
-    }
-    [data-testid="stFileUploader"] button {
-        background-color: #f0f2f6 !important; border-radius: 50% !important;
-        border: none !important; color: #2b6cb0 !important; font-size: 25px !important;
-        width: 35px !important; height: 35px !important; display: flex !important;
-    }
-    [data-testid="stFileUploader"] button div { display: none; }
-    [data-testid="stFileUploader"] button::after { content: "+" !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -76,8 +59,8 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Şəkil yükləmə (Sənin "+" düymən)
-uploaded_file = st.file_uploader("", type=['png', 'jpg', 'jpeg'])
+# Şəkil yükləmə (Standart Streamlit görünüşü)
+uploaded_file = st.file_uploader("Şəkil yükləyin (istəyə bağlı)", type=['png', 'jpg', 'jpeg'])
 
 if uploaded_file:
     st.sidebar.image(uploaded_file, caption="Analiz üçün hazırlanan şəkil")
