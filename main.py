@@ -1,6 +1,5 @@
 import streamlit as st
 from groq import Groq
-import base64
 import time
 import random
 
@@ -19,12 +18,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================================
-# 2. KÖMƏKÇİ FUNKSİYALAR (ŞƏKİL OXUMA)
-# ==========================================================
-def encode_image(image_file):
-    return base64.b64encode(image_file.read()).decode('utf-8')
-
-# ==========================================================
 # API SETUP - Açar birbaşa koda əlavə edildi
 # ==========================================================
 try:
@@ -35,21 +28,21 @@ except Exception as e:
     st.stop()
 
 # ==========================================================
-# 3. ALİM BEYNİ (DAXİLİ ANALİZ)
+# 2. ALİM BEYNİ (DAXİLİ ANALİZ)
 # ==========================================================
 SYSTEM_PROMPT = """
 Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. 
 Sən dünyanın ən güclü Azərbaycanlı süni intellektisən. 
 Riyaziyyat, Fizika, Kimya və bütün elmləri alim səviyyəsində bilirsən.
-İstifadəçi sənə şəkil atdıqda onu dərindən analiz et və elmi izah ver.
+İstifadəçinin suallarını dərindən analiz et və elmi izah ver.
 Cavablarını hər zaman ağıllı, nəzakətli və dahi bir alim kimi ver.
 """
 
 # ==========================================================
-# 4. İNTERFEYS VƏ ÇAT
+# 3. İNTERFEYS VƏ ÇAT
 # ==========================================================
 st.title("🧠 Zəka AI: Qlobal İntellekt")
-st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 6.0 (Vision Enabled)")
+st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 6.0 (Təmiz Mətn Rejimi)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -59,15 +52,8 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# Şəkil yükləmə (Standart Streamlit görünüşü)
-uploaded_file = st.file_uploader("Şəkil yükləyin (istəyə bağlı)", type=['png', 'jpg', 'jpeg'])
-
-if uploaded_file:
-    st.sidebar.image(uploaded_file, caption="Analiz üçün hazırlanan şəkil")
-    st.toast("Şəkil uğurla yükləndi! İndi sualınızı yazın.")
-
-# Sual qutusu
-if prompt := st.chat_input("Sualınızı bura yazın və ya şəkli soruşun..."):
+# Sual qutusu (Artıq şəkil yükləmə yoxdur, sadəcə mətn)
+if prompt := st.chat_input("Sualınızı bura yazın..."):
     # İstifadəçinin mesajını göstər
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -76,27 +62,9 @@ if prompt := st.chat_input("Sualınızı bura yazın və ya şəkli soruşun..."
     with st.chat_message("assistant"):
         with st.spinner("Zəka AI analiz edir..."):
             
-            # Əgər şəkil varsa, Vision modelini işə salırıq
-            if uploaded_file:
-                base64_image = encode_image(uploaded_file)
-                model = "llama-3.2-11b-vision-preview"
-                
-                messages = [
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt},
-                            {
-                                "type": "image_url",
-                                "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
-                            }
-                        ]
-                    }
-                ]
-            else:
-                # Şəkil yoxdursa, normal söhbət modeli
-                model = "llama-3.3-70b-versatile"
-                messages = [{"role": "system", "content": SYSTEM_PROMPT}] + st.session_state.messages
+            # Yalnız güclü söhbət modeli işləyir
+            model = "llama-3.3-70b-versatile"
+            messages = [{"role": "system", "content": SYSTEM_PROMPT}] + st.session_state.messages
 
             try:
                 chat_completion = client.chat.completions.create(
