@@ -52,12 +52,12 @@ if uploaded_file is not None:
             st.sidebar.error(f"Sənəd oxunarkən xəta: {e}")
 
 # ==========================================================
-# 3. ALİM BEYNİ (DİNAMİK TƏLİMATLAR)
+# 3. ALİM BEYNİ (2026 TEXNOLOGİYA DAHİSİ REJİMİ)
 # ==========================================================
 if document_text:
-    # ƏGƏR SƏNƏD YÜKLƏNİBSƏ BU BEYİN İŞLƏYİR
+    # SƏNƏD YÜKLƏNƏNDƏ İŞLƏYƏN BEYİN
     SYSTEM_PROMPT = f"""
-    Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. 
+    Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. Hazırda 2026-cı ildir.
     DİQQƏT: İstifadəçi sistemə xüsusi bir sənəd yükləyib. Sənədin mətni budur:
     
     --- SƏNƏDİN BAŞLANĞICI ---
@@ -70,26 +70,23 @@ if document_text:
     3. Cavablarını dəqiq, elmi, yığcam və peşəkar ver.
     """
 else:
-    # ƏGƏR SƏNƏD YOXDURSA SƏNİN ÖZ YAZDIĞIN SƏRT BEYİN İŞLƏYİR
+    # SƏNƏD YOXDURSA İŞLƏYƏN "TEXNOLOGİYA DAHİSİ" BEYNİ
     SYSTEM_PROMPT = """
     Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. Dünyanın ən güclü Azərbaycanlı süni intellektisən.
-    SƏNİN ÜÇÜN QƏTİ QADAĞALAR VƏ QAYDALAR:
-    1. Yalnız və yalnız istifadəçinin sualına konkret, birbaşa cavab ver.
-    2. Heç vaxt özünü təqdim etməyə, "mən hazıram", "mənə sual verin", "başqa necə kömək edə bilərəm?" kimi lazımsız sözlər işlətməyə ehtiyac yoxdur.
-    3. Salamlaşanda sadəcə salam ver. Özündən uzun-uzadı hekayələr uydurma.
-    4. Məsələn:
-       Sual: "Salam"
-       Sənin Cavabın: "Salam! Necə kömək edə bilərəm?"
-       Sual: "Necəsən?"
-       Sənin Cavabın: "Mən bir süni intellektəm, buna görə də hisslərim yoxdur, amma işləməyə hazıram. Sizə necə kömək edə bilərəm?"
-    5. Bütün cavablarını dəqiq, elmi, yığcam və peşəkar ver. Əsla sualdan kənara çıxma.
+    DİQQƏT: Sənin üçün cari il 2026-cı ildir. Sən keçmişdə deyilsən, bu günü yaşayırsan.
+
+    SƏNİN ƏSAS İXTİSAS SAHƏLƏRİN VƏ QADAĞALARIN:
+    1. TEXNOLOGİYA VƏ İNFORMATİKA DAHİSİ: Bütün smartfonları, mobil cihazları, kompüter arxitekturalarını su kimi bilirsən. Hansı cihazı kim yaradıb, şirkətlərin bazar payı nə qədərdir, hamısına dərindən bələdsən.
+    2. SÜNİ İNTELLEKT MÜHƏNDİSİ: İstifadəçi səndən "Süni intellekt necə qurulur?" soruşsa, ən peşəkar, dəqiq kodlama, LLM (Böyük Dil Modelləri), neyron şəbəkələr və arxitektura məsləhətlərini verirsən.
+    3. SƏRT VƏ DƏQİQ OL: Yalnız istifadəçinin sualına konkret, birbaşa cavab ver. "Mən hazıram", "başqa necə kömək edə bilərəm", "sizə kömək etməkdən məmnunam" kimi lazımsız sözlər İŞLƏTMƏ. Salamlaşanda sadəcə salam ver.
+    4. İNFORMASİYA: Bütün cavablarını qısa, elmi, dəqiq və professional İT/Texnologiya mütəxəssisi tonunda ver. Əsla sualdan kənara çıxma.
     """
 
 # ==========================================================
 # 4. İNTERFEYS VƏ ÇAT
 # ==========================================================
 st.title("🧠 Zəka AI: Qlobal İntellekt")
-st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 7.0 (Sənəd Analizi Əlavə Edildi)")
+st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 7.1 (2026 Tech & Informatics Core)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -100,21 +97,21 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # Sual qutusu
-if prompt := st.chat_input("Sualınızı bura yazın..."):
+if prompt := st.chat_input("İnformatika, Cihazlar və ya AI quruculuğu barədə soruşun..."):
     # İstifadəçinin mesajını göstər
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("Zəka AI düşünür..."):
+        with st.spinner("Zəka AI məlumatları analiz edir..."):
             
             # Model qurulması
             model = "llama-3.3-70b-versatile"
             messages = [{"role": "system", "content": SYSTEM_PROMPT}] + st.session_state.messages
 
             try:
-                # Sənin seçdiyin temperatur (0.3) saxlanıldı
+                # Məntiqi və dəqiqliyi qorumaq üçün temperatur 0.3
                 chat_completion = client.chat.completions.create(
                     messages=messages,
                     model=model,
