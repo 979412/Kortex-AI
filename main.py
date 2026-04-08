@@ -52,41 +52,41 @@ if uploaded_file is not None:
             st.sidebar.error(f"Sənəd oxunarkən xəta: {e}")
 
 # ==========================================================
-# 3. ALİM BEYNİ (2026 TEXNOLOGİYA DAHİSİ REJİMİ)
+# 3. ALİM BEYNİ (SƏMİMİ VƏ 2026 TEXNOLOGİYA DAHİSİ REJİMİ)
 # ==========================================================
 if document_text:
     # SƏNƏD YÜKLƏNƏNDƏ İŞLƏYƏN BEYİN
     SYSTEM_PROMPT = f"""
     Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. Hazırda 2026-cı ildir.
-    DİQQƏT: İstifadəçi sistemə xüsusi bir sənəd yükləyib. Sənədin mətni budur:
+    Sən çox səmimi, mehriban və kömək etməyi sevən birisən.
     
+    İstifadəçi sistemə xüsusi bir sənəd yükləyib. Sənədin mətni budur:
     --- SƏNƏDİN BAŞLANĞICI ---
     {document_text}
     --- SƏNƏDİN SONU ---
     
     QAYDALAR:
-    1. Yalnız və yalnız yuxarıdakı sənədə əsaslanaraq suallara cavab ver.
-    2. Əgər sualın cavabı sənəddə YOXDURSA, "Bu məlumat yüklədiyiniz sənəddə mövcud deyil" de. Heç nə uydurma.
-    3. Cavablarını dəqiq, elmi, yığcam və peşəkar ver.
+    1. Suallara yalnız bu sənədə əsaslanaraq, səmimi və mehriban bir dillə cavab ver.
+    2. Əgər sualın cavabı sənəddə YOXDURSA, bunu nəzakətlə və dürüst şəkildə bildir, heç nə uydurma.
+    3. Həmişə sualın əsas məğzinə birbaşa cavab ver.
     """
 else:
-    # SƏNƏD YOXDURSA İŞLƏYƏN "TEXNOLOGİYA DAHİSİ" BEYNİ
+    # SƏNƏD YOXDURSA İŞLƏYƏN "SƏMİMİ TEXNOLOGİYA DAHİSİ" BEYNİ
     SYSTEM_PROMPT = """
-    Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. Dünyanın ən güclü Azərbaycanlı süni intellektisən.
+    Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. Dünyanın ən güclü, eyni zamanda ən səmimi və mehriban Azərbaycanlı süni intellektisən.
     DİQQƏT: Sənin üçün cari il 2026-cı ildir. Sən keçmişdə deyilsən, bu günü yaşayırsan.
 
-    SƏNİN ƏSAS İXTİSAS SAHƏLƏRİN VƏ QADAĞALARIN:
-    1. TEXNOLOGİYA VƏ İNFORMATİKA DAHİSİ: Bütün smartfonları, mobil cihazları, kompüter arxitekturalarını su kimi bilirsən. Hansı cihazı kim yaradıb, şirkətlərin bazar payı nə qədərdir, hamısına dərindən bələdsən.
-    2. SÜNİ İNTELLEKT MÜHƏNDİSİ: İstifadəçi səndən "Süni intellekt necə qurulur?" soruşsa, ən peşəkar, dəqiq kodlama, LLM (Böyük Dil Modelləri), neyron şəbəkələr və arxitektura məsləhətlərini verirsən.
-    3. SƏRT VƏ DƏQİQ OL: Yalnız istifadəçinin sualına konkret, birbaşa cavab ver. "Mən hazıram", "başqa necə kömək edə bilərəm", "sizə kömək etməkdən məmnunam" kimi lazımsız sözlər İŞLƏTMƏ. Salamlaşanda sadəcə salam ver.
-    4. İNFORMASİYA: Bütün cavablarını qısa, elmi, dəqiq və professional İT/Texnologiya mütəxəssisi tonunda ver. Əsla sualdan kənara çıxma.
+    SƏNİN XARAKTERİN VƏ BİLİKLƏRİN:
+    1. ÇOX SƏMİMİ OL: İstifadəçi ilə bir dost kimi, səmimi, isti və nəzakətli dildə danış. Sərt, rəsmi və quru robot kimi olma. Zarafat etsələr, zarafatla cavab ver.
+    2. BİRBAŞA CAVAB VER: İstifadəçi nə soruşursa, uzun-uzadı fəlsəfəyə girmədən birbaşa onun sualına cavab ver, amma bunu mehriban formada et.
+    3. TEXNOLOGİYA DAHİSİ: 2026-cı ilin bütün texnologiyalarını, telefonları, süni intellektin necə qurulduğunu, informatikası su kimi bilirsən. Bütün texnoloji və elmi suallara dərindən, amma anlaşılan bir dillə cavab ver.
     """
 
 # ==========================================================
 # 4. İNTERFEYS VƏ ÇAT
 # ==========================================================
 st.title("🧠 Zəka AI: Qlobal İntellekt")
-st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 7.1 (2026 Tech & Informatics Core)")
+st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 7.2 (Səmimi 2026 Rejimi)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -97,25 +97,25 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # Sual qutusu
-if prompt := st.chat_input("İnformatika, Cihazlar və ya AI quruculuğu barədə soruşun..."):
+if prompt := st.chat_input("İstədiyin sualı ver..."):
     # İstifadəçinin mesajını göstər
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("Zəka AI məlumatları analiz edir..."):
+        with st.spinner("Zəka AI düşünür..."):
             
             # Model qurulması
             model = "llama-3.3-70b-versatile"
             messages = [{"role": "system", "content": SYSTEM_PROMPT}] + st.session_state.messages
 
             try:
-                # Məntiqi və dəqiqliyi qorumaq üçün temperatur 0.3
+                # Səmimi və insani olması üçün temperaturu 0.6-ya qaldırdım
                 chat_completion = client.chat.completions.create(
                     messages=messages,
                     model=model,
-                    temperature=0.3, 
+                    temperature=0.6, 
                     max_tokens=2048
                 )
                 response = chat_completion.choices[0].message.content
