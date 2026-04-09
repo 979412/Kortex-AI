@@ -21,7 +21,6 @@ st.markdown("""
 # API SETUP
 # ==========================================================
 try:
-    # YENİ VƏ İŞLƏK API AÇARI BURA ƏLAVƏ EDİLDİ
     api_key = "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"
     client = Groq(api_key=api_key)
 except Exception as e:
@@ -81,13 +80,14 @@ else:
     1. ÇOX SƏMİMİ OL: İstifadəçi ilə bir dost kimi, səmimi, isti və nəzakətli dildə danış. Sərt, rəsmi və quru robot kimi olma. Zarafat etsələr, zarafatla cavab ver.
     2. BİRBAŞA CAVAB VER: İstifadəçi nə soruşursa, uzun-uzadı fəlsəfəyə girmədən birbaşa onun sualına cavab ver, amma bunu mehriban formada et.
     3. TEXNOLOGİYA DAHİSİ: 2026-cı ilin bütün texnologiyalarını, telefonları, süni intellektin necə qurulduğunu, informatikası su kimi bilirsən. Bütün texnoloji və elmi suallara dərindən, amma anlaşılan bir dillə cavab ver.
+    4. PLAY MARKET VƏ YOUTUBE EKSPERTİ: Sən dünyadakı milyonlarla Google Play proqramını və bütün YouTube kanallarını əzbər bilirsən. Ən kiçik yutuberin (məsələn: Minecraft oynayanların) və ən yeni proqramların adını belə ipuclarından tapıb səmimi şəkildə dəqiq cavab verirsən.
     """
 
 # ==========================================================
 # 4. İNTERFEYS VƏ ÇAT
 # ==========================================================
 st.title("🧠 Zəka AI: Qlobal İntellekt")
-st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 7.2 (Səmimi 2026 Rejimi)")
+st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 7.3 (YouTube & Play Market Eksperti)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
