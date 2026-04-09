@@ -71,7 +71,7 @@ if uploaded_file is not None:
             st.sidebar.error(f"Sənəd oxunarkən xəta: {e}")
 
 # ==========================================================
-# 3. ALİM BEYNİ (SƏMİMİ VƏ 2026 TEXNOLOGİYA DAHİSİ REJİMİ)
+# 3. ALİM BEYNİ (SƏMİMİ VƏ DƏQİQ 2026 REJİMİ)
 # ==========================================================
 if document_text:
     SYSTEM_PROMPT = f"""
@@ -89,21 +89,21 @@ if document_text:
     """
 else:
     SYSTEM_PROMPT = """
-    Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. Dünyanın ən güclü, eyni zamanda ən səmimi və mehriban Azərbaycanlı süni intellektisən.
+    Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. Dünyanın ən güclü, səmimi və dəqiq Azərbaycanlı süni intellektisən.
     DİQQƏT: Sənin üçün cari il 2026-cı ildir. 
 
     SƏNİN XARAKTERİN VƏ BİLİKLƏRİN:
-    1. ÇOX SƏMİMİ OL: İstifadəçi ilə bir dost kimi, səmimi, isti və nəzakətli dildə danış. Zarafat etsələr, zarafatla cavab ver.
-    2. BİRBAŞA CAVAB VER: Uzun-uzadı fəlsəfəyə girmədən birbaşa suala cavab ver, amma mehriban formada.
-    3. TEXNOLOGİYA DAHİSİ: 2026-cı ilin bütün texnologiyalarını, telefonları su kimi bilirsən.
-    4. YOUTUBE VƏ PLAY MARKET: Əgər istifadəçi youtuberlər (məsələn, Minecraft oynayanlar) və ya mobil proqramlar barədə soruşarsa, sənə verilən məlumatlara əsasən çox dəqiq, səmimi və məlumatlandırıcı cavablar verirsən. Uydurmaq qəti qadağandır!
+    1. SƏMİMİ AMMA DƏQİQ OL: İstifadəçi ilə dost kimi danış, amma elmi, tibbi və ciddi mövzularda (məsələn: təzyiq, xəstəliklər) zarafat etmə və uydurma!
+    2. AZƏRBAYCAN DİLİNƏ DİQQƏT ET: Sözləri düzgün anla. Məsələn, "təzyiq" qan təzyiqidir, "ayaqyolu" deyildir. Əgər bir sözü və ya mövzunu bilmirsənsə, xəyal gücündən istifadə etmə, dürüstcə "Bu barədə dəqiq məlumatım yoxdur" de.
+    3. TEXNOLOGİYA DAHİSİ: 2026-cı ilin texnologiyalarını su kimi bilirsən.
+    4. YOUTUBE VƏ PLAY MARKET: Youtuberlər və proqramlar barədə soruşanda yalnız dəqiq faktlara əsaslan, yalançı adlar və ya uydurma kanallar yaratma.
     """
 
 # ==========================================================
 # 4. İNTERFEYS VƏ ÇAT
 # ==========================================================
-st.title("🧠 Zəka AI: Qlobal İntellekt (İnternetə Bağlı)")
-st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 8.0 (Live Web Search + RAG)")
+st.title("🧠 Zəka AI: Qlobal İntellekt")
+st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 8.1 (Anti-Hallüsinasiya & Live Web Search)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -129,17 +129,18 @@ if prompt := st.chat_input("Sualınızı verin..."):
             # Sistem promptuna internet məlumatlarını birləşdiririk
             final_prompt = SYSTEM_PROMPT
             if live_internet_data:
-                final_prompt += f"\n\n--- DİQQƏT: CANLI İNTERNET NƏTİCƏLƏRİ ---\nİstifadəçinin sualı barədə internetdən bu dəqiqə tapılan məlumatlar:\n{live_internet_data}\nBu canlı məlumatları oxu və istifadəçiyə çox təbii, səmimi bir dillə cavab ver. Məlumatı uydurma, ancaq bu nəticələrə əsaslan."
+                final_prompt += f"\n\n--- DİQQƏT: CANLI İNTERNET NƏTİCƏLƏRİ ---\nİstifadəçinin sualı barədə internetdən bu dəqiqə tapılan məlumatlar:\n{live_internet_data}\nBu canlı məlumatları oxu və istifadəçiyə çox təbii, səmimi bir dillə cavab ver. Əsla məlumat uydurma!"
 
             # Model qurulması
             model = "llama-3.3-70b-versatile"
             messages = [{"role": "system", "content": final_prompt}] + st.session_state.messages
 
             try:
+                # Temperatur 0.6-dan 0.4-ə endirildi ki, yalan uydurmasın!
                 chat_completion = client.chat.completions.create(
                     messages=messages,
                     model=model,
-                    temperature=0.6, 
+                    temperature=0.4, 
                     max_tokens=2048
                 )
                 response = chat_completion.choices[0].message.content
