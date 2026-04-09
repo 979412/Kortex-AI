@@ -21,7 +21,8 @@ st.markdown("""
 # API SETUP
 # ==========================================================
 try:
-    api_key = "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"
+    # YENİ VƏ İŞLƏK API AÇARI BURA ƏLAVƏ EDİLDİ
+    api_key = "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"
     client = Groq(api_key=api_key)
 except Exception as e:
     st.error(f"API Bağlantı Xətası: {e}")
