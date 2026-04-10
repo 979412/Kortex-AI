@@ -199,35 +199,21 @@ with header_col2:
         st.rerun()
 
 # ==========================================================
-# YAN PANEL (NƏHƏNG FUNKSİYALAR EKRANI)
+# YAN PANEL (TƏMİZLƏNDİ - YENİ ƏLAVƏLƏR ÜÇÜN HAZIRDIR)
 # ==========================================================
 st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 
-# PRO & ULTRA FUNKSİYALARI
-st.sidebar.markdown("---")
-if st.session_state.selected_tier in ["Pro", "Ultra"]:
-    use_internet = st.sidebar.checkbox("🌐 Deep Research (İnternet)", value=True)
-    use_vision = st.sidebar.checkbox("🎨 Kortex Vision (Şəkil)", value=True)
-else:
-    st.sidebar.warning("🔒 İnternet & Şəkil üçün Pro/Ultra lazımdır.")
-    use_internet = False
-    use_vision = False
+# Arxa planda işləyən funksiyalar (Ekranda görünmür, paketə görə avtomatik işləyir)
+use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
+use_vision = st.session_state.selected_tier in ["Pro", "Ultra"]
+use_video = st.session_state.selected_tier == "Ultra"
+use_music = st.session_state.selected_tier == "Ultra"
 
-# YALNIZ ULTRA FUNKSİYALARI (VEO 4.0 VƏ MUSİQİ)
 st.sidebar.markdown("---")
-st.sidebar.subheader("💎 Ultra Eksklüziv")
-if st.session_state.selected_tier == "Ultra":
-    use_video = st.sidebar.checkbox("🎥 Veo 4.0 (Video Yaratma)", value=True)
-    use_music = st.sidebar.checkbox("🎼 Producer.ai (Musiqi)", value=True)
-    st.sidebar.info("Sən bu paneldə limitsiz gücə sahibsən.")
-else:
-    st.sidebar.warning("🔒 Video (Veo) və Musiqi yalnız Ultra paketindədir.")
-    use_video = False
-    use_music = False
+# İstifadəçi "ora nə əlavə edəcəm deyəcəm" dediyi üçün buranı boş saxladıq.
 
 # PDF YÜKLƏMƏ
-st.sidebar.markdown("---")
 uploaded_file = st.sidebar.file_uploader("Sənəd Yüklə (PDF)", type=['pdf'])
 document_text = ""
 if uploaded_file is not None:
@@ -273,7 +259,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məs: 'Şəkil yarat', 'Vid
         prompt_lower = prompt.lower()
         
         # --- VİDEO YARATMA (VEO 4.0) ---
-        if "video" in prompt_lower and use_video and st.session_state.selected_tier == "Ultra":
+        if "video" in prompt_lower and use_video:
             with st.spinner("🎥 Kortex Veo 4.0 video render edir (Bu bir qədər vaxt apara bilər)..."):
                 time.sleep(2)
                 response = "Ultra lisenziyanız təsdiqləndi. Kortex Veo 4.0 mühərriki tapşırığınız üzrə yüksək keyfiyyətli video generasiyasına başladı."
@@ -283,7 +269,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məs: 'Şəkil yarat', 'Vid
                 st.session_state.messages.append({"role": "assistant", "content": response, "video_msg": vid_msg})
                 
         # --- MUSİQİ YARATMA (PRODUCER.AI) ---
-        elif "musiqi" in prompt_lower and use_music and st.session_state.selected_tier == "Ultra":
+        elif "musiqi" in prompt_lower and use_music:
             with st.spinner("🎼 Producer.ai notları və ritmi bəstələyir..."):
                 time.sleep(2)
                 response = "Musiqi studiyası işə salındı! İstəyinizə uyğun audiotrek bəstələnir."
@@ -293,7 +279,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məs: 'Şəkil yarat', 'Vid
                 st.session_state.messages.append({"role": "assistant", "content": response, "music_msg": mus_msg})
         
         # --- ŞƏKİL YARATMA (KORTEX VISION) ---
-        elif "şəkil" in prompt_lower and use_vision and st.session_state.selected_tier in ["Pro", "Ultra"]:
+        elif "şəkil" in prompt_lower and use_vision:
             with st.spinner("🎨 Kortex Vision şəkli çəkir..."):
                 time.sleep(1) 
                 img_prompt = prompt_lower.replace("şəkil", "").replace("yarat", "").replace("çək", "").strip()
@@ -306,7 +292,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məs: 'Şəkil yarat', 'Vid
                 
         # --- İNTERNET VƏ SÖHBƏT ---
         else:
-            if use_internet and st.session_state.selected_tier in ["Pro", "Ultra"]:
+            if use_internet:
                 with st.spinner("🌐 Kortex Deep Research interneti axtarır..."):
                     try:
                         kw_chat = client.chat.completions.create(
