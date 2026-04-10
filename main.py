@@ -7,7 +7,7 @@ from duckduckgo_search import DDGS
 # ==========================================================
 # 1. CSS VƏ VİZUAL AYARLAR
 # ==========================================================
-st.set_page_config(page_title="Zəka AI: Ultra", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Kortex AI: Ultra", page_icon="🧠", layout="wide")
 
 st.markdown("""
     <style>
@@ -44,7 +44,7 @@ def search_internet(query):
 # ==========================================================
 # 2. YAN PANEL (MƏLUMAT BAZASI VƏ İNTERNET)
 # ==========================================================
-st.sidebar.title("⚙️ Zəka AI İdarə Paneli")
+st.sidebar.title("⚙️ Kortex AI İdarə Paneli")
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("🌐 Canlı İnternet")
@@ -56,7 +56,7 @@ uploaded_file = st.sidebar.file_uploader("Sənəd yükləyin", type=['pdf'])
 document_text = ""
 
 if uploaded_file is not None:
-    with st.spinner("Sənəd Zəka AI-ın beyninə inteqrasiya olunur..."):
+    with st.spinner("Sənəd Kortex AI-ın beyninə inteqrasiya olunur..."):
         try:
             pdf_reader = PyPDF2.PdfReader(uploaded_file)
             for page in pdf_reader.pages:
@@ -73,13 +73,13 @@ if uploaded_file is not None:
 # ==========================================================
 if document_text:
     SYSTEM_PROMPT = f"""
-    Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. 
+    Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. 
     İstifadəçi sənəd yükləyib. Mətn budur: {document_text}
     QAYDALAR: Yalnız bu sənədə əsaslanaraq səmimi cavab ver.
     """
 else:
     SYSTEM_PROMPT = """
-    Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. Dünyanın ən güclü, səmimi Azərbaycanlı süni intellektisən.
+    Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. Dünyanın ən güclü, səmimi Azərbaycanlı süni intellektisən.
     DİQQƏT: Sənin üçün cari il 2026-cı ildir. Sən canlı internet məlumatları ilə qidalanırsan.
 
     ŞƏXSİYYƏTİN VƏ SƏRT QAYDALARIN:
@@ -91,8 +91,8 @@ else:
 # ==========================================================
 # 4. İNTERFEYS VƏ ÇAT
 # ==========================================================
-st.title("🧠 Zəka AI: Qlobal İntellekt")
-st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 9.1 (Sərt Məntiq + İki Mərhələli Agent)")
+st.title("🧠 Kortex AI: Qlobal İntellekt")
+st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 9.1 (Kortex Rebrandinq + İki Mərhələli Agent)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -111,7 +111,7 @@ if prompt := st.chat_input("İstədiyiniz məlumatı, Youtuberi və ya xəbəri 
         # --- İKİ MƏRHƏLƏLİ AĞILLI AXTARIŞ ---
         live_internet_data = ""
         if use_internet:
-            with st.spinner("🧠 Zəka AI axtarış üçün açar sözləri düşünür..."):
+            with st.spinner("🧠 Kortex AI axtarış üçün açar sözləri düşünür..."):
                 try:
                     kw_chat = client.chat.completions.create(
                         messages=[
@@ -130,7 +130,7 @@ if prompt := st.chat_input("İstədiyiniz məlumatı, Youtuberi və ya xəbəri 
                 live_internet_data = search_internet(search_query)
         
         # --- YEKUN CAVABIN HAZIRLANMASI ---
-        with st.spinner("Zəka AI cavab hazırlayır..."):
+        with st.spinner("Kortex AI cavab hazırlayır..."):
             final_prompt = SYSTEM_PROMPT
             if live_internet_data:
                 final_prompt += f"\n\n--- DİQQƏT: CANLI İNTERNET NƏTİCƏLƏRİ ---\nİnternetdən tapılan məlumatlar:\n{live_internet_data}\n\nƏgər bu nəticələr istifadəçinin sualı ilə MƏNTİQƏN tamamilə əlaqəsizdirsə, onlara əhəmiyyət vermə və dürüstcə 'Məlumatım yoxdur' de."
