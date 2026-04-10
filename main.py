@@ -7,7 +7,7 @@ from duckduckgo_search import DDGS
 # ==========================================================
 # 1. CSS VƏ VİZUAL AYARLAR
 # ==========================================================
-st.set_page_config(page_title="Kortex AI: Ultra", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Kortex AI", page_icon="🧠", layout="wide")
 
 st.markdown("""
     <style>
@@ -15,6 +15,36 @@ st.markdown("""
     .stChatMessage { border-radius: 20px; padding: 20px; border: 1px solid #edf2f7; }
     [data-testid="stChatMessageUser"] { background-color: #f7fafc; }
     [data-testid="stChatMessageAssistant"] { background-color: #ebf8ff; }
+    
+    /* GİRİŞ EKRANI VƏ QİYMƏT KARTLARI ÜÇÜN DİZAYN */
+    .pricing-card {
+        border: 2px solid #edf2f7; 
+        border-radius: 15px; 
+        padding: 30px; 
+        text-align: center;
+        background-color: #ffffff;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: transform 0.3s;
+    }
+    .pricing-card:hover { transform: translateY(-5px); border-color: #1a73e8; }
+    .tier-name { font-size: 24px; font-weight: bold; color: #202124; margin-bottom: 10px; }
+    .tier-desc { font-size: 14px; color: #5f6368; height: 60px; }
+    .tier-price { font-size: 36px; font-weight: bold; color: #1a73e8; margin: 20px 0; }
+    .tier-price span { font-size: 18px; color: #5f6368; font-weight: normal; }
+    
+    /* MAVİ DÜYMƏLƏR */
+    div[data-testid="stButton"] > button {
+        background-color: #1a73e8;
+        color: white;
+        border-radius: 20px;
+        border: none;
+        padding: 10px 20px;
+        font-weight: bold;
+    }
+    div[data-testid="stButton"] > button:hover {
+        background-color: #1557b0;
+        color: white;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -28,9 +58,6 @@ except Exception as e:
     st.error(f"API Bağlantı Xətası: {e}")
     st.stop()
 
-# ==========================================================
-# İNTERNET AXTARIŞI FUNKSİYASI
-# ==========================================================
 def search_internet(query):
     try:
         results = DDGS().text(query, max_results=5) 
@@ -42,12 +69,67 @@ def search_internet(query):
         return ""
 
 # ==========================================================
-# 2. YAN PANEL (MƏLUMAT BAZASI VƏ İNTERNET)
+# 2. QİYMƏT CƏDVƏLİ VƏ GİRİŞ EKRANI
 # ==========================================================
-st.sidebar.title("⚙️ Kortex AI İdarə Paneli")
+if "selected_tier" not in st.session_state:
+    st.session_state.selected_tier = None
+
+if st.session_state.selected_tier is None:
+    st.markdown("<h1 style='text-align: center; color: #202124;'>Kortex AI Plans & Pricing</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #5f6368; margin-bottom: 40px;'>Choose the perfect Kortex AI plan for your productivity and creativity needs.</p>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    
+    # KORTEX AI BASIC (SADƏ)
+    with col1:
+        st.markdown("""
+        <div class="pricing-card">
+            <div class="tier-name">Kortex AI Basic</div>
+            <div class="tier-desc">Essential AI features for everyday tasks and simple queries.</div>
+            <div class="tier-price">$0 <span>/month</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Get Kortex Basic", use_container_width=True, key="btn_basic"):
+            st.session_state.selected_tier = "Basic"
+            st.rerun()
+
+    # KORTEX AI PRO
+    with col2:
+        st.markdown("""
+        <div class="pricing-card">
+            <div class="tier-name">Kortex AI Pro</div>
+            <div class="tier-desc">Advanced performance, live internet access, and document analysis.</div>
+            <div class="tier-price">$TBD <span>/month</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Get Kortex Pro", use_container_width=True, key="btn_pro"):
+            st.session_state.selected_tier = "Pro"
+            st.rerun()
+
+    # KORTEX AI ULTRA
+    with col3:
+        st.markdown("""
+        <div class="pricing-card">
+            <div class="tier-name">Kortex AI Ultra</div>
+            <div class="tier-desc">Maximum limits, autonomous agents, and exclusive premium features.</div>
+            <div class="tier-price">$TBD <span>/month</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Get Kortex Ultra", use_container_width=True, key="btn_ultra"):
+            st.session_state.selected_tier = "Ultra"
+            st.rerun()
+            
+    st.stop() # İstifadəçi paket seçməyənə qədər aşağıdakı çat kodunu işə salmır
+
+# ==========================================================
+# 3. YAN PANEL (MƏLUMAT BAZASI VƏ İNTERNET)
+# ==========================================================
+st.sidebar.title("⚙️ Kortex AI Paneli")
+st.sidebar.success(f"💎 Aktiv Paket: {st.session_state.selected_tier}")
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("🌐 Canlı İnternet")
+# Basic paketdə internet bağlı ola bilər, amma hələlik sən istədiyin kimi açıq qoyuram
 use_internet = st.sidebar.checkbox("Ağıllı Axtarış Agentini Aktivləşdir", value=True)
 
 st.sidebar.markdown("---")
@@ -69,7 +151,7 @@ if uploaded_file is not None:
             st.sidebar.error(f"Sənəd oxunarkən xəta: {e}")
 
 # ==========================================================
-# 3. ALİM BEYNİ (SƏRT ANTI-HALLÜSİNASİYA QAYDALARI)
+# 4. ALİM BEYNİ (SƏRT ANTI-HALLÜSİNASİYA QAYDALARI)
 # ==========================================================
 if document_text:
     SYSTEM_PROMPT = f"""
@@ -83,16 +165,22 @@ else:
     DİQQƏT: Sənin üçün cari il 2026-cı ildir. Sən canlı internet məlumatları ilə qidalanırsan.
 
     ŞƏXSİYYƏTİN VƏ SƏRT QAYDALARIN:
-    1. İNTERNET NƏTİCƏLƏRİNİ FİLTRLƏ: Sənə verilən internet nəticələri bəzən səhv ola bilər. Əgər istifadəçi bir adamı (məsələn, youtuberi, oyunçunu) soruşursa, amma internet sənə "mineral, bitki, maddə, xəstəlik" kimi aidiyyatı olmayan məlumat gətirirsə, o məlumatı rədd et!
-    2. SIFIR UYDURMA: Əgər sən bir şeyi (və ya birini) tanımadınsa və ya internet səhv məlumat gətirdisə, dərhal etiraf et: "Mən bu barədə dəqiq məlumat tapa bilmədim." Heç vaxt, heç bir halda mövzunu başqa şeylərə bənzədib uydurma!
-    3. HÖRMƏT: Cavabların səmimi, dürüst və çox ciddi (səviyyəli) olmalıdır. Heç kimə gülməli, uydurma, əlaqəsiz cavablar verib məni pis vəziyyətdə qoyma.
+    1. İNTERNET NƏTİCƏLƏRİNİ FİLTRLƏ: Sənə verilən internet nəticələri bəzən səhv ola bilər. Əgər istifadəçi bir adamı soruşursa, amma internet sənə fərqli məlumat gətirirsə, onu rədd et!
+    2. SIFIR UYDURMA: Əgər məlumat yoxdursa dərhal etiraf et: "Mən bu barədə dəqiq məlumat tapa bilmədim." Mövzunu uydurma!
+    3. HÖRMƏT: Cavabların səmimi, dürüst və çox ciddi olmalıdır.
     """
 
+# ÇIXIŞ DÜYMƏSİ (SƏHİFƏYƏ QAYITMAQ ÜÇÜN)
+st.sidebar.markdown("---")
+if st.sidebar.button("🚪 Paket Seçiminə Qayıt", use_container_width=True):
+    st.session_state.selected_tier = None
+    st.rerun()
+
 # ==========================================================
-# 4. İNTERFEYS VƏ ÇAT
+# 5. İNTERFEYS VƏ ÇAT
 # ==========================================================
 st.title("🧠 Kortex AI: Qlobal İntellekt")
-st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 9.1 (Kortex Rebrandinq + İki Mərhələli Agent)")
+st.caption(f"Yaradıcı: Abdullah Mikayılov | Lisenziya: Kortex {st.session_state.selected_tier}")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -115,11 +203,11 @@ if prompt := st.chat_input("İstədiyiniz məlumatı, Youtuberi və ya xəbəri 
                 try:
                     kw_chat = client.chat.completions.create(
                         messages=[
-                            {"role": "system", "content": "Sən yalnız axtarış sözləri yazan robotsan. Cümlədən ən vacib sözləri və əsas kateqoriyanı tap. Məsələn: 'boralonu taniyirsan' -> 'Boralo youtuber'. 'nuraneni taniyirsan' -> 'Nurane adinda sexs'"},
+                            {"role": "system", "content": "Sən yalnız axtarış sözləri yazan robotsan. Cümlədən ən vacib sözləri tap. Nümunə: 'boralonu taniyirsan' -> 'Boralo youtuber'."},
                             {"role": "user", "content": prompt}
                         ],
                         model="llama-3.3-70b-versatile",
-                        temperature=0.0, # SIFIR YARADICILIQ - Dəqiq olsun
+                        temperature=0.0, 
                         max_tokens=15
                     )
                     search_query = kw_chat.choices[0].message.content.replace("'", "").replace('"', '').strip()
@@ -138,7 +226,6 @@ if prompt := st.chat_input("İstədiyiniz məlumatı, Youtuberi və ya xəbəri 
             messages = [{"role": "system", "content": final_prompt}] + st.session_state.messages
 
             try:
-                # Temperatur aşağı salındı ki, məntiqsiz hekayələr uydurmasın.
                 chat_completion = client.chat.completions.create(
                     messages=messages,
                     model="llama-3.3-70b-versatile",
