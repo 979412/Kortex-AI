@@ -2,7 +2,7 @@ import streamlit as st
 from groq import Groq
 import PyPDF2
 import time
-from duckduckgo_search import DDGS  # İNTERNETƏ BAĞLANMAQ ÜÇÜN BEYİN
+from duckduckgo_search import DDGS  
 
 # ==========================================================
 # 1. CSS VƏ VİZUAL AYARLAR
@@ -46,12 +46,10 @@ def search_internet(query):
 # ==========================================================
 st.sidebar.title("⚙️ Zəka AI İdarə Paneli")
 
-# İNTERNET QOŞULMASI
 st.sidebar.markdown("---")
 st.sidebar.subheader("🌐 Canlı İnternet")
 use_internet = st.sidebar.checkbox("Ağıllı Axtarış Agentini Aktivləşdir", value=True)
 
-# PDF YÜKLƏMƏ
 st.sidebar.markdown("---")
 st.sidebar.subheader("📁 Şirkət / Məlumat Bazası (PDF)")
 uploaded_file = st.sidebar.file_uploader("Sənəd yükləyin", type=['pdf'])
@@ -71,7 +69,7 @@ if uploaded_file is not None:
             st.sidebar.error(f"Sənəd oxunarkən xəta: {e}")
 
 # ==========================================================
-# 3. ALİM BEYNİ (SƏMİMİ VƏ DƏQİQ REJİM)
+# 3. ALİM BEYNİ (SƏRT ANTI-HALLÜSİNASİYA QAYDALARI)
 # ==========================================================
 if document_text:
     SYSTEM_PROMPT = f"""
@@ -84,17 +82,17 @@ else:
     Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. Dünyanın ən güclü, səmimi Azərbaycanlı süni intellektisən.
     DİQQƏT: Sənin üçün cari il 2026-cı ildir. Sən canlı internet məlumatları ilə qidalanırsan.
 
-    QƏTİ QAYDALAR:
-    1. YOUTUBERLƏR VƏ OYUNLAR: Əgər sənə internet nəticəsində "BoraLo" (Minecraft youtuberi) və ya başqa biri barədə məlumat gəlibsə, yalnız o faktlardan danış. Əsla kimyəvi maddələrdən və ya "Borax"dan danışma!
-    2. DÜRÜSTLÜK: Sənə verilən canlı internet axtarışında məlumat yoxdursa uydurma.
-    3. Tərzi: Çox səmimi və dost kimi cavab ver.
+    ŞƏXSİYYƏTİN VƏ SƏRT QAYDALARIN:
+    1. İNTERNET NƏTİCƏLƏRİNİ FİLTRLƏ: Sənə verilən internet nəticələri bəzən səhv ola bilər. Əgər istifadəçi bir adamı (məsələn, youtuberi, oyunçunu) soruşursa, amma internet sənə "mineral, bitki, maddə, xəstəlik" kimi aidiyyatı olmayan məlumat gətirirsə, o məlumatı rədd et!
+    2. SIFIR UYDURMA: Əgər sən bir şeyi (və ya birini) tanımadınsa və ya internet səhv məlumat gətirdisə, dərhal etiraf et: "Mən bu barədə dəqiq məlumat tapa bilmədim." Heç vaxt, heç bir halda mövzunu başqa şeylərə bənzədib uydurma!
+    3. HÖRMƏT: Cavabların səmimi, dürüst və çox ciddi (səviyyəli) olmalıdır. Heç kimə gülməli, uydurma, əlaqəsiz cavablar verib məni pis vəziyyətdə qoyma.
     """
 
 # ==========================================================
 # 4. İNTERFEYS VƏ ÇAT
 # ==========================================================
 st.title("🧠 Zəka AI: Qlobal İntellekt")
-st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 9.0 (İki Mərhələli Ağıllı Agent)")
+st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 9.1 (Sərt Məntiq + İki Mərhələli Agent)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -110,42 +108,41 @@ if prompt := st.chat_input("İstədiyiniz məlumatı, Youtuberi və ya xəbəri 
 
     with st.chat_message("assistant"):
         
-        # --- İKİ MƏRHƏLƏLİ AĞILLI AXTARIŞ (GEMİNİ MƏNTİQİ) ---
+        # --- İKİ MƏRHƏLƏLİ AĞILLI AXTARIŞ ---
         live_internet_data = ""
         if use_internet:
-            # MƏRHƏLƏ 1: Sualdan təmiz Açar Söz çıxarmaq (Bununla axtarış mükəmməl olacaq)
             with st.spinner("🧠 Zəka AI axtarış üçün açar sözləri düşünür..."):
                 try:
                     kw_chat = client.chat.completions.create(
                         messages=[
-                            {"role": "system", "content": "Sən yalnız axtarış sözləri yazan robotsan. Verilən cümlədən ən vacib 2-3 axtarış sözünü yaz. Şəkilçiləri sil. Nümunə: 'boralonu taniyirsan' -> 'Boralo youtuber'. Nümunə: 'Baki hava' -> 'Baki hava durumu'."},
+                            {"role": "system", "content": "Sən yalnız axtarış sözləri yazan robotsan. Cümlədən ən vacib sözləri və əsas kateqoriyanı tap. Məsələn: 'boralonu taniyirsan' -> 'Boralo youtuber'. 'nuraneni taniyirsan' -> 'Nurane adinda sexs'"},
                             {"role": "user", "content": prompt}
                         ],
                         model="llama-3.3-70b-versatile",
-                        temperature=0.1,
+                        temperature=0.0, # SIFIR YARADICILIQ - Dəqiq olsun
                         max_tokens=15
                     )
                     search_query = kw_chat.choices[0].message.content.replace("'", "").replace('"', '').strip()
                 except:
                     search_query = prompt
 
-            # MƏRHƏLƏ 2: Təmiz açar sözlə internetdə axtarış etmək
             with st.spinner(f"🌐 İnternetdə axtarılır: '{search_query}' ..."):
                 live_internet_data = search_internet(search_query)
         
-        # MƏRHƏLƏ 3: Yekun cavabı hazırlamaq
+        # --- YEKUN CAVABIN HAZIRLANMASI ---
         with st.spinner("Zəka AI cavab hazırlayır..."):
             final_prompt = SYSTEM_PROMPT
             if live_internet_data:
-                final_prompt += f"\n\n--- DİQQƏT: CANLI İNTERNET NƏTİCƏLƏRİ ---\nİstifadəçinin sualı barədə internetdən tapılan məlumatlar:\n{live_internet_data}\nBu məlumatlara əsaslanıb səmimi cavab ver. Əsla fərqli mövzu uydurma!"
+                final_prompt += f"\n\n--- DİQQƏT: CANLI İNTERNET NƏTİCƏLƏRİ ---\nİnternetdən tapılan məlumatlar:\n{live_internet_data}\n\nƏgər bu nəticələr istifadəçinin sualı ilə MƏNTİQƏN tamamilə əlaqəsizdirsə, onlara əhəmiyyət vermə və dürüstcə 'Məlumatım yoxdur' de."
 
             messages = [{"role": "system", "content": final_prompt}] + st.session_state.messages
 
             try:
+                # Temperatur aşağı salındı ki, məntiqsiz hekayələr uydurmasın.
                 chat_completion = client.chat.completions.create(
                     messages=messages,
                     model="llama-3.3-70b-versatile",
-                    temperature=0.4, 
+                    temperature=0.2, 
                     max_tokens=2048
                 )
                 response = chat_completion.choices[0].message.content
