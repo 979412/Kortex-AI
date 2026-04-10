@@ -7,7 +7,7 @@ from duckduckgo_search import DDGS
 # ==========================================================
 # 1. CSS VƏ VİZUAL AYARLAR
 # ==========================================================
-st.set_page_config(page_title="Kortex AI", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Kortex AI: Ultra", page_icon="🧠", layout="wide")
 
 st.markdown("""
     <style>
@@ -15,7 +15,6 @@ st.markdown("""
     .stChatMessage { border-radius: 20px; padding: 20px; border: 1px solid #edf2f7; }
     [data-testid="stChatMessageUser"] { background-color: #f7fafc; }
     [data-testid="stChatMessageAssistant"] { background-color: #ebf8ff; }
-    .login-box { border: 2px solid #edf2f7; padding: 30px; border-radius: 15px; background-color: #f8fafc; text-align: center;}
     </style>
 """, unsafe_allow_html=True)
 
@@ -29,6 +28,9 @@ except Exception as e:
     st.error(f"API Bağlantı Xətası: {e}")
     st.stop()
 
+# ==========================================================
+# İNTERNET AXTARIŞI FUNKSİYASI
+# ==========================================================
 def search_internet(query):
     try:
         results = DDGS().text(query, max_results=5) 
@@ -40,106 +42,57 @@ def search_internet(query):
         return ""
 
 # ==========================================================
-# 2. YADDAŞ VƏ "QAPIÇI" SİSTEMİ (LOGIN)
+# 2. YAN PANEL (MƏLUMAT BAZASI VƏ İNTERNET)
 # ==========================================================
-# İstifadəçinin sistemə girib-girmədiyini yoxlayırıq
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-    st.session_state.tier = "none" # "free" və ya "ultra" olacaq
+st.sidebar.title("⚙️ Kortex AI İdarə Paneli")
 
-# ƏGƏR GİRİŞ ETMƏYİBSƏ, YALNIZ LOGIN EKRANI GÖRSƏNİR
-if not st.session_state.logged_in:
-    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
-    st.title("🧠 KORTEX AI - Qlobal Sistemə Giriş")
-    st.write("Dünyanın ən güclü Azərbaycanlı süni intellektinə xoş gəlmisiniz.")
-    st.markdown("---")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("🆓 Pulsuz Rejim")
-        st.write("Sadə suallar və məhdud baza.")
-        if st.button("Pulsuz Davam Et", use_container_width=True):
-            st.session_state.logged_in = True
-            st.session_state.tier = "free"
-            st.rerun() # Səhifəni yeniləyir və çata keçir
-
-    with col2:
-        st.subheader("💎 ULTRA Rejim (Premium)")
-        st.write("Canlı İnternet, Limitsiz PDF və Ağıllı Agent.")
-        secret_key = st.text_input("Ultra Şifrəsini daxil edin:", type="password")
-        if st.button("Ultra Şəbəkəyə Qoşul", use_container_width=True):
-            if secret_key == "MEMAR2026": # SƏNİN SATACAĞIN GİZLİ ŞİFRƏ
-                st.session_state.logged_in = True
-                st.session_state.tier = "ultra"
-                st.rerun()
-            else:
-                st.error("❌ Şifrə yalnışdır! Zəhmət olmasa lisenziya alın.")
-                
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.stop() # Kodun ardını (çatı) oxumağı dayandırır ki, girişsiz kimsə görməsin.
-
-# ==========================================================
-# 3. ƏSAS KORTEX AI EKRANI (YALNIZ GİRİŞ EDƏNLƏR ÜÇÜN)
-# ==========================================================
-st.sidebar.title("⚙️ Kortex AI Paneli")
-if st.session_state.tier == "ultra":
-    st.sidebar.success("💎 ULTRA REJİM AKTİVDİR")
-else:
-    st.sidebar.info("🆓 PULSUZ REJİM")
-
-# İNTERNET MƏNTİQİ (PULLU/PULSUZ AYRIMI)
 st.sidebar.markdown("---")
 st.sidebar.subheader("🌐 Canlı İnternet")
-if st.session_state.tier == "ultra":
-    use_internet = st.sidebar.checkbox("Ağıllı Axtarış Agentini Aktivləşdir", value=True)
-else:
-    st.sidebar.warning("🔒 İnternet axtarışı yalnız ULTRA istifadəçilər üçündür.")
-    use_internet = False
+use_internet = st.sidebar.checkbox("Ağıllı Axtarış Agentini Aktivləşdir", value=True)
 
-# PDF MƏNTİQİ
 st.sidebar.markdown("---")
-st.sidebar.subheader("📁 Məlumat Bazası (PDF)")
+st.sidebar.subheader("📁 Şirkət / Məlumat Bazası (PDF)")
 uploaded_file = st.sidebar.file_uploader("Sənəd yükləyin", type=['pdf'])
 document_text = ""
 
 if uploaded_file is not None:
-    if st.session_state.tier == "free" and uploaded_file.size > 1000000: # Pulsuzda 1MB limit
-        st.sidebar.error("❌ Pulsuz rejimdə yalnız kiçik fayllar yükləyə bilərsiniz. ULTRA lisenziyası alın.")
-    else:
-        with st.spinner("Sənəd beynə inteqrasiya olunur..."):
-            try:
-                pdf_reader = PyPDF2.PdfReader(uploaded_file)
-                for page in pdf_reader.pages:
-                    text = page.extract_text()
-                    if text:
-                        document_text += text + "\n"
-                document_text = document_text[:25000] 
-                st.sidebar.success("✅ Sənəd uğurla oxundu!")
-            except Exception as e:
-                st.sidebar.error(f"Xəta: {e}")
+    with st.spinner("Sənəd Kortex AI-ın beyninə inteqrasiya olunur..."):
+        try:
+            pdf_reader = PyPDF2.PdfReader(uploaded_file)
+            for page in pdf_reader.pages:
+                text = page.extract_text()
+                if text:
+                    document_text += text + "\n"
+            document_text = document_text[:25000] 
+            st.sidebar.success("✅ Sənəd uğurla oxundu!")
+        except Exception as e:
+            st.sidebar.error(f"Sənəd oxunarkən xəta: {e}")
 
-# ÇIXIŞ DÜYMƏSİ
-st.sidebar.markdown("---")
-if st.sidebar.button("🚪 Hesabdan Çıx"):
-    st.session_state.logged_in = False
-    st.session_state.tier = "none"
-    st.rerun()
-
-# ALİM BEYNİ
-SYSTEM_PROMPT = """
-Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. Dünyanın ən güclü Azərbaycanlı süni intellektisən.
-DİQQƏT: Cari il 2026-cı ildir. Cavabların səmimi, dürüst və çox ciddi olmalıdır. Əsla məlumat uydurma.
-"""
+# ==========================================================
+# 3. ALİM BEYNİ (SƏRT ANTI-HALLÜSİNASİYA QAYDALARI)
+# ==========================================================
 if document_text:
-    SYSTEM_PROMPT += f"\nİstifadəçi sənəd yükləyib: {document_text}\nYalnız bu sənədə əsaslan."
-
-# ÇAT İNTERFEYSİ
-st.title("🧠 Kortex AI: Qlobal İntellekt")
-if st.session_state.tier == "ultra":
-    st.caption("Status: Ultra Şəbəkə | Avtonom Agent: ON | Memar: Abdullah Mikayılov")
+    SYSTEM_PROMPT = f"""
+    Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. 
+    İstifadəçi sənəd yükləyib. Mətn budur: {document_text}
+    QAYDALAR: Yalnız bu sənədə əsaslanaraq səmimi cavab ver.
+    """
 else:
-    st.caption("Status: Məhdud Şəbəkə | İnternet: OFF | Memar: Abdullah Mikayılov")
+    SYSTEM_PROMPT = """
+    Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. Dünyanın ən güclü, səmimi Azərbaycanlı süni intellektisən.
+    DİQQƏT: Sənin üçün cari il 2026-cı ildir. Sən canlı internet məlumatları ilə qidalanırsan.
+
+    ŞƏXSİYYƏTİN VƏ SƏRT QAYDALARIN:
+    1. İNTERNET NƏTİCƏLƏRİNİ FİLTRLƏ: Sənə verilən internet nəticələri bəzən səhv ola bilər. Əgər istifadəçi bir adamı (məsələn, youtuberi, oyunçunu) soruşursa, amma internet sənə "mineral, bitki, maddə, xəstəlik" kimi aidiyyatı olmayan məlumat gətirirsə, o məlumatı rədd et!
+    2. SIFIR UYDURMA: Əgər sən bir şeyi (və ya birini) tanımadınsa və ya internet səhv məlumat gətirdisə, dərhal etiraf et: "Mən bu barədə dəqiq məlumat tapa bilmədim." Heç vaxt, heç bir halda mövzunu başqa şeylərə bənzədib uydurma!
+    3. HÖRMƏT: Cavabların səmimi, dürüst və çox ciddi (səviyyəli) olmalıdır. Heç kimə gülməli, uydurma, əlaqəsiz cavablar verib məni pis vəziyyətdə qoyma.
+    """
+
+# ==========================================================
+# 4. İNTERFEYS VƏ ÇAT
+# ==========================================================
+st.title("🧠 Kortex AI: Qlobal İntellekt")
+st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 9.1 (Kortex Rebrandinq + İki Mərhələli Agent)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -148,42 +101,44 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("İstədiyiniz məlumatı soruşun..."):
+if prompt := st.chat_input("İstədiyiniz məlumatı, Youtuberi və ya xəbəri soruşun..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        live_internet_data = ""
         
-        # Əgər ULTRA-dırsa internetə get
-        if use_internet and st.session_state.tier == "ultra":
-            with st.spinner("🧠 Kortex AI axtarış agentini işə salır..."):
+        # --- İKİ MƏRHƏLƏLİ AĞILLI AXTARIŞ ---
+        live_internet_data = ""
+        if use_internet:
+            with st.spinner("🧠 Kortex AI axtarış üçün açar sözləri düşünür..."):
                 try:
                     kw_chat = client.chat.completions.create(
                         messages=[
-                            {"role": "system", "content": "Axtarış sözləri yarat. Məsələn: 'boralonu taniyirsan' -> 'Boralo youtuber'."},
+                            {"role": "system", "content": "Sən yalnız axtarış sözləri yazan robotsan. Cümlədən ən vacib sözləri və əsas kateqoriyanı tap. Məsələn: 'boralonu taniyirsan' -> 'Boralo youtuber'. 'nuraneni taniyirsan' -> 'Nurane adinda sexs'"},
                             {"role": "user", "content": prompt}
                         ],
                         model="llama-3.3-70b-versatile",
-                        temperature=0.0,
+                        temperature=0.0, # SIFIR YARADICILIQ - Dəqiq olsun
                         max_tokens=15
                     )
                     search_query = kw_chat.choices[0].message.content.replace("'", "").replace('"', '').strip()
                 except:
                     search_query = prompt
 
-            with st.spinner(f"🌐 Canlı axtarılır: '{search_query}' ..."):
+            with st.spinner(f"🌐 İnternetdə axtarılır: '{search_query}' ..."):
                 live_internet_data = search_internet(search_query)
         
+        # --- YEKUN CAVABIN HAZIRLANMASI ---
         with st.spinner("Kortex AI cavab hazırlayır..."):
             final_prompt = SYSTEM_PROMPT
             if live_internet_data:
-                final_prompt += f"\n\nCANLI İNTERNET NƏTİCƏLƏRİ:\n{live_internet_data}\nBu nəticələr sualla əlaqəsizdirsə, uydurma."
+                final_prompt += f"\n\n--- DİQQƏT: CANLI İNTERNET NƏTİCƏLƏRİ ---\nİnternetdən tapılan məlumatlar:\n{live_internet_data}\n\nƏgər bu nəticələr istifadəçinin sualı ilə MƏNTİQƏN tamamilə əlaqəsizdirsə, onlara əhəmiyyət vermə və dürüstcə 'Məlumatım yoxdur' de."
 
             messages = [{"role": "system", "content": final_prompt}] + st.session_state.messages
 
             try:
+                # Temperatur aşağı salındı ki, məntiqsiz hekayələr uydurmasın.
                 chat_completion = client.chat.completions.create(
                     messages=messages,
                     model="llama-3.3-70b-versatile",
