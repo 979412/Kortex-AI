@@ -1,7 +1,7 @@
 import streamlit as st
 from groq import Groq
-import PyPDF2
 import time
+import base64
 from duckduckgo_search import DDGS  
 
 # ==========================================================
@@ -16,7 +16,6 @@ st.markdown("""
     [data-testid="stChatMessageUser"] { background-color: #f7fafc; }
     [data-testid="stChatMessageAssistant"] { background-color: #ebf8ff; }
     
-    /* GÜCLƏNDİRİLMİŞ QİYMƏT KARTLARI */
     .pricing-card { border: 2px solid #edf2f7; border-radius: 15px; padding: 25px; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.3s; position: relative; }
     .pricing-card:hover { transform: translateY(-5px); border-color: #1a73e8; box-shadow: 0 10px 20px rgba(26,115,232,0.15); }
     .tier-name { font-size: 24px; font-weight: bold; color: #202124; margin-bottom: 5px; text-align: center;}
@@ -26,7 +25,6 @@ st.markdown("""
     .tier-desc ul { padding-left: 20px; margin-top: 10px; }
     .tier-desc li { margin-bottom: 10px; line-height: 1.4;}
     
-    /* ÖDƏNİŞ EKRANI */
     .payment-box { border: 1px solid #e2e8f0; border-radius: 10px; padding: 30px; background-color: #f8fafc; max-width: 500px; margin: 0 auto; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
     .secure-badge { color: #059669; font-weight: bold; font-size: 14px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 5px;}
     
@@ -89,9 +87,8 @@ if st.session_state.show_pricing:
                 Gündəlik sadə işlər üçün başlanğıc:
                 <ul>
                     <li>💬 Sadə mətn modeli</li>
-                    <li>📄 1 MB PDF oxuma limiti</li>
                     <li>❌ İnternet bağlantısı yoxdur</li>
-                    <li>❌ Media yaratma yoxdur</li>
+                    <li>❌ Görüntü Analizi yoxdur</li>
                 </ul>
             </div>
         </div>
@@ -110,11 +107,9 @@ if st.session_state.show_pricing:
             <div class="tier-desc">
                 Peşəkarlar üçün gücləndirilmiş alətlər:
                 <ul>
-                    <li>🌐 <b>Deep Research:</b> Canlı İnternet Axtarışı</li>
-                    <li>🎨 <b>Kortex Vision:</b> Şəkil yaratma (Gündəlik 50 limit)</li>
-                    <li>☁️ <b>2 TB</b> Kortex Cloud Yaddaşı</li>
-                    <li>📄 50 MB-a qədər PDF analizi</li>
-                    <li>📧 Kortex Docs & Gmail İnteqrasiyası</li>
+                    <li>🌐 <b>Deep Research:</b> Canlı İnternet</li>
+                    <li>👁️ <b>Vision AI:</b> Şəkilləri oxuma və analiz</li>
+                    <li>🎨 <b>Vision Gen:</b> Şəkil yaratma (Limitli)</li>
                 </ul>
             </div>
         </div>
@@ -133,12 +128,10 @@ if st.session_state.show_pricing:
             <div class="tier-desc">
                 <b>Limitsiz Ekosistem (Rəqibsiz):</b>
                 <ul>
-                    <li>🎥 <b>Veo 4.0:</b> Sinematik Video Yaratma</li>
-                    <li>🎼 <b>Producer.ai:</b> Avtonom Musiqi Bəstələmə</li>
-                    <li>🧠 <b>Antigravity:</b> Öz-özünə kod yazan Agent (Android Studio, CLI)</li>
-                    <li>💎 <b>100,000</b> Aylıq AI Krediti</li>
-                    <li>☁️ <b>Limitsiz (Unlimited)</b> Cloud Yaddaş</li>
-                    <li>🚫 YouTube & Spotify Premium ekvivalenti</li>
+                    <li>👁️ <b>Vision AI:</b> Qabaqcıl Şəkil Analizi</li>
+                    <li>🎥 <b>Veo 4.0:</b> Video Yaratma</li>
+                    <li>🎼 <b>Producer.ai:</b> Musiqi Bəstələmə</li>
+                    <li>🌐 <b>Limitsiz</b> Deep Research</li>
                 </ul>
             </div>
         </div>
@@ -157,7 +150,7 @@ if st.session_state.show_pricing:
 if st.session_state.selected_tier in ["Pro", "Ultra"] and not st.session_state.payment_successful:
     price = "$12.00" if st.session_state.selected_tier == "Pro" else "$95.00"
     st.markdown(f"<h2 style='text-align: center; margin-top: 50px;'>Kortex {st.session_state.selected_tier} - Təhlükəsiz Ödəniş</h2>", unsafe_allow_html=True)
-    st.markdown("<div class='secure-badge'>🔒 Kortex Qlobal Ödəniş Sistemi (Stripe İnteqrasiyası)</div>", unsafe_allow_html=True)
+    st.markdown("<div class='secure-badge'>🔒 Kortex Qlobal Ödəniş Sistemi</div>", unsafe_allow_html=True)
     
     col_empty1, col_pay, col_empty2 = st.columns([1, 2, 1])
     with col_pay:
@@ -172,7 +165,7 @@ if st.session_state.selected_tier in ["Pro", "Ultra"] and not st.session_state.p
         st.write("")
         if st.button(f"Pulu Çıx və {st.session_state.selected_tier} Aktivləşdir", use_container_width=True):
             if card_name and card_number and exp_date and cvv:
-                with st.spinner("💳 Bankla əlaqə yaradılır... Pul köçürülür..."):
+                with st.spinner("💳 Bankla əlaqə yaradılır..."):
                     time.sleep(2) 
                     st.session_state.payment_successful = True
                     st.rerun()
@@ -199,45 +192,36 @@ with header_col2:
         st.rerun()
 
 # ==========================================================
-# YAN PANEL (TƏMİZLƏNDİ - YENİ ƏLAVƏLƏR ÜÇÜN HAZIRDIR)
+# YAN PANEL (ŞƏKİL YÜKLƏMƏ VƏ BAZA)
 # ==========================================================
 st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 
-# Arxa planda işləyən funksiyalar (Ekranda görünmür, paketə görə avtomatik işləyir)
 use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
-use_vision = st.session_state.selected_tier in ["Pro", "Ultra"]
+use_vision_gen = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_video = st.session_state.selected_tier == "Ultra"
 use_music = st.session_state.selected_tier == "Ultra"
 
+# ŞƏKİL YÜKLƏMƏ BÖLMƏSİ (YENİ GÖZ)
 st.sidebar.markdown("---")
-# İstifadəçi "ora nə əlavə edəcəm deyəcəm" dediyi üçün buranı boş saxladıq.
+st.sidebar.subheader("👁️ Kortex Vision (Şəkil Analizi)")
+uploaded_image = st.sidebar.file_uploader("Şəkil Yüklə (JPG, PNG)", type=['png', 'jpg', 'jpeg'])
 
-# PDF YÜKLƏMƏ
-uploaded_file = st.sidebar.file_uploader("Sənəd Yüklə (PDF)", type=['pdf'])
-document_text = ""
-if uploaded_file is not None:
-    if st.session_state.selected_tier == "Basic" and uploaded_file.size > 1000000:
-        st.sidebar.error("❌ Basic paketdə 1 MB limiti var.")
+base64_image = None
+if uploaded_image is not None:
+    if st.session_state.selected_tier == "Basic":
+        st.sidebar.error("❌ Şəkil analizi üçün Pro və ya Ultra lazımdır.")
     else:
-        with st.spinner("Sənəd oxunur..."):
-            try:
-                pdf_reader = PyPDF2.PdfReader(uploaded_file)
-                for page in pdf_reader.pages:
-                    text = page.extract_text()
-                    if text: document_text += text + "\n"
-                document_text = document_text[:25000] 
-                st.sidebar.success("✅ Sənəd hazır!")
-            except Exception as e:
-                st.sidebar.error(f"Xəta: {e}")
+        st.sidebar.image(uploaded_image, caption="Analiz üçün hazırdır", use_container_width=True)
+        # Şəkli AI-ın oxuya biləcəyi koda çeviririk
+        base64_image = base64.b64encode(uploaded_image.getvalue()).decode('utf-8')
+        image_mime_type = uploaded_image.type
+        st.sidebar.success("✅ Şəkil Kortex-in beyninə yükləndi! İndi bu şəkil barədə sual verə bilərsiniz.")
 
 # ==========================================================
 # MESAJLAŞMA VƏ AĞILLI MƏNTİQ
 # ==========================================================
-if document_text:
-    SYSTEM_PROMPT = f"Sən Kortex AI-san. Mətn budur: {document_text}. Buna əsasən cavab ver."
-else:
-    SYSTEM_PROMPT = "Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. Dünyanın ən güclü Azərbaycanlı süni intellektisən. Heç nə uydurma."
+SYSTEM_PROMPT = "Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. Dünyanın ən güclü süni intellektisən."
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -249,7 +233,7 @@ for message in st.session_state.messages:
         if "music_msg" in message:
             st.success(message["music_msg"])
 
-if prompt := st.chat_input("Kortex AI-a əmr ver... (Məs: 'Şəkil yarat', 'Video yarat', 'Musiqi bəstələ')"):
+if prompt := st.chat_input("Kortex AI-a əmr ver (Şəkil atıb 'Bu nədir?' soruşa bilərsən)..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -260,67 +244,91 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məs: 'Şəkil yarat', 'Vid
         
         # --- VİDEO YARATMA (VEO 4.0) ---
         if "video" in prompt_lower and use_video:
-            with st.spinner("🎥 Kortex Veo 4.0 video render edir (Bu bir qədər vaxt apara bilər)..."):
+            with st.spinner("🎥 Kortex Veo 4.0 video render edir..."):
                 time.sleep(2)
-                response = "Ultra lisenziyanız təsdiqləndi. Kortex Veo 4.0 mühərriki tapşırığınız üzrə yüksək keyfiyyətli video generasiyasına başladı."
-                vid_msg = f"🎞️ [SİMULYASİYA] Kortex Veo 4.0 tərəfindən yaradılan video fayı: '{prompt}' (Sistem tam aktivləşəndə MP4 olaraq endiriləcək)"
+                response = "Ultra lisenziyanız təsdiqləndi. Video animasiyası hazırlanır."
+                vid_msg = f"🎞️ [SİMULYASİYA] Kortex Veo 4.0: '{prompt}'"
                 st.markdown(response)
                 st.info(vid_msg)
                 st.session_state.messages.append({"role": "assistant", "content": response, "video_msg": vid_msg})
                 
         # --- MUSİQİ YARATMA (PRODUCER.AI) ---
         elif "musiqi" in prompt_lower and use_music:
-            with st.spinner("🎼 Producer.ai notları və ritmi bəstələyir..."):
+            with st.spinner("🎼 Producer.ai bəstələyir..."):
                 time.sleep(2)
-                response = "Musiqi studiyası işə salındı! İstəyinizə uyğun audiotrek bəstələnir."
-                mus_msg = f"🎵 [SİMULYASİYA] Producer.ai Tərəfindən Bəstələnən Musiqi: '{prompt}' (MP3 kimi hazırlanır)"
+                response = "Musiqi studiyası işə salındı!"
+                mus_msg = f"🎵 [SİMULYASİYA] Producer.ai: '{prompt}'"
                 st.markdown(response)
                 st.success(mus_msg)
                 st.session_state.messages.append({"role": "assistant", "content": response, "music_msg": mus_msg})
         
-        # --- ŞƏKİL YARATMA (KORTEX VISION) ---
-        elif "şəkil" in prompt_lower and use_vision:
+        # --- ŞƏKİL YARATMA (KORTEX VISION GEN) ---
+        elif "şəkil" in prompt_lower and ("yarat" in prompt_lower or "çək" in prompt_lower) and use_vision_gen:
             with st.spinner("🎨 Kortex Vision şəkli çəkir..."):
                 time.sleep(1) 
                 img_prompt = prompt_lower.replace("şəkil", "").replace("yarat", "").replace("çək", "").strip()
-                if not img_prompt: img_prompt = "futuristic AI core"
+                if not img_prompt: img_prompt = "futuristic city"
                 generated_image_url = f"https://image.pollinations.ai/prompt/{img_prompt.replace(' ', '%20')}"
                 response = f"Buyur, istədiyin **'{img_prompt}'** şəkli hazırdır!"
                 st.markdown(response)
-                st.image(generated_image_url, caption="Kortex Vision 🎨")
+                st.image(generated_image_url)
                 st.session_state.messages.append({"role": "assistant", "content": response, "image_url": generated_image_url})
                 
-        # --- İNTERNET VƏ SÖHBƏT ---
+        # --- ŞƏKİL ANALİZİ VƏ YA İNTERNET SÖHBƏTİ ---
         else:
-            if use_internet:
-                with st.spinner("🌐 Kortex Deep Research interneti axtarır..."):
+            # Əgər şəkil yüklənibsə və Pro/Ultra-dırsa, VISION modelini işə salırıq
+            if base64_image and st.session_state.selected_tier in ["Pro", "Ultra"]:
+                with st.spinner("👁️ Kortex Şəkilə Baxır..."):
+                    vision_messages = [
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": SYSTEM_PROMPT + f"\n\nSənə bir şəkil göndərildi. İstəyim: {prompt}"},
+                                {"type": "image_url", "image_url": {"url": f"data:{image_mime_type};base64,{base64_image}"}}
+                            ]
+                        }
+                    ]
                     try:
-                        kw_chat = client.chat.completions.create(
-                            messages=[{"role": "system", "content": "Axtarış sözü çıxar. Məs: 'boralonu taniyirsan' -> 'Boralo youtuber'"}, {"role": "user", "content": prompt}],
-                            model="llama-3.3-70b-versatile",
-                            temperature=0.0, max_tokens=15
+                        chat_completion = client.chat.completions.create(
+                            messages=vision_messages,
+                            model="llama-3.2-11b-vision-preview", # Groq-un ən yeni Göz modeli!
+                            temperature=0.3, max_tokens=2048
                         )
-                        search_query = kw_chat.choices[0].message.content.replace("'", "").replace('"', '').strip()
-                        live_internet_data = search_internet(search_query)
-                    except:
-                        pass
-            
-            with st.spinner("Kortex AI analiz edir..."):
-                final_prompt = SYSTEM_PROMPT
-                if live_internet_data:
-                    final_prompt += f"\n\nDEEP RESEARCH (İNTERNET) MƏLUMATI:\n{live_internet_data}\nBuna əsasən cavab ver."
+                        response = chat_completion.choices[0].message.content
+                    except Exception as e:
+                        response = f"Xəta (Göz Mühərriki): {str(e)}"
+                        
+            # Şəkil yoxdursa, normal axtarış və söhbət
+            else:
+                if use_internet:
+                    with st.spinner("🌐 Deep Research axtarır..."):
+                        try:
+                            kw_chat = client.chat.completions.create(
+                                messages=[{"role": "system", "content": "Axtarış sözü çıxar."}, {"role": "user", "content": prompt}],
+                                model="llama-3.3-70b-versatile",
+                                temperature=0.0, max_tokens=15
+                            )
+                            search_query = kw_chat.choices[0].message.content.replace("'", "").replace('"', '').strip()
+                            live_internet_data = search_internet(search_query)
+                        except:
+                            pass
+                
+                with st.spinner("Kortex AI analiz edir..."):
+                    final_prompt = SYSTEM_PROMPT
+                    if live_internet_data:
+                        final_prompt += f"\n\nDEEP RESEARCH MƏLUMATI:\n{live_internet_data}\nBuna əsasən cavab ver."
 
-                messages = [{"role": "system", "content": final_prompt}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages if "image_url" not in m and "video_msg" not in m and "music_msg" not in m]
+                    messages = [{"role": "system", "content": final_prompt}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages if "image_url" not in m and "video_msg" not in m and "music_msg" not in m]
 
-                try:
-                    chat_completion = client.chat.completions.create(
-                        messages=messages,
-                        model="llama-3.3-70b-versatile",
-                        temperature=0.3, max_tokens=2048
-                    )
-                    response = chat_completion.choices[0].message.content
-                except Exception as e:
-                    response = f"Xəta: {str(e)}"
+                    try:
+                        chat_completion = client.chat.completions.create(
+                            messages=messages,
+                            model="llama-3.3-70b-versatile",
+                            temperature=0.3, max_tokens=2048
+                        )
+                        response = chat_completion.choices[0].message.content
+                    except Exception as e:
+                        response = f"Xəta: {str(e)}"
 
-                st.markdown(response)
-                st.session_state.messages.append({"role": "assistant", "content": response})
+            st.markdown(response)
+            st.session_state.messages.append({"role": "assistant", "content": response})
