@@ -2,7 +2,7 @@ import streamlit as st
 from groq import Groq
 import PyPDF2
 import time
-from duckduckgo_search import DDGS  # İNTERNETƏ BAĞLANMAQ ÜÇÜN YENİ BEYİN
+from duckduckgo_search import DDGS  # İNTERNETƏ BAĞLANMAQ ÜÇÜN BEYİN
 
 # ==========================================================
 # 1. CSS VƏ VİZUAL AYARLAR
@@ -33,23 +33,24 @@ except Exception as e:
 # ==========================================================
 def search_internet(query):
     try:
-        results = DDGS().text(query, max_results=3) # İnternetdən ən yaxşı 3 nəticəni tapır
+        # Daha çox və dəqiq məlumat tapması üçün nəticə sayını 5-ə qaldırdım
+        results = DDGS().text(query, max_results=5) 
         res_text = ""
         for r in results:
             res_text += f"Mənbə: {r['title']}\nMəlumat: {r['body']}\n\n"
         return res_text
     except Exception as e:
-        return f"İnternet axtarışında xəta: {e}"
+        return ""
 
 # ==========================================================
 # 2. YAN PANEL (MƏLUMAT BAZASI VƏ İNTERNET)
 # ==========================================================
 st.sidebar.title("⚙️ Zəka AI İdarə Paneli")
 
-# İnternet Qoşulması
+# İnternet Qoşulması (ARTIQ AVTOMATİK AKTİVDİR)
 st.sidebar.markdown("---")
 st.sidebar.subheader("🌐 Canlı İnternet")
-use_internet = st.sidebar.checkbox("Canlı Axtarışı Aktivləşdir (Ən son məlumatlar üçün)", value=False)
+use_internet = st.sidebar.checkbox("Canlı Axtarışı Aktivləşdir (Avtomatik İşləyir)", value=True) # VALUE=TRUE EDİLDİ
 
 # PDF Yükləmə
 st.sidebar.markdown("---")
@@ -71,7 +72,7 @@ if uploaded_file is not None:
             st.sidebar.error(f"Sənəd oxunarkən xəta: {e}")
 
 # ==========================================================
-# 3. ALİM BEYNİ (SƏMİMİ VƏ DƏQİQ 2026 REJİMİ)
+# 3. ALİM BEYNİ (TAM DƏQİQ VƏ İNTERNETƏ BAĞLI REJİM)
 # ==========================================================
 if document_text:
     SYSTEM_PROMPT = f"""
@@ -90,20 +91,19 @@ if document_text:
 else:
     SYSTEM_PROMPT = """
     Sən Abdullah Mikayılov tərəfindən yaradılmış Zəka AI-san. Dünyanın ən güclü, səmimi və dəqiq Azərbaycanlı süni intellektisən.
-    DİQQƏT: Sənin üçün cari il 2026-cı ildir. 
+    DİQQƏT: Sənin üçün cari il 2026-cı ildir. Sən Google və mənim kimi birbaşa internet məlumatları ilə qidalanırsan.
 
-    SƏNİN XARAKTERİN VƏ BİLİKLƏRİN:
-    1. SƏMİMİ AMMA DƏQİQ OL: İstifadəçi ilə dost kimi danış, amma elmi, tibbi və ciddi mövzularda (məsələn: təzyiq, xəstəliklər) zarafat etmə və uydurma!
-    2. AZƏRBAYCAN DİLİNƏ DİQQƏT ET: Sözləri düzgün anla. Məsələn, "təzyiq" qan təzyiqidir, "ayaqyolu" deyildir. Əgər bir sözü və ya mövzunu bilmirsənsə, xəyal gücündən istifadə etmə, dürüstcə "Bu barədə dəqiq məlumatım yoxdur" de.
-    3. TEXNOLOGİYA DAHİSİ: 2026-cı ilin texnologiyalarını su kimi bilirsən.
-    4. YOUTUBE VƏ PLAY MARKET: Youtuberlər və proqramlar barədə soruşanda yalnız dəqiq faktlara əsaslan, yalançı adlar və ya uydurma kanallar yaratma.
+    QƏTİ QAYDALAR VƏ BİLİKLƏRİN:
+    1. ADLARI UYDURMA: Əgər istifadəçi "Boralo" və ya hər hansı bir youtuber/oyunçu soruşursa və sən onu tanımadınsa, QƏTİYYƏN ona oxşayan başqa bir sözdən (məsələn, "Borax" adlı mineraldan) danışma! 
+    2. DÜRÜSTLÜK: Sənə verilən canlı internet nəticələrində o adam barədə məlumat yoxdursa, dürüstcə de: "İnternetdə axtarış etdim, amma bu adda birini tapa bilmədim." Xəyal gücündən istifadə etmək qadağandır.
+    3. YOUTUBE VƏ PLAY MARKET: Ən son trendləri, oyunları və proqramları sənə verilən canlı internet axtarışına əsasən dəqiq və səmimi izah et.
     """
 
 # ==========================================================
 # 4. İNTERFEYS VƏ ÇAT
 # ==========================================================
 st.title("🧠 Zəka AI: Qlobal İntellekt")
-st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 8.1 (Anti-Hallüsinasiya & Live Web Search)")
+st.caption("Yaradıcı: Abdullah Mikayılov | Versiya: 8.2 (Avtomatik İnternet Axtarışı)")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -112,7 +112,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Sualınızı verin..."):
+if prompt := st.chat_input("İstədiyiniz məlumatı, Youtuberi və ya xəbəri soruşun..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -120,27 +120,27 @@ if prompt := st.chat_input("Sualınızı verin..."):
     with st.chat_message("assistant"):
         with st.spinner("Zəka AI analiz edir..."):
             
-            # --- CANLI İNTERNETƏ QOŞULMA MƏNTİQİ ---
+            # --- AVTOMATİK İNTERNETƏ QOŞULMA MƏNTİQİ ---
             live_internet_data = ""
             if use_internet:
-                with st.spinner("🌐 Zəka AI internetdə canlı axtarış edir..."):
+                with st.spinner("🌐 Zəka AI internetdə məlumat toplayır..."):
                     live_internet_data = search_internet(prompt)
             
             # Sistem promptuna internet məlumatlarını birləşdiririk
             final_prompt = SYSTEM_PROMPT
             if live_internet_data:
-                final_prompt += f"\n\n--- DİQQƏT: CANLI İNTERNET NƏTİCƏLƏRİ ---\nİstifadəçinin sualı barədə internetdən bu dəqiqə tapılan məlumatlar:\n{live_internet_data}\nBu canlı məlumatları oxu və istifadəçiyə çox təbii, səmimi bir dillə cavab ver. Əsla məlumat uydurma!"
+                final_prompt += f"\n\n--- DİQQƏT: CANLI İNTERNET NƏTİCƏLƏRİ ---\nİstifadəçinin sualı barədə internetdən bu dəqiqə tapılan ən son məlumatlar bunlardır:\n{live_internet_data}\nBu canlı məlumatları oxu və istifadəçiyə çox təbii, səmimi bir dillə cavab ver. Əgər məlumat yoxdursa, uydurma!"
 
             # Model qurulması
             model = "llama-3.3-70b-versatile"
             messages = [{"role": "system", "content": final_prompt}] + st.session_state.messages
 
             try:
-                # Temperatur 0.6-dan 0.4-ə endirildi ki, yalan uydurmasın!
+                # Dəqiqlik üçün temperatur 0.3 edildi.
                 chat_completion = client.chat.completions.create(
                     messages=messages,
                     model=model,
-                    temperature=0.4, 
+                    temperature=0.3, 
                     max_tokens=2048
                 )
                 response = chat_completion.choices[0].message.content
