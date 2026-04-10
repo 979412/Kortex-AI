@@ -16,7 +16,7 @@ st.markdown("""
     [data-testid="stChatMessageUser"] { background-color: #f7fafc; }
     [data-testid="stChatMessageAssistant"] { background-color: #ebf8ff; }
     
-    /* GİRİŞ EKRANI VƏ QİYMƏT KARTLARI ÜÇÜN DİZAYN */
+    /* QİYMƏT KARTLARI ÜÇÜN DİZAYN */
     .pricing-card {
         border: 2px solid #edf2f7; 
         border-radius: 15px; 
@@ -31,20 +31,6 @@ st.markdown("""
     .tier-desc { font-size: 14px; color: #5f6368; height: 60px; }
     .tier-price { font-size: 36px; font-weight: bold; color: #1a73e8; margin: 20px 0; }
     .tier-price span { font-size: 18px; color: #5f6368; font-weight: normal; }
-    
-    /* MAVİ DÜYMƏLƏR */
-    div[data-testid="stButton"] > button {
-        background-color: #1a73e8;
-        color: white;
-        border-radius: 20px;
-        border: none;
-        padding: 10px 20px;
-        font-weight: bold;
-    }
-    div[data-testid="stButton"] > button:hover {
-        background-color: #1557b0;
-        color: white;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -69,159 +55,163 @@ def search_internet(query):
         return ""
 
 # ==========================================================
-# 2. QİYMƏT CƏDVƏLİ VƏ GİRİŞ EKRANI
+# 2. SİSTEM VƏZİYYƏTİ (STATE)
 # ==========================================================
+# Default olaraq hamı "Basic" paketində başlayır və Çat ekranını görür
 if "selected_tier" not in st.session_state:
-    st.session_state.selected_tier = None
+    st.session_state.selected_tier = "Basic"
 
-if st.session_state.selected_tier is None:
-    st.markdown("<h1 style='text-align: center; color: #202124;'>Kortex AI Plans & Pricing</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #5f6368; margin-bottom: 40px;'>Choose the perfect Kortex AI plan for your productivity and creativity needs.</p>", unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns(3)
-    
-    # KORTEX AI BASIC (SADƏ)
-    with col1:
-        st.markdown("""
-        <div class="pricing-card">
-            <div class="tier-name">Kortex AI Basic</div>
-            <div class="tier-desc">Essential AI features for everyday tasks and simple queries.</div>
-            <div class="tier-price">$0 <span>/month</span></div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Get Kortex Basic", use_container_width=True, key="btn_basic"):
-            st.session_state.selected_tier = "Basic"
-            st.rerun()
-
-    # KORTEX AI PRO
-    with col2:
-        st.markdown("""
-        <div class="pricing-card">
-            <div class="tier-name">Kortex AI Pro</div>
-            <div class="tier-desc">Advanced performance, live internet access, and document analysis.</div>
-            <div class="tier-price">$TBD <span>/month</span></div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Get Kortex Pro", use_container_width=True, key="btn_pro"):
-            st.session_state.selected_tier = "Pro"
-            st.rerun()
-
-    # KORTEX AI ULTRA
-    with col3:
-        st.markdown("""
-        <div class="pricing-card">
-            <div class="tier-name">Kortex AI Ultra</div>
-            <div class="tier-desc">Maximum limits, autonomous agents, and exclusive premium features.</div>
-            <div class="tier-price">$TBD <span>/month</span></div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Get Kortex Ultra", use_container_width=True, key="btn_ultra"):
-            st.session_state.selected_tier = "Ultra"
-            st.rerun()
-            
-    st.stop() # İstifadəçi paket seçməyənə qədər aşağıdakı çat kodunu işə salmır
-
-# ==========================================================
-# 3. YAN PANEL (MƏLUMAT BAZASI VƏ İNTERNET)
-# ==========================================================
-st.sidebar.title("⚙️ Kortex AI Paneli")
-st.sidebar.success(f"💎 Aktiv Paket: {st.session_state.selected_tier}")
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("🌐 Canlı İnternet")
-# Basic paketdə internet bağlı ola bilər, amma hələlik sən istədiyin kimi açıq qoyuram
-use_internet = st.sidebar.checkbox("Ağıllı Axtarış Agentini Aktivləşdir", value=True)
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("📁 Şirkət / Məlumat Bazası (PDF)")
-uploaded_file = st.sidebar.file_uploader("Sənəd yükləyin", type=['pdf'])
-document_text = ""
-
-if uploaded_file is not None:
-    with st.spinner("Sənəd Kortex AI-ın beyninə inteqrasiya olunur..."):
-        try:
-            pdf_reader = PyPDF2.PdfReader(uploaded_file)
-            for page in pdf_reader.pages:
-                text = page.extract_text()
-                if text:
-                    document_text += text + "\n"
-            document_text = document_text[:25000] 
-            st.sidebar.success("✅ Sənəd uğurla oxundu!")
-        except Exception as e:
-            st.sidebar.error(f"Sənəd oxunarkən xəta: {e}")
-
-# ==========================================================
-# 4. ALİM BEYNİ (SƏRT ANTI-HALLÜSİNASİYA QAYDALARI)
-# ==========================================================
-if document_text:
-    SYSTEM_PROMPT = f"""
-    Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. 
-    İstifadəçi sənəd yükləyib. Mətn budur: {document_text}
-    QAYDALAR: Yalnız bu sənədə əsaslanaraq səmimi cavab ver.
-    """
-else:
-    SYSTEM_PROMPT = """
-    Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. Dünyanın ən güclü, səmimi Azərbaycanlı süni intellektisən.
-    DİQQƏT: Sənin üçün cari il 2026-cı ildir. Sən canlı internet məlumatları ilə qidalanırsan.
-
-    ŞƏXSİYYƏTİN VƏ SƏRT QAYDALARIN:
-    1. İNTERNET NƏTİCƏLƏRİNİ FİLTRLƏ: Sənə verilən internet nəticələri bəzən səhv ola bilər. Əgər istifadəçi bir adamı soruşursa, amma internet sənə fərqli məlumat gətirirsə, onu rədd et!
-    2. SIFIR UYDURMA: Əgər məlumat yoxdursa dərhal etiraf et: "Mən bu barədə dəqiq məlumat tapa bilmədim." Mövzunu uydurma!
-    3. HÖRMƏT: Cavabların səmimi, dürüst və çox ciddi olmalıdır.
-    """
-
-# ÇIXIŞ DÜYMƏSİ (SƏHİFƏYƏ QAYITMAQ ÜÇÜN)
-st.sidebar.markdown("---")
-if st.sidebar.button("🚪 Paket Seçiminə Qayıt", use_container_width=True):
-    st.session_state.selected_tier = None
-    st.rerun()
-
-# ==========================================================
-# 5. İNTERFEYS VƏ ÇAT
-# ==========================================================
-st.title("🧠 Kortex AI: Qlobal İntellekt")
-st.caption(f"Yaradıcı: Abdullah Mikayılov | Lisenziya: Kortex {st.session_state.selected_tier}")
+if "show_pricing" not in st.session_state:
+    st.session_state.show_pricing = False
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# ==========================================================
+# 3. QİYMƏT VƏ PAKET SEÇİMİ EKRANI (AÇILANDA)
+# ==========================================================
+if st.session_state.show_pricing:
+    if st.button("⬅ Çata Qayıt", use_container_width=False):
+        st.session_state.show_pricing = False
+        st.rerun()
+
+    st.markdown("<h1 style='text-align: center; color: #202124;'>Google Sİ-nin ən yaxşı üstünlükləri (Kortex AI)</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #5f6368; margin-bottom: 40px;'>Məhsuldarlıq və yaradıcılığınızı artırmaq üçün ehtiyacınıza uyğun paketi seçin.</p>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div class="pricing-card">
+            <div class="tier-name">Kortex AI Basic</div>
+            <div class="tier-desc">Gündəlik suallar və sadə tapşırıqlar üçün pulsuz versiya.</div>
+            <div class="tier-price">$0 <span>/ay</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Basic əldə edin", use_container_width=True, key="btn_basic"):
+            st.session_state.selected_tier = "Basic"
+            st.session_state.show_pricing = False
+            st.rerun()
+
+    with col2:
+        st.markdown("""
+        <div class="pricing-card">
+            <div class="tier-name">Kortex AI Pro</div>
+            <div class="tier-desc">Daha dəqiq cavablar və orta həcmli sənəd oxuma xüsusiyyəti.</div>
+            <div class="tier-price">$12 <span>/ay</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Pro əldə edin", use_container_width=True, key="btn_pro"):
+            st.session_state.selected_tier = "Pro"
+            st.session_state.show_pricing = False
+            st.rerun()
+
+    with col3:
+        st.markdown("""
+        <div class="pricing-card">
+            <div class="tier-name">Kortex AI Ultra</div>
+            <div class="tier-desc">Maksimal limitlər, canlı internet axtarışı və böyük fayl analizi.</div>
+            <div class="tier-price">$95 <span>/ay</span></div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Ultra əldə edin", use_container_width=True, key="btn_ultra"):
+            st.session_state.selected_tier = "Ultra"
+            st.session_state.show_pricing = False
+            st.rerun()
+            
+    st.stop() # Qiymət ekranındayıqsa, aşağıdakı çatı göstərmə
+
+# ==========================================================
+# 4. ƏSAS ÇAT EKRANI (BİRBAŞA BURA AÇILIR)
+# ==========================================================
+# Yuxarı Başlıq və "Planı Dəyiş" düyməsi (Atdığın şəkil məntiqi)
+header_col1, header_col2 = st.columns([4, 1])
+with header_col1:
+    st.title("🧠 Kortex AI")
+    st.caption(f"Yaradıcı: Abdullah Mikayılov | Lisenziya: {st.session_state.selected_tier}")
+with header_col2:
+    st.write("") # Boşluq
+    if st.button("✨ Planı Dəyiş", use_container_width=True):
+        st.session_state.show_pricing = True
+        st.rerun()
+
+# ==========================================================
+# YAN PANEL VƏ MƏNTİQ
+# ==========================================================
+st.sidebar.title("⚙️ Kortex Paneli")
+st.sidebar.success(f"Aktiv Lisenziya: {st.session_state.selected_tier}")
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("🌐 İnternet Axtarışı")
+if st.session_state.selected_tier in ["Pro", "Ultra"]:
+    use_internet = st.sidebar.checkbox("Canlı Axtarış Aktivdir", value=True)
+else:
+    st.sidebar.warning("🔒 İnternet axtarışı üçün Pro və ya Ultra lazımdır.")
+    use_internet = False
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("📁 Sənəd Yükləmə (PDF)")
+uploaded_file = st.sidebar.file_uploader("Sənəd yükləyin", type=['pdf'])
+document_text = ""
+
+if uploaded_file is not None:
+    # Limit yoxlaması
+    if st.session_state.selected_tier == "Basic" and uploaded_file.size > 1000000:
+        st.sidebar.error("❌ Basic paketdə böyük sənəd yükləmək olmur. ✨ Planı Dəyiş!")
+    else:
+        with st.spinner("Sənəd oxunur..."):
+            try:
+                pdf_reader = PyPDF2.PdfReader(uploaded_file)
+                for page in pdf_reader.pages:
+                    text = page.extract_text()
+                    if text:
+                        document_text += text + "\n"
+                document_text = document_text[:25000] 
+                st.sidebar.success("✅ Sənəd hazır!")
+            except Exception as e:
+                st.sidebar.error(f"Xəta: {e}")
+
+# ==========================================================
+# ALİM BEYNİ
+# ==========================================================
+if document_text:
+    SYSTEM_PROMPT = f"Sən Kortex AI-san. Mətn budur: {document_text}. Buna əsasən cavab ver."
+else:
+    SYSTEM_PROMPT = "Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. Səmimi, dəqiq və dürüst ol. Heç nə uydurma."
+
+# ==========================================================
+# MESAJLAŞMA
+# ==========================================================
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("İstədiyiniz məlumatı, Youtuberi və ya xəbəri soruşun..."):
+if prompt := st.chat_input("Kortex AI-a mesaj yazın..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        
-        # --- İKİ MƏRHƏLƏLİ AĞILLI AXTARIŞ ---
         live_internet_data = ""
-        if use_internet:
-            with st.spinner("🧠 Kortex AI axtarış üçün açar sözləri düşünür..."):
+        
+        # Əgər Pro və ya Ultradısa internetdən tap
+        if use_internet and st.session_state.selected_tier in ["Pro", "Ultra"]:
+            with st.spinner("🌐 Kortex AI internetdə axtarır..."):
                 try:
                     kw_chat = client.chat.completions.create(
-                        messages=[
-                            {"role": "system", "content": "Sən yalnız axtarış sözləri yazan robotsan. Cümlədən ən vacib sözləri tap. Nümunə: 'boralonu taniyirsan' -> 'Boralo youtuber'."},
-                            {"role": "user", "content": prompt}
-                        ],
+                        messages=[{"role": "system", "content": "Axtarış sözü çıxar. Məsələn: 'boralonu taniyirsan' -> 'Boralo youtuber'"}, {"role": "user", "content": prompt}],
                         model="llama-3.3-70b-versatile",
-                        temperature=0.0, 
-                        max_tokens=15
+                        temperature=0.0, max_tokens=15
                     )
                     search_query = kw_chat.choices[0].message.content.replace("'", "").replace('"', '').strip()
+                    live_internet_data = search_internet(search_query)
                 except:
-                    search_query = prompt
-
-            with st.spinner(f"🌐 İnternetdə axtarılır: '{search_query}' ..."):
-                live_internet_data = search_internet(search_query)
+                    pass
         
-        # --- YEKUN CAVABIN HAZIRLANMASI ---
-        with st.spinner("Kortex AI cavab hazırlayır..."):
+        with st.spinner("Kortex AI cavab yazır..."):
             final_prompt = SYSTEM_PROMPT
             if live_internet_data:
-                final_prompt += f"\n\n--- DİQQƏT: CANLI İNTERNET NƏTİCƏLƏRİ ---\nİnternetdən tapılan məlumatlar:\n{live_internet_data}\n\nƏgər bu nəticələr istifadəçinin sualı ilə MƏNTİQƏN tamamilə əlaqəsizdirsə, onlara əhəmiyyət vermə və dürüstcə 'Məlumatım yoxdur' de."
+                final_prompt += f"\n\nCANLI İNTERNET MƏLUMATI:\n{live_internet_data}\nBuna əsaslanaraq cavab ver. Səhvdirsə uydurma."
 
             messages = [{"role": "system", "content": final_prompt}] + st.session_state.messages
 
@@ -229,12 +219,11 @@ if prompt := st.chat_input("İstədiyiniz məlumatı, Youtuberi və ya xəbəri 
                 chat_completion = client.chat.completions.create(
                     messages=messages,
                     model="llama-3.3-70b-versatile",
-                    temperature=0.2, 
-                    max_tokens=2048
+                    temperature=0.3, max_tokens=2048
                 )
                 response = chat_completion.choices[0].message.content
             except Exception as e:
-                response = f"Xəta baş verdi: {str(e)}"
+                response = f"Xəta: {str(e)}"
 
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
