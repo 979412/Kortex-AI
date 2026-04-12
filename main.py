@@ -21,9 +21,13 @@ st.markdown("""
     .tier-name { font-size: 24px; font-weight: bold; color: #202124; margin-bottom: 5px; text-align: center;}
     .tier-price { font-size: 36px; font-weight: bold; color: #1a73e8; margin: 15px 0; text-align: center;}
     .tier-price span { font-size: 18px; color: #5f6368; font-weight: normal; }
-    .tier-desc { font-size: 14px; color: #3c4043; height: 260px; overflow-y: auto; text-align: left; margin-bottom: 20px; padding-right: 5px;}
+    .tier-desc { font-size: 14px; color: #3c4043; height: 350px; overflow-y: auto; text-align: left; margin-bottom: 20px; padding-right: 5px;}
     .tier-desc ul { padding-left: 20px; margin-top: 10px; }
     .tier-desc li { margin-bottom: 10px; line-height: 1.4;}
+    
+    /* Scrollbar üçün xüsusi dizayn */
+    .tier-desc::-webkit-scrollbar { width: 5px; }
+    .tier-desc::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
     
     .payment-box { border: 1px solid #e2e8f0; border-radius: 10px; padding: 30px; background-color: #f8fafc; max-width: 500px; margin: 0 auto; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
     .secure-badge { color: #059669; font-weight: bold; font-size: 14px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 5px;}
@@ -84,11 +88,14 @@ if st.session_state.show_pricing:
             <div class="tier-name">Kortex Basic</div>
             <div class="tier-price">$0 <span>/ay</span></div>
             <div class="tier-desc">
-                Gündəlik sadə işlər üçün başlanğıc:
                 <ul>
-                    <li>💬 Sadə mətn modeli</li>
-                    <li>❌ İnternet bağlantısı yoxdur</li>
-                    <li>❌ Görüntü Analizi yoxdur</li>
+                    <li>💬 <b>Kortex 3.1 Pro:</b> Deep Research, Nano Banana Pro ilə şəkil və Veo 3.1 ilə video yaratmaya təkmilləşdirilmiş giriş.</li>
+                    <li>🎥 <b>Flow & Whisk:</b> Kinematik səhnələr və şəkildən video yaratma alətləri.</li>
+                    <li>💎 <b>200</b> Aylıq Sİ krediti.</li>
+                    <li>🌐 <b>Axtarış & NotebookLM:</b> Audio/Video icmallar və testlərə əlavə giriş.</li>
+                    <li>🎼 <b>Producer.ai:</b> Musiqi yaratma platformamıza giriş.</li>
+                    <li>📧 <b>Kortex Tətbiqləri:</b> Gmail, Calendar və Meet üçün birbaşa giriş.</li>
+                    <li>☁️ <b>10 TB Ümumi Yaddaş</b> (Disk, Foto və s.)</li>
                 </ul>
             </div>
         </div>
@@ -105,11 +112,15 @@ if st.session_state.show_pricing:
             <div class="tier-name">Kortex Pro</div>
             <div class="tier-price">$12 <span>/ay</span></div>
             <div class="tier-desc">
-                Peşəkarlar üçün gücləndirilmiş alətlər:
                 <ul>
-                    <li>🌐 <b>Deep Research:</b> Canlı İnternet</li>
-                    <li>👁️ <b>Vision AI:</b> Şəkilləri oxuma və analiz</li>
-                    <li>🎨 <b>Vision Gen:</b> Şəkil yaratma (Limitli)</li>
+                    <li>💬 <b>Kortex 3.1 Pro:</b> Şəkil, video və Deep Research funksiyalarına daha yüksək giriş əldə edin.</li>
+                    <li>🎥 <b>Flow & Whisk:</b> Kinematik video alətimizə və şəkildən videoya yüksək giriş.</li>
+                    <li>💎 <b>1.000</b> Aylıq Sİ krediti.</li>
+                    <li>🌐 <b>Axtarış & NotebookLM:</b> Tədqiqat partnyorumuza yüksək giriş.</li>
+                    <li>🎼 <b>Producer.ai:</b> Musiqi platformasına yüksək giriş.</li>
+                    <li>🧠 <b>Kortex Antigravity:</b> Agent inkişaf platforması üçün daha yüksək sorğu limitləri.</li>
+                    <li>💻 <b>Developer Program & Studio:</b> Sİ kod agentləri ilə Android inkişafınızı sürətləndirin.</li>
+                    <li>☁️ <b>45 TB Ümumi Yaddaş</b></li>
                 </ul>
             </div>
         </div>
@@ -126,12 +137,16 @@ if st.session_state.show_pricing:
             <div class="tier-name">Kortex Ultra 💎</div>
             <div class="tier-price">$95 <span>/ay</span></div>
             <div class="tier-desc">
-                <b>Limitsiz Ekosistem (Rəqibsiz):</b>
                 <ul>
-                    <li>👁️ <b>Vision AI:</b> Qabaqcıl Şəkil Analizi</li>
-                    <li>🎥 <b>Veo 4.0:</b> Video Yaratma</li>
-                    <li>🎼 <b>Producer.ai:</b> Musiqi Bəstələmə</li>
-                    <li>🌐 <b>Limitsiz</b> Deep Research</li>
+                    <li>💬 <b>Maksimal Limitlər:</b> Deep Think, Nano Banana Pro və ən son Veo 3.1 video mühərriki.</li>
+                    <li>🎥 <b>Flow & Whisk:</b> Hekayə və kinematik səhnələr üçün maksimal limitlər.</li>
+                    <li>💎 <b>25.000</b> Aylıq Sİ krediti.</li>
+                    <li>🌐 <b>Axtarış & NotebookLM:</b> Maksimal və limitsiz giriş.</li>
+                    <li>🎼 <b>Producer.ai:</b> Birgə musiqi platformasına maksimal giriş.</li>
+                    <li>🧠 <b>Kortex Antigravity:</b> Agent modeli üçün maksimal limitlər.</li>
+                    <li>💻 <b>Developer Program & Studio:</b> CLI, Code Assist və bulud limitləri maksimal sürətdə.</li>
+                    <li>🚫 <b>Premium Əlavə:</b> Reklamsız, oflayn media (YouTube ekvivalenti).</li>
+                    <li>☁️ <b>200 TB Ümumi Yaddaş</b> (Rəqibsiz böyüklükdə)</li>
                 </ul>
             </div>
         </div>
@@ -213,7 +228,6 @@ if uploaded_image is not None:
         st.sidebar.error("❌ Şəkil analizi üçün Pro və ya Ultra lazımdır.")
     else:
         st.sidebar.image(uploaded_image, caption="Analiz üçün hazırdır", use_container_width=True)
-        # Şəkli AI-ın oxuya biləcəyi koda çeviririk
         base64_image = base64.b64encode(uploaded_image.getvalue()).decode('utf-8')
         image_mime_type = uploaded_image.type
         st.sidebar.success("✅ Şəkil Kortex-in beyninə yükləndi! İndi bu şəkil barədə sual verə bilərsiniz.")
@@ -276,7 +290,6 @@ if prompt := st.chat_input("Kortex AI-a əmr ver (Şəkil atıb 'Bu nədir?' sor
                 
         # --- ŞƏKİL ANALİZİ VƏ YA İNTERNET SÖHBƏTİ ---
         else:
-            # Əgər şəkil yüklənibsə və Pro/Ultra-dırsa, VISION modelini işə salırıq
             if base64_image and st.session_state.selected_tier in ["Pro", "Ultra"]:
                 with st.spinner("👁️ Kortex Şəkilə Baxır..."):
                     vision_messages = [
@@ -298,7 +311,6 @@ if prompt := st.chat_input("Kortex AI-a əmr ver (Şəkil atıb 'Bu nədir?' sor
                     except Exception as e:
                         response = f"Xəta (Göz Mühərriki): {str(e)}"
                         
-            # Şəkil yoxdursa, normal axtarış və söhbət
             else:
                 if use_internet:
                     with st.spinner("🌐 Deep Research axtarır..."):
