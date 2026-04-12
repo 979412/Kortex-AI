@@ -41,7 +41,7 @@ st.markdown("""
 # API SETUP
 # ==========================================================
 try:
-    api_key = "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"
+    api_key = "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"
     client = Groq(api_key=api_key)
 except Exception as e:
     st.error(f"API Bağlantı Xətası: {e}")
@@ -214,7 +214,7 @@ st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 
 use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_vision_gen = st.session_state.selected_tier in ["Pro", "Ultra"]
-use_video = st.session_state.selected_tier == "Ultra"
+use_video = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_music = st.session_state.selected_tier == "Ultra"
 
 # ŞƏKİL YÜKLƏMƏ BÖLMƏSİ (YENİ GÖZ)
@@ -260,7 +260,8 @@ if prompt := st.chat_input("Kortex AI-a əmr ver (Şəkil atıb 'Bu nədir?' sor
         if "video" in prompt_lower and use_video:
             with st.spinner("🎥 Kortex Veo 4.0 video render edir..."):
                 time.sleep(2)
-                response = "Ultra lisenziyanız təsdiqləndi. Video animasiyası hazırlanır."
+                limit_text = " (Məhdud Limit)" if st.session_state.selected_tier == "Pro" else " (Maksimal Limit)"
+                response = f"{st.session_state.selected_tier} lisenziyanız təsdiqləndi. Video animasiyası hazırlanır{limit_text}."
                 vid_msg = f"🎞️ [SİMULYASİYA] Kortex Veo 4.0: '{prompt}'"
                 st.markdown(response)
                 st.info(vid_msg)
@@ -309,7 +310,11 @@ if prompt := st.chat_input("Kortex AI-a əmr ver (Şəkil atıb 'Bu nədir?' sor
                         )
                         response = chat_completion.choices[0].message.content
                     except Exception as e:
-                        response = f"Xəta (Göz Mühərriki): {str(e)}"
+                        error_msg = str(e)
+                        if "401" in error_msg or "Invalid API Key" in error_msg:
+                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir."
+                        else:
+                            response = f"⚠️ Şəkil oxunarkən xəta yarandı: Mühərrik müvəqqəti məşğuldur."
                         
             else:
                 if use_internet:
@@ -340,7 +345,11 @@ if prompt := st.chat_input("Kortex AI-a əmr ver (Şəkil atıb 'Bu nədir?' sor
                         )
                         response = chat_completion.choices[0].message.content
                     except Exception as e:
-                        response = f"Xəta: {str(e)}"
+                        error_msg = str(e)
+                        if "401" in error_msg or "Invalid API Key" in error_msg:
+                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir."
+                        else:
+                            response = f"⚠️ Kortex sistemi müvəqqəti olaraq yüklənmə yaşayır. Bir az sonra yenidən cəhd edin."
 
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
