@@ -291,7 +291,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver (Şəkil atıb 'Bu nədir?' sor
                     try:
                         chat_completion = client.chat.completions.create(
                             messages=vision_messages,
-                            model="llama-3.2-11b-vision-preview", # Groq-un ən yeni Göz modeli!
+                            model="llama-3.2-11b-vision-preview",
                             temperature=0.3, max_tokens=2048
                         )
                         response = chat_completion.choices[0].message.content
