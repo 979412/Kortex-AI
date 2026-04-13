@@ -43,7 +43,8 @@ st.markdown("""
 # ==========================================================
 try:
     # QEYD: API açarınızı təhlükəsiz yerdə (st.secrets) saxlamaq məsləhətdir!
-    api_key = "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" 
+    # Mənə göndərdiyiniz YENİ işlək Groq açarını bura əlavə etdim:
+    api_key = "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" 
     client = Groq(api_key=api_key)
 except Exception as e:
     st.error(f"Groq API Bağlantı Xətası: {e}")
@@ -67,7 +68,7 @@ def generate_image_hf(prompt):
     """
     # QEYD: Bura öz Hugging Face API açarınızı (Token) daxil etməlisiniz.
     # Əgər yoxdursa, https://huggingface.co/settings/tokens ünvanından pulsuz yarada bilərsiniz.
-    HF_API_KEY = "hf_SƏNİN_HUGGING_FACE_TOKENİNİ_BURA_YAZ" # <--- DƏYİŞDİRİN
+    HF_API_KEY = "hf_SƏNİN_HUGGING_FACE_TOKENİNİ_BURA_YAZ" # <--- BU HİSSƏNİ DƏYİŞDİRİN
     
     # Ən güclü açıq mənbəli şəkil modellərindən biri (Flux)
     API_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
@@ -122,9 +123,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # ==========================================================
-# 3. QİYMƏT VƏ PAKET SEÇİMİ EKRANI (Dəyişməz qalıb)
+# 3. QİYMƏT VƏ PAKET SEÇİMİ EKRANI
 # ==========================================================
-# ... (Sizin yazdığınız qisim eynidir) ...
 if st.session_state.show_pricing:
     if st.button("⬅ Çata Qayıt", use_container_width=False):
         st.session_state.show_pricing = False
@@ -213,7 +213,7 @@ if st.session_state.show_pricing:
     st.stop()
 
 # ==========================================================
-# 4. ÖDƏNİŞ (CHECKOUT) EKRANI (Dəyişməz qalıb)
+# 4. ÖDƏNİŞ (CHECKOUT) EKRANI
 # ==========================================================
 if st.session_state.selected_tier in ["Pro", "Ultra"] and not st.session_state.payment_successful:
     price = "$12.00" if st.session_state.selected_tier == "Pro" else "$95.00"
