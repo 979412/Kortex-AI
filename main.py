@@ -44,7 +44,6 @@ st.markdown("""
 # ==========================================================
 # 1. GROQ API (Mətn və Analiz üçün)
 try:
-    # DİQQƏT: Əgər ekranda xəta varsa, bu açarı yeniləməlisən!
     groq_api_key = "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" 
     client = Groq(api_key=groq_api_key)
 except Exception as e:
@@ -290,11 +289,11 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: azerbaycan bayr
         if is_image_request and use_vision_gen:
             with st.spinner("🎨 Kortex Vision (DALL-E 3) Şəkli Hazırlayır..."):
                 try:
-                    # DALL-E 3 üçün xüsusi prompt tərcüməçisi (daha detallı)
+                    # DALL-E 3 üçün xüsusi prompt tərcüməçisi
                     prompt_converter_msg = [
                         {"role": "system", "content": """Sən peşəkar DALL-E 3 prompt mühəndisisən. 
                         İstifadəçi bir ölkənin (məsələn: Azərbaycan) bayrağını yaratmağı istəyirsə, sadəcə bayrağı yox, mütləq onu o ölkənin ən məşhur məkanlarından birində (məsələn: Bakıda Heydər Əliyev Mərkəzi) realistik şəkildə dalğalanarkən təsvir et. 
-                        Təsviri İNGİLİS DİLİNDƏ yaz və "highly detailed, cinematic lighting, 8k resolution, photorealistic" sözlərini əlavə et. Yalnız promptu qaytar."""},
+                        Təsviri İNGİLİS DİLİNDƏ yaz və "highly detailed, cinematic lighting, 8k resolution, photorealistic" sözlərini əlavə et. Yalnız promptu qaytar. XƏBƏRDARLIQ: Mətndə heç bir halda (ə, ö, ğ, ç, ş, ı, ü) kimi qeyri-ingilis hərfləri İSTİFADƏ ETMƏ!"""},
                         {"role": "user", "content": prompt}
                     ]
                     converter_chat = client.chat.completions.create(
@@ -308,11 +307,14 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: azerbaycan bayr
                     enhanced_prompt = prompt_lower.replace("yarat", "").replace("çək", "").strip()
                     enhanced_prompt += " photorealistic, 8k, extremely detailed, if flag make it fly in capital city"
                 
+                # ASCII ERROR FIX (ASCII xətasının qarşısını alan qoruyucu kod)
+                safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
+
                 # DALL-E 3 API ÇAĞIRIŞI
                 try:
                     response = openai_client.images.generate(
                         model="dall-e-3",
-                        prompt=enhanced_prompt,
+                        prompt=safe_prompt,
                         size="1024x1024",
                         quality="hd",
                         n=1,
