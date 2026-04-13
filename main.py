@@ -3,7 +3,7 @@ from groq import Groq
 import time
 import base64
 from duckduckgo_search import DDGS  
-import urllib.parse # Şəkil prompt-unu URL üçün formatlamaq üçün lazımdır
+import urllib.parse 
 
 # ==========================================================
 # 1. CSS VƏ VİZUAL AYARLAR
@@ -26,7 +26,6 @@ st.markdown("""
     .tier-desc ul { padding-left: 20px; margin-top: 10px; }
     .tier-desc li { margin-bottom: 10px; line-height: 1.4;}
     
-    /* Scrollbar üçün xüsusi dizayn */
     .tier-desc::-webkit-scrollbar { width: 5px; }
     .tier-desc::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
     
@@ -258,21 +257,17 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: birdene bmw m3 
         prompt_lower = prompt.lower()
         
         # ==========================================================
-        # AĞILLI DETEKTOR: Mətn xətalarını və azərbaycan şriftlərini əfv edir
+        # SUPER AĞILLI DETEKTOR: Mətn xətalarını mütləq tutur!
         # ==========================================================
-        img_words = ["şəkil", "sekil", "şəkli", "sekli", "rəsm", "resm", "foto"]
-        action_words = ["yarat", "yarad", "çək", "cek", "düzəlt", "duzelt", "göstər", "goster"]
-        
         is_image_request = False
-        for iw in img_words:
-            for aw in action_words:
-                if iw in prompt_lower and aw in prompt_lower:
-                    is_image_request = True
-                    break
-            if is_image_request: break
-            
-        # Xüsusi qısa yol: Əgər istifadəçi sadəcə "sekli yarat" və ya "sekil cek" yazsa
-        if any(kw in prompt_lower for kw in ["şəkil yarat", "sekli yarat", "sekil yarat", "şəkil çək", "sekil cek"]):
+        
+        # Əgər yarat, çək, düzəlt sözləri varsa VƏ şəkil, rəsm, foto sözləri varsa
+        if any(x in prompt_lower for x in ["yarat", "yarad", "çək", "cek", "düzəlt", "duzelt"]):
+            if any(y in prompt_lower for y in ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm"]):
+                is_image_request = True
+                
+        # Qısa komandalar üçün birbaşa nəzarət
+        if "sekli yarat" in prompt_lower or "şəkli yarat" in prompt_lower or "sekil cek" in prompt_lower or "şəkil çək" in prompt_lower:
             is_image_request = True
         
         # --- ŞƏKİL YARATMA LOQİKASI (FLUX 4K MODEL) ---
@@ -300,7 +295,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: birdene bmw m3 
                 encoded_prompt = urllib.parse.quote(clean_prompt)
                 image_api_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?nologo=true&realism=true&model=flux"
                 
-                response_text = f"Buyur, istədiyin **'{clean_prompt}'** şəkli hazırdır! ({st.session_state.selected_tier} 4K mühərriki ilə çəkildi)"
+                response_text = f"Buyur, istədiyin **'{clean_prompt.upper()}'** şəkli hazırdır! ({st.session_state.selected_tier} 4K mühərriki ilə çəkildi)"
                 st.markdown(response_text)
                 
                 # Şəkli çata yerləşdiririk
