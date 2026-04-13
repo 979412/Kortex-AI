@@ -216,9 +216,9 @@ st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 
 use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_vision_analysis = st.session_state.selected_tier in ["Pro", "Ultra"] # Şəkil analiz etmək
-# MEMAR STRATEGİYASI: Şəkil çəkməyi yalnız pullu paketlərə veririk
-use_image_generation = st.session_state.selected_tier in ["Pro", "Ultra"] 
-use_video = st.session_state.selected_tier == "Ultra"
+# MEMAR STRATEGİYASI: Şəkil çəkməyi HƏR KƏSƏ (hər 3 paketə) veririk
+use_vision_gen = True 
+use_video = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_music = st.session_state.selected_tier == "Ultra"
 
 # ŞƏKİL YÜKLƏMƏ BÖLMƏSİ (MÖVCUD ŞƏKLİ ANALİZ ETMƏK ÜÇÜN)
@@ -247,15 +247,12 @@ for message in st.session_state.messages:
         if "generated_image_url" in message:
             # Əgər mesaj bir generasiya olunmuş şəkil URL-i saxlarsa, onu burda göstər
             st.image(message["generated_image_url"], caption="Kortex Vision 🎨")
-        if "image_url" in message:
-            # Mövcud yüklənmiş şəkil (hələ ki bu funksiya daxil deyil)
-            pass
         if "video_msg" in message:
             st.info(message["video_msg"])
         if "music_msg" in message:
             st.success(message["music_msg"])
 
-if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: Mənə BMW şəkli yarat)"):
+if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: Mənə BMW M3 şəkli yarat)"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -269,45 +266,41 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: Mənə BMW şə
         image_keywords = ["şəkil yarat", "şəkil çək", "şəkil düzəlt", "yaratsın", "çəksin", "görünüşünü düzəlt"]
         is_image_request = any(kw in prompt_lower for kw in image_keywords)
         
-        # --- ŞƏKİL YARATMA LOQİKASI (PRO/ULTRA ÜÇÜN GERÇƏK İNTEQRASİYA) ---
-        if is_image_request:
-            if not use_image_generation:
-                # Basic istifadəçisi üçün refuzal
-                response_text = "❌ Üzr istəyirəm, Memar! Süni İntellektlə **realistik şəkil yaratmaq** funksiyası *Kortex Basic* paketində mövcud deyil. Bu funksiyadan istifadə etmək və Google Ultra kimi gerçək şəkillər yaratmaq üçün **Kortex Pro** və ya **Kortex Ultra** paketlərinə keçməlisiniz."
-                st.markdown(response_text)
-                st.session_state.messages.append({"role": "assistant", "content": response_text})
+        # --- ŞƏKİL YARATMA LOQİKASI (GERÇƏK İNTEQRASİYA - FLUX MODEL) ---
+        if is_image_request and use_vision_gen:
+            if st.session_state.selected_tier == "Basic":
+                tier_msg = "🔹 Basic: Standart şəkil render olunur..."
+            elif st.session_state.selected_tier == "Pro":
+                tier_msg = "🚀 Pro: Yüksək detallı şəkil render olunur..."
             else:
-                # Pro/Ultra istifadəçisi üçün gerçək inteqrasiya (Pollinations.ai)
-                with st.spinner("Anladım! İnsan kimi deyil, bir Süni İntellekt Memarı kimi realistik şəkil hazırlayıram... 🎨"):
-                    time.sleep(1) # Visual efek
-                    
-                    # Prompt-u təmizləyirik (yaratsın, çəksin sözlərini çıxarırıq)
-                    # Pollinations API üçün ingilis dilinə formatlamaq şəkli daha da real edər, amma 
-                    # təmiz azərbaycan dili də işləyir. Biz prompt-un özünü URL-ə formatlayırıq.
-                    
-                    # URL təhlükəsizliyi üçün prompt-u kodlaşdırırıq (məsələn boşluqlar %20 olur)
-                    encoded_prompt = urllib.parse.quote(prompt_lower.replace("şəkil", "").replace("yarat", "").replace("çək", "").strip())
-                    
-                    if not encoded_prompt: encoded_prompt = "futuristic AI core" # default
-                    
-                    # Pollinations API URL structure
-                    image_api_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?nologo=true&realism=true&model=flux"
-                    
-                    # Müsbət rəy mesajı
-                    response_text = f"Buyur, istədiyin **'{prompt}'** üçün realistik Süni İntellekt görünüşü hazırdır! ({st.session_state.selected_tier} səviyyəsində render olundu)"
-                    st.markdown(response_text)
-                    
-                    # Şəkli çata yerləşdiririk
-                    st.image(image_api_url, caption=f"Kortex Pro/Ultra tərəfindən 'Memar' üçün yaradıldı")
-                    
-                    # Mesajı tarixçəyə yadda saxlayırıq (Şəkil URL-i ilə birlikdə)
-                    st.session_state.messages.append({"role": "assistant", "content": response_text, "generated_image_url": image_api_url})
+                tier_msg = "💎 Ultra: Maksimal (4K fotorealistik) şəkil render olunur..."
+                
+            with st.spinner(f"🎨 Kortex Vision işləyir... \n{tier_msg}"):
+                time.sleep(1) # Visual efek
+                
+                # Memar-ın verdiyi xüsusi URL təmizləmə və inteqrasiya
+                clean_prompt = prompt_lower.replace("şəkil", "").replace("yarat", "").replace("çək", "").replace("duzelt", "").replace("bir", "").replace("mene", "").strip()
+                if not clean_prompt: clean_prompt = "futuristic sports car"
+                
+                # URL kodlaması və sən atdığın flux, nologo, realism dəyərləri:
+                encoded_prompt = urllib.parse.quote(clean_prompt)
+                image_api_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?nologo=true&realism=true&model=flux"
+                
+                response_text = f"Buyur, istədiyin **'{clean_prompt}'** şəkli hazırdır! ({st.session_state.selected_tier} keyfiyyəti ilə)"
+                st.markdown(response_text)
+                
+                # Şəkli çata yerləşdiririk
+                st.image(image_api_url, caption=f"Kortex Vision tərəfindən yaradıldı")
+                
+                # Mesajı tarixçəyə yadda saxlayırıq (Şəkil URL-i ilə birlikdə)
+                st.session_state.messages.append({"role": "assistant", "content": response_text, "generated_image_url": image_api_url})
                 
         # --- DİGƏR FUNKSİYALAR (VİDEO/MUSİQİ) ---
         elif "video" in prompt_lower and use_video:
             with st.spinner("🎥 Kortex Veo 4.0 video render edir..."):
                 time.sleep(2)
-                response = "Ultra lisenziyanız təsdiqləndi. Video animasiyası hazırlanır."
+                limit_text = " (Məhdud Limit)" if st.session_state.selected_tier == "Pro" else " (Maksimal Limit)"
+                response = f"{st.session_state.selected_tier} lisenziyanız təsdiqləndi. Video animasiyası hazırlanır{limit_text}."
                 vid_msg = f"🎞️ [SİMULYASİYA] Kortex Veo 4.0: '{prompt}'"
                 st.markdown(response)
                 st.info(vid_msg)
@@ -322,9 +315,8 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: Mənə BMW şə
                 st.success(mus_msg)
                 st.session_state.messages.append({"role": "assistant", "content": response, "music_msg": mus_msg})
         
-        # --- NORMAL MƏTN ÇAT VƏ YA ŞƏKİL ANALİZİ (EXISTING LOGIC) ---
+        # --- NORMAL MƏTN ÇAT VƏ YA ŞƏKİL ANALİZİ ---
         else:
-            # Əgər şəkil yüklənibsə və Pro/Ultra-dırsa, VISION modelini işə salırıq
             if base64_image and use_vision_analysis:
                 with st.spinner("👁️ Kortex Şəkilə Baxır..."):
                     vision_messages = [
@@ -348,9 +340,8 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: Mənə BMW şə
                         if "401" in error_msg or "Invalid API Key" in error_msg:
                             response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir."
                         else:
-                            response = f"⚠️ Şəkil oxunarkən xəta yarandı: {error_msg}"
+                            response = f"⚠️ Şəkil oxunarkən xəta yarandı: Mühərrik müvəqqəti məşğuldur."
                         
-            # Şəkil yoxdursa, normal axtarış və söhbət
             else:
                 if use_internet:
                     with st.spinner("🌐 Deep Research axtarır..."):
