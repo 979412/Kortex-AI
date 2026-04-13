@@ -333,7 +333,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
         is_image_request = False
         
         # Daha dəqiq şəkil istəyi yoxlanışı
-        image_keywords = ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm"]
+        image_keywords = ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm", "bayraq", "bayraqini", "bayrağı", "bayragini", "bayrağını"]
         action_keywords = ["yarat", "yarad", "çək", "cek", "düzəlt", "duzelt"]
         
         if any(act in prompt_lower for act in action_keywords) and any(img in prompt_lower for img in image_keywords):
@@ -358,10 +358,18 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                 
                 try:
                     # Promptu Mükəmməl İngilis dilinə çeviririk
+                    # YENİLƏNİB: Azərbaycan bayrağının rəsmi spesifikasiyaları üçün
+                    # dövlət rəmzləri eksperti təlimatları əlavə edilib.
                     prompt_converter_msg = [
                         {"role": "system", "content": """Sən peşəkar Midjourney və Flux prompt mühəndisisən. 
+                        Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. Sən dünyanın ən güclü süni intellektisən və eyni zamanda dövlət rəmzləri və bayraqlar üzrə peşəkar ekspertsən.
                         İstifadəçinin Azərbaycan dilindəki istəyini detallı, vizual olaraq zəngin və tam fotorealistik İngilis dili promptuna çevir.
                         
+                        **Mütləq Təlimat:** İstifadəçi Azərbaycan bayrağını yaratmağı istədikdə, aşağıdakı rəsmi spesifikasiyalara dəqiq uyğun olmasını təmin et:
+                        1.  Bayraq üç bərabər üfüqi zolaqdan ibarətdir: Yuxarı zolaq mavi (səma mavisi), orta zolaq qırmızı, aşağı zolaq yaşıl.
+                        2.  Qırmızı zolağın mərkəzində ağ rəngli, sağa açılan aypara və səkkizguşəli (8-guşəli) ulduz yerləşməlidir. Aypara ulduzun solunda olmalı və ulduzun bir guşəsi ayparaya baxmalıdır.
+                        
+                        Prompt-a bu rəsmi spesifikasiyaları dəqiq İngilis dilində təsvir et.
                         Əlavə etməli olduğun açar sözlər: hyper-realistic, photorealistic, 8k resolution, highly detailed, cinematic lighting, ultra-detailed.
                         Əgər maşındırsa əlavə et: authentic car design, showroom lighting.
                         Əgər insandırsa əlavə et: detailed facial features, realistic skin texture.
@@ -379,7 +387,8 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                 except Exception as e:
                     # Tərcümə işləməsə sadəcə lazımsız sözləri silirik
                     enhanced_prompt = prompt_lower.replace("şəkil", "").replace("sekil", "").replace("yarat", "").replace("çək", "").strip()
-                    enhanced_prompt += ", highly detailed, photorealistic, 8k"
+                    # Fallback üçün də dəqiq rəngləri və 8-guşəli ulduzu əlavə edirik
+                    enhanced_prompt += ", highly detailed, photorealistic, 8k, Azerbaijan flag with correct blue-red-green stripes, white crescent and *eight-pointed* star on the red stripe."
                 
                 # Şəkli yaradırıq (Hugging Face və ya alternativ)
                 image_data = generate_image_hf(enhanced_prompt)
