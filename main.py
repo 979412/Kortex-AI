@@ -41,7 +41,7 @@ st.markdown("""
 # API SETUP
 # ==========================================================
 try:
-    # DİQQƏT MEMAR: BURAYA YEPYENİ BİR AÇAR YAZMALISAN! KÖHNƏSİ ÖLÜB!
+    # DİQQƏT MEMAR: AŞAĞIDAKI SƏTİRƏ YENİ AÇAR YAZ!
     api_key = "BURAYA_YENI_ALDIYIN_ACARI_YAZ"
     client = Groq(api_key=api_key)
 except Exception as e:
@@ -297,9 +297,9 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                     )
                     clean_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
-                    # Əgər API xəta verirsə (məsələn 401), bu blok işləyir
+                    # Əgər API xəta verirsə (məsələn 401), bu blok işləyir ki, yenə də gerçəkçi olsun!
                     clean_prompt = prompt_lower.replace("şəkil", "").replace("sekil", "").replace("şəkli", "").replace("yarat", "").replace("olsun", "").replace("bele", "").replace("mene", "").strip()
-                    clean_prompt += ", hyper realistic photography, natural lighting, 8k, highly detailed, no neon"
+                    clean_prompt += ", hyper realistic photography, natural sunlight, 8k resolution, highly detailed authentic car, NO neon, NO game graphics"
                     
                 # URL kodlaması - Geniş ekran (1280x720) üçün ayarlar əlavə edildi!
                 encoded_prompt = urllib.parse.quote(clean_prompt)
