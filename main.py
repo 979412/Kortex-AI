@@ -162,7 +162,7 @@ st.sidebar.markdown("---")
 st.sidebar.subheader("🔑 Kortex Beyin Açarı")
 st.sidebar.caption("Əgər sistem 'salam'a cavab vermirsə, bura yeni Groq API açarını yapışdırın:")
 # İSTİFADƏÇİ BURADAN AÇARI YAZA BİLƏR:
-user_api_key = st.sidebar.text_input("Groq API Key:", type="password", value="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")
+user_api_key = st.sidebar.text_input("Groq API Key:", type="password", value="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")
 
 client = None
 if user_api_key:
@@ -170,6 +170,16 @@ if user_api_key:
         client = Groq(api_key=user_api_key)
     except Exception:
         pass
+
+def search_internet(query):
+    try:
+        results = DDGS().text(query, max_results=5) 
+        res_text = ""
+        for r in results:
+            res_text += f"Mənbə: {r['title']}\nMəlumat: {r['body']}\n\n"
+        return res_text
+    except Exception as e:
+        return ""
 
 use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_vision_analysis = st.session_state.selected_tier in ["Pro", "Ultra"]
