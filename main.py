@@ -41,7 +41,8 @@ st.markdown("""
 # API SETUP
 # ==========================================================
 try:
-    api_key = "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"
+    # DİQQƏT MEMAR: BURAYA YEPYENİ BİR AÇAR YAZMALISAN! KÖHNƏSİ ÖLÜB!
+    api_key = "BURAYA_YENI_ALDIYIN_ACARI_YAZ"
     client = Groq(api_key=api_key)
 except Exception as e:
     st.error(f"Groq API Bağlantı Xətası: {e}")
@@ -171,7 +172,7 @@ if st.session_state.selected_tier in ["Pro", "Ultra"] and not st.session_state.p
     with col_pay:
         st.markdown(f"<div class='payment-box'>", unsafe_allow_html=True)
         st.info(f"Ödəniləcək Məbləğ: **{price} / Ay**")
-        card_name = st.text_input("Kartın üzərindəki Ad və Soyad", placeholder="Abdullah Mikayılov")
+        card_name = st.text_input("Kartın üzərində Ad və Soyad", placeholder="Abdullah Mikayılov")
         card_number = st.text_input("Kartın Nömrəsi (16 rəqəm)", placeholder="XXXX XXXX XXXX XXXX", max_chars=19)
         c1, c2 = st.columns(2)
         with c1: exp_date = st.text_input("Bitmə Tarixi (AA/İİ)", placeholder="12/26", max_chars=5)
@@ -261,20 +262,17 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
         # ==========================================================
         is_image_request = False
         
-        # Əgər yarat, çək, düzəlt sözləri varsa VƏ şəkil, rəsm, foto sözləri varsa
         if any(x in prompt_lower for x in ["yarat", "yarad", "çək", "cek", "düzəlt", "duzelt"]):
             if any(y in prompt_lower for y in ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm"]):
                 is_image_request = True
                 
-        # Qısa komandalar üçün birbaşa nəzarət
         if "sekli yarat" in prompt_lower or "şəkli yarat" in prompt_lower or "sekil cek" in prompt_lower or "şəkil çək" in prompt_lower:
             is_image_request = True
             
-        # Əgər cümlə yalnız "yarat" və ya "çək" ilə bitirsə, yenə şəkil sayılır
         if prompt_lower.endswith("yarat") or prompt_lower.endswith("çək") or prompt_lower.endswith("duzelt"):
              is_image_request = True
         
-        # --- ŞƏKİL YARATMA LOQİKASI (AĞILLI TƏRCÜMƏÇİ İLƏ FLUX 4K MODEL) ---
+        # --- ŞƏKİL YARATMA LOQİKASI (AĞILLI TƏRCÜMƏÇİ VƏ FOTOREALİSTİK ƏLAVƏLƏR) ---
         if is_image_request and use_vision_gen:
             if st.session_state.selected_tier == "Basic":
                 tier_msg = "🔹 Basic: Şəkil təhlil edilir və render olunur..."
@@ -283,40 +281,35 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
             else:
                 tier_msg = "💎 Ultra: Maksimal təhlil və 4K render olunur..."
                 
-            with st.spinner(f"🎨 Kortex Vision Detalları Oxuyur... \n{tier_msg}"):
+            with st.spinner(f"🎨 Kortex Vision Realistik Detalları Oxuyur... \n{tier_msg}"):
                 
-                # Bura AĞILLI TƏRCÜMƏÇİ hissəsidir. Llama sən yazan uzuuun Azərbaycan dili cümləsini 
-                # (məsələn: bmw m3 olsun rengi qara faralari qirmizi olsun) götürüb qısa İngilis dili 
-                # promptuna (black bmw m3, red headlights, photorealistic, 8k) çevirir!
+                # Bura AĞILLI TƏRCÜMƏÇİ hissəsidir. Sərt fotorealizm əmrləri vurulub!
                 try:
                     prompt_converter_msg = [
-                        {"role": "system", "content": "Sən şəkil yaratmaq üçün Prompt mühəndisisən. İstifadəçinin cümləsindən əsas obyekti, rəngini, xüsusiyyətlərini tapıb qısa, vergüllərlə ayrılmış İngilis dili promptu yazmalısan. Yalnız İngilis dili sözləri yaz, başqa heç nə. Məsələn: 'black bmw m3, glowing red headlights, photorealistic'"},
+                        {"role": "system", "content": "Sən yalnız gerçək və fotorealistik şəkillər yaradan Prompt Mühəndisisən. İstifadəçinin cümləsindən əsas obyekti və detalları tap, və İngilis dilinə çevir. MÜTLƏQ HƏMİŞƏ BU SÖZLƏRİ ƏLAVƏ ET: ', hyper-realistic, photorealistic, natural daylight, professional photography, 8k resolution, highly detailed, authentic car design, NO neon, NO digital art, NO stylized lighting'. Yalnız bu hazır İngilis dili promptunu yaz."},
                         {"role": "user", "content": prompt}
                     ]
                     converter_chat = client.chat.completions.create(
                         messages=prompt_converter_msg,
                         model="llama-3.3-70b-versatile",
                         temperature=0.1, 
-                        max_tokens=50
+                        max_tokens=70
                     )
                     clean_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
-                    # Əgər tərcümə xəta versə, sadə üsulla davam etsin
+                    # Əgər API xəta verirsə (məsələn 401), bu blok işləyir
                     clean_prompt = prompt_lower.replace("şəkil", "").replace("sekil", "").replace("şəkli", "").replace("yarat", "").replace("olsun", "").replace("bele", "").replace("mene", "").strip()
+                    clean_prompt += ", hyper realistic photography, natural lighting, 8k, highly detailed, no neon"
                     
-                if not clean_prompt: clean_prompt = "hyper realistic futuristic car"
-                
-                # URL kodlaması
+                # URL kodlaması - Geniş ekran (1280x720) üçün ayarlar əlavə edildi!
                 encoded_prompt = urllib.parse.quote(clean_prompt)
-                image_api_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?nologo=true&realism=true&model=flux"
+                image_api_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&realism=true&model=flux"
                 
-                response_text = f"Buyur, istədiyin şəkil hazırdır! ({st.session_state.selected_tier} 4K mühərriki ilə çəkildi)"
+                response_text = f"Buyur, istədiyin şəkil hazırdır! Təbii işıq və fotorealistik detallarla çəkildi. ({st.session_state.selected_tier} mühərriki)"
                 st.markdown(response_text)
                 
-                # Şəkli çata yerləşdiririk
-                st.image(image_api_url, caption=f"Kortex Vision: Detallı Analiz Nəticəsi")
+                st.image(image_api_url, caption=f"Kortex Vision: Gerçək Analiz Nəticəsi")
                 
-                # Mesajı tarixçəyə yadda saxlayırıq 
                 st.session_state.messages.append({"role": "assistant", "content": response_text, "generated_image_url": image_api_url})
                 
         # --- DİGƏR FUNKSİYALAR (VİDEO/MUSİQİ) ---
@@ -362,7 +355,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                     except Exception as e:
                         error_msg = str(e)
                         if "401" in error_msg or "Invalid API Key" in error_msg:
-                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir."
+                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir. Zəhmət olmasa yeni açar daxil edin!"
                         else:
                             response = f"⚠️ Şəkil oxunarkən xəta yarandı: Mühərrik müvəqqəti məşğuldur."
                         
@@ -397,9 +390,9 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                     except Exception as e:
                         error_msg = str(e)
                         if "401" in error_msg or "Invalid API Key" in error_msg:
-                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir."
+                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir. 54-cü sətirdə yeni açarı yazın!"
                         else:
-                            response = f"⚠️ Kortex sistemi müvəqqəti olaraq yüklənmə yaşayır. Bir az sonra yenidən cəhd edin."
+                            response = f"⚠️ Kortex sistemi müvəqqəti olaraq yüklənmə yaşayır. Xəta: {error_msg}"
 
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
