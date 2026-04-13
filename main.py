@@ -212,25 +212,23 @@ with header_col2:
 st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 
-use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
-use_vision_gen = st.session_state.selected_tier in ["Pro", "Ultra"]
-use_video = st.session_state.selected_tier in ["Pro", "Ultra"]
-use_music = st.session_state.selected_tier == "Ultra"
+# MEMAR QƏRARI: Bütün paketlərdə funksiyalar AÇIQDIR!
+use_internet = True
+use_vision_gen = True
+use_video = True
+use_music = True
 
-# ŞƏKİL YÜKLƏMƏ BÖLMƏSİ (YENİ GÖZ)
+# ŞƏKİL YÜKLƏMƏ BÖLMƏSİ (YENİ GÖZ) - Artıq hamıda işləyir
 st.sidebar.markdown("---")
 st.sidebar.subheader("👁️ Kortex Vision (Şəkil Analizi)")
 uploaded_image = st.sidebar.file_uploader("Şəkil Yüklə (JPG, PNG)", type=['png', 'jpg', 'jpeg'])
 
 base64_image = None
 if uploaded_image is not None:
-    if st.session_state.selected_tier == "Basic":
-        st.sidebar.error("❌ Şəkil analizi üçün Pro və ya Ultra lazımdır.")
-    else:
-        st.sidebar.image(uploaded_image, caption="Analiz üçün hazırdır", use_container_width=True)
-        base64_image = base64.b64encode(uploaded_image.getvalue()).decode('utf-8')
-        image_mime_type = uploaded_image.type
-        st.sidebar.success("✅ Şəkil Kortex-in beyninə yükləndi! İndi bu şəkil barədə sual verə bilərsiniz.")
+    st.sidebar.image(uploaded_image, caption="Analiz üçün hazırdır", use_container_width=True)
+    base64_image = base64.b64encode(uploaded_image.getvalue()).decode('utf-8')
+    image_mime_type = uploaded_image.type
+    st.sidebar.success("✅ Şəkil Kortex-in beyninə yükləndi! İndi bu şəkil barədə sual verə bilərsiniz.")
 
 # ==========================================================
 # MESAJLAŞMA VƏ AĞILLI MƏNTİQ
@@ -258,10 +256,16 @@ if prompt := st.chat_input("Kortex AI-a əmr ver (Şəkil atıb 'Bu nədir?' sor
         
         # --- VİDEO YARATMA (VEO 4.0) ---
         if "video" in prompt_lower and use_video:
-            with st.spinner("🎥 Kortex Veo 4.0 video render edir..."):
+            if st.session_state.selected_tier == "Basic":
+                tier_msg = "🔹 Basic Lisenziya: Standart (720p) video animasiyası hazırlanır..."
+            elif st.session_state.selected_tier == "Pro":
+                tier_msg = "🚀 Pro Lisenziya: Yüksək (1080p) video animasiyası hazırlanır..."
+            else:
+                tier_msg = "💎 Ultra Lisenziya: Maksimal (4K) video animasiyası hazırlanır..."
+                
+            with st.spinner(f"🎥 Kortex Veo 4.0 render edir... \n{tier_msg}"):
                 time.sleep(2)
-                limit_text = " (Məhdud Limit)" if st.session_state.selected_tier == "Pro" else " (Maksimal Limit)"
-                response = f"{st.session_state.selected_tier} lisenziyanız təsdiqləndi. Video animasiyası hazırlanır{limit_text}."
+                response = f"{st.session_state.selected_tier} lisenziyanız təsdiqləndi. Video tapşırığı mühərrikə göndərildi."
                 vid_msg = f"🎞️ [SİMULYASİYA] Kortex Veo 4.0: '{prompt}'"
                 st.markdown(response)
                 st.info(vid_msg)
@@ -269,7 +273,14 @@ if prompt := st.chat_input("Kortex AI-a əmr ver (Şəkil atıb 'Bu nədir?' sor
                 
         # --- MUSİQİ YARATMA (PRODUCER.AI) ---
         elif "musiqi" in prompt_lower and use_music:
-            with st.spinner("🎼 Producer.ai bəstələyir..."):
+            if st.session_state.selected_tier == "Basic":
+                tier_msg = "🔹 Basic: Qısa (30 san) musiqi hazırlanır..."
+            elif st.session_state.selected_tier == "Pro":
+                tier_msg = "🚀 Pro: Yüksək keyfiyyətli (2 dəq) musiqi hazırlanır..."
+            else:
+                tier_msg = "💎 Ultra: Limitsiz studiya keyfiyyətində musiqi hazırlanır..."
+                
+            with st.spinner(f"🎼 Producer.ai bəstələyir... \n{tier_msg}"):
                 time.sleep(2)
                 response = "Musiqi studiyası işə salındı!"
                 mus_msg = f"🎵 [SİMULYASİYA] Producer.ai: '{prompt}'"
@@ -278,20 +289,28 @@ if prompt := st.chat_input("Kortex AI-a əmr ver (Şəkil atıb 'Bu nədir?' sor
                 st.session_state.messages.append({"role": "assistant", "content": response, "music_msg": mus_msg})
         
         # --- ŞƏKİL YARATMA (KORTEX VISION GEN) ---
-        elif "şəkil" in prompt_lower and ("yarat" in prompt_lower or "çək" in prompt_lower) and use_vision_gen:
-            with st.spinner("🎨 Kortex Vision şəkli çəkir..."):
+        elif "şəkil" in prompt_lower and ("yarat" in prompt_lower or "çək" in prompt_lower or "duzelt" in prompt_lower) and use_vision_gen:
+            if st.session_state.selected_tier == "Basic":
+                tier_msg = "🔹 Basic: Standart (720p) şəkil çəkilir..."
+            elif st.session_state.selected_tier == "Pro":
+                tier_msg = "🚀 Pro: Yüksək (1080p) şəkil çəkilir..."
+            else:
+                tier_msg = "💎 Ultra: Maksimal (4K) şəkil çəkilir..."
+                
+            with st.spinner(f"🎨 Kortex Vision işləyir... \n{tier_msg}"):
                 time.sleep(1) 
-                img_prompt = prompt_lower.replace("şəkil", "").replace("yarat", "").replace("çək", "").strip()
-                if not img_prompt: img_prompt = "futuristic city"
+                img_prompt = prompt_lower.replace("şəkil", "").replace("yarat", "").replace("çək", "").replace("duzelt", "").replace("bir", "").replace("mene", "").strip()
+                if not img_prompt: img_prompt = "futuristic AI core"
+                
                 generated_image_url = f"https://image.pollinations.ai/prompt/{img_prompt.replace(' ', '%20')}"
-                response = f"Buyur, istədiyin **'{img_prompt}'** şəkli hazırdır!"
+                response = f"Buyur, istədiyin **'{img_prompt}'** şəkli hazırdır! ({st.session_state.selected_tier} keyfiyyəti ilə)"
                 st.markdown(response)
                 st.image(generated_image_url)
                 st.session_state.messages.append({"role": "assistant", "content": response, "image_url": generated_image_url})
                 
         # --- ŞƏKİL ANALİZİ VƏ YA İNTERNET SÖHBƏTİ ---
         else:
-            if base64_image and st.session_state.selected_tier in ["Pro", "Ultra"]:
+            if base64_image:
                 with st.spinner("👁️ Kortex Şəkilə Baxır..."):
                     vision_messages = [
                         {
