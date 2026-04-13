@@ -1,11 +1,9 @@
 import streamlit as st
 from groq import Groq
-from openai import OpenAI # YENİ: DALL-E 3 üçün
 import time
 import base64
 from duckduckgo_search import DDGS  
 import urllib.parse 
-import requests
 
 # ==========================================================
 # 1. CSS VƏ VİZUAL AYARLAR
@@ -40,9 +38,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================================
-# API SETUP
+# API SETUP (YALNIZ GROQ - PULSUZ MƏTN ÜÇÜN)
 # ==========================================================
-# 1. GROQ API (Mətn və Analiz üçün)
 try:
     groq_api_key = "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" 
     client = Groq(api_key=groq_api_key)
@@ -50,15 +47,19 @@ except Exception as e:
     st.error(f"Groq API Bağlantı Xətası: {e}")
     st.stop()
 
-# 2. OPENAI API (DALL-E 3 Şəkil Yaratmaq üçün)
-# ==========================================================
-# MÜTLƏQ BURA ÖZ OPENAI AÇARINI YAZ (sk- ilə başlayan)
-OPENAI_API_KEY = "sk-SƏNİN_OPENAI_AÇARIN_BURADA_OLACAQ" 
-try:
-    openai_client = OpenAI(api_key=OPENAI_API_KEY)
-except Exception as e:
-    pass
-# ==========================================================
+# --- BAYRAQ MƏLUMAT BAZASI ---
+FLAGS = {
+    "azerbaijan": {
+        "colors": "blue (sky blue), red, green horizontal stripes",
+        "symbol": "white crescent and exactly eight-pointed (8-pointed) star on the red stripe",
+        "location": "Baku, Azerbaijan (Heydar Aliyev Center, Flag Square, clear blue sky)"
+    },
+    "turkey": {
+        "colors": "red background",
+        "symbol": "white crescent and star",
+        "location": "Istanbul, Turkey (Hagia Sophia or Blue Mosque, cinematic lighting)"
+    }
+}
 
 def search_internet(query):
     try:
@@ -70,9 +71,16 @@ def search_internet(query):
     except Exception as e:
         return ""
 
+def generate_image_free_flux(prompt):
+    """
+    Heç bir API açarı tələb etməyən, tam pulsuz və xətasız Flux modeli.
+    """
+    encoded_prompt = urllib.parse.quote(prompt)
+    # nologo=true Pollinations loqosunu silir
+    return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true&model=flux"
 
 # ==========================================================
-# 2. SİSTEM VƏZİYYƏTİ (STATE)
+# SİSTEM VƏZİYYƏTİ (STATE)
 # ==========================================================
 if "selected_tier" not in st.session_state:
     st.session_state.selected_tier = "Basic"
@@ -84,145 +92,14 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # ==========================================================
-# 3. QİYMƏT VƏ PAKET SEÇİMİ EKRANI
-# ==========================================================
-if st.session_state.show_pricing:
-    if st.button("⬅ Çata Qayıt", use_container_width=False):
-        st.session_state.show_pricing = False
-        st.rerun()
-
-    st.markdown("<h1 style='text-align: center; color: #202124;'>Kortex AI - Rəqəmsal Ekosistem</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #5f6368; margin-bottom: 40px;'>Süni intellektin ən yüksək limitləri ilə rəqiblərinizi geridə qoyun.</p>", unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown("""
-        <div class="pricing-card">
-            <div class="tier-name">Kortex Basic</div>
-            <div class="tier-price">$0 <span>/ay</span></div>
-            <div class="tier-desc">
-                <ul>
-                    <li>💬 <b>Kortex 3.1 Pro:</b> Deep Research, Nano Banana Pro ilə şəkil və Veo 3.1 ilə video yaratmaya təkmilləşdirilmiş giriş.</li>
-                    <li>🎥 <b>Flow & Whisk:</b> Kinematik səhnələr və şəkildən video yaratma alətləri.</li>
-                    <li>💎 <b>200</b> Aylıq Sİ krediti.</li>
-                    <li>🌐 <b>Axtarış & NotebookLM:</b> Audio/Video icmallar və testlərə əlavə giriş.</li>
-                    <li>🎼 <b>Producer.ai:</b> Musiqi yaratma platformamıza giriş.</li>
-                    <li>📧 <b>Kortex Tətbiqləri:</b> Gmail, Calendar və Meet üçün birbaşa giriş.</li>
-                    <li>☁️ <b>10 TB Ümumi Yaddaş</b> (Disk, Foto və s.)</li>
-                </ul>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Basic Seç", use_container_width=True, key="btn_basic"):
-            st.session_state.selected_tier = "Basic"
-            st.session_state.payment_successful = True
-            st.session_state.show_pricing = False
-            st.rerun()
-
-    with col2:
-        st.markdown("""
-        <div class="pricing-card">
-            <div class="tier-name">Kortex Pro</div>
-            <div class="tier-price">$12 <span>/ay</span></div>
-            <div class="tier-desc">
-                <ul>
-                    <li>💬 <b>Kortex 3.1 Pro:</b> Şəkil, video və Deep Research funksiyalarına daha yüksək giriş əldə edin.</li>
-                    <li>🎥 <b>Flow & Whisk:</b> Kinematik video alətimizə və şəkildən videoya yüksək giriş.</li>
-                    <li>💎 <b>1.000</b> Aylıq Sİ krediti.</li>
-                    <li>🌐 <b>Axtarış & NotebookLM:</b> Tədqiqat partnyorumuza yüksək giriş.</li>
-                    <li>🎼 <b>Producer.ai:</b> Musiqi platformasına yüksək giriş.</li>
-                    <li>🧠 <b>Kortex Antigravity:</b> Agent inkişaf platforması üçün daha yüksək sorğu limitləri.</li>
-                    <li>💻 <b>Developer Program & Studio:</b> Sİ kod agentləri ilə Android inkişafınızı sürətləndirin.</li>
-                    <li>☁️ <b>45 TB Ümumi Yaddaş</b></li>
-                </ul>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Pro Əldə Et", use_container_width=True, key="btn_pro"):
-            st.session_state.selected_tier = "Pro"
-            st.session_state.payment_successful = False 
-            st.session_state.show_pricing = False
-            st.rerun()
-
-    with col3:
-        st.markdown("""
-        <div class="pricing-card" style="border-color: #1a73e8; background: linear-gradient(to bottom, #ffffff, #f0f7ff);">
-            <div class="tier-name">Kortex Ultra 💎</div>
-            <div class="tier-price">$95 <span>/ay</span></div>
-            <div class="tier-desc">
-                <ul>
-                    <li>💬 <b>Maksimal Limitlər:</b> Deep Think, Nano Banana Pro və ən son Veo 3.1 video mühərriki.</li>
-                    <li>🎥 <b>Flow & Whisk:</b> Hekayə və kinematik səhnələr üçün maksimal limitlər.</li>
-                    <li>💎 <b>25.000</b> Aylıq Sİ krediti.</li>
-                    <li>🌐 <b>Axtarış & NotebookLM:</b> Maksimal və limitsiz giriş.</li>
-                    <li>🎼 <b>Producer.ai:</b> Birgə musiqi platformasına maksimal giriş.</li>
-                    <li>🧠 <b>Kortex Antigravity:</b> Agent modeli üçün maksimal limitlər.</li>
-                    <li>💻 <b>Developer Program & Studio:</b> CLI, Code Assist və bulud limitləri maksimal sürətdə.</li>
-                    <li>🚫 <b>Premium Əlavə:</b> Reklamsız, oflayn media (YouTube ekvivalenti).</li>
-                    <li>☁️ <b>200 TB Ümumi Yaddaş</b> (Rəqibsiz böyüklükdə)</li>
-                </ul>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("Ultra Əldə Et", use_container_width=True, key="btn_ultra"):
-            st.session_state.selected_tier = "Ultra"
-            st.session_state.payment_successful = False 
-            st.session_state.show_pricing = False
-            st.rerun()
-            
-    st.stop()
-
-# ==========================================================
-# 4. ÖDƏNİŞ (CHECKOUT) EKRANI
-# ==========================================================
-if st.session_state.selected_tier in ["Pro", "Ultra"] and not st.session_state.payment_successful:
-    price = "$12.00" if st.session_state.selected_tier == "Pro" else "$95.00"
-    st.markdown(f"<h2 style='text-align: center; margin-top: 50px;'>Kortex {st.session_state.selected_tier} - Təhlükəsiz Ödəniş</h2>", unsafe_allow_html=True)
-    st.markdown("<div class='secure-badge'>🔒 Kortex Qlobal Ödəniş Sistemi</div>", unsafe_allow_html=True)
-    
-    col_empty1, col_pay, col_empty2 = st.columns([1, 2, 1])
-    with col_pay:
-        st.markdown(f"<div class='payment-box'>", unsafe_allow_html=True)
-        st.info(f"Ödəniləcək Məbləğ: **{price} / Ay**")
-        card_name = st.text_input("Kartın üzərində Ad və Soyad", placeholder="Abdullah Mikayılov")
-        card_number = st.text_input("Kartın Nömrəsi (16 rəqəm)", placeholder="XXXX XXXX XXXX XXXX", max_chars=19)
-        c1, c2 = st.columns(2)
-        with c1: exp_date = st.text_input("Bitmə Tarixi (AA/İİ)", placeholder="12/26", max_chars=5)
-        with c2: cvv = st.text_input("CVV", placeholder="123", max_chars=3, type="password")
-            
-        st.write("")
-        if st.button(f"Pulu Çıx və {st.session_state.selected_tier} Aktivləşdir", use_container_width=True):
-            if card_name and card_number and exp_date and cvv:
-                with st.spinner("💳 Bankla əlaqə yaradılır..."):
-                    time.sleep(2) 
-                    st.session_state.payment_successful = True
-                    st.rerun()
-            else:
-                st.error("Bütün xanaları doldurun!")
-        if st.button("Ləğv Et və Pulsuz Rejimə Qayıt", use_container_width=True):
-            st.session_state.selected_tier = "Basic"
-            st.session_state.payment_successful = True
-            st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-    st.stop() 
-
-# ==========================================================
-# 5. ƏSAS ÇAT EKRANI 
+# ƏSAS ÇAT EKRANI 
 # ==========================================================
 header_col1, header_col2 = st.columns([4, 1])
 with header_col1:
     st.title("🧠 Kortex AI")
     st.caption(f"CEO & Memar: Abdullah Mikayılov | Lisenziya: {st.session_state.selected_tier} ✅")
-with header_col2:
-    st.write("") 
-    if st.button("✨ Planı Dəyiş", use_container_width=True):
-        st.session_state.show_pricing = True
-        st.rerun()
 
-# ==========================================================
-# YAN PANEL (ŞƏKİL YÜKLƏMƏ VƏ BAZA)
-# ==========================================================
+# YAN PANEL
 st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 
@@ -255,13 +132,13 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         if "generated_image_url" in message:
-            st.image(message["generated_image_url"], caption="Kortex Vision 🎨 (DALL-E 3 Render)")
+            st.image(message["generated_image_url"], caption="Kortex Vision 🎨 (Flux Yüksək Keyfiyyət)")
         if "video_msg" in message:
             st.info(message["video_msg"])
         if "music_msg" in message:
             st.success(message["music_msg"])
 
-if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: azerbaycan bayragini yarat)"):
+if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: Azərbaycan bayrağını yarat)"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -270,30 +147,25 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: azerbaycan bayr
         live_internet_data = ""
         prompt_lower = prompt.lower()
         
-        # ==========================================================
-        # SUPER AĞILLI DETEKTOR
-        # ==========================================================
+        # --- SUPER AĞILLI DETEKTOR ---
         is_image_request = False
-        
-        image_keywords = ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm", "bayraq", "bayraqini", "bayrağı", "bayragini", "bayrağını"]
+        image_keywords = ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm", "bayraq", "bayrağı", "bayragini", "bayrağını"]
         action_keywords = ["yarat", "yarad", "çək", "cek", "düzəlt", "duzelt"]
         
         if any(act in prompt_lower for act in action_keywords) and any(img in prompt_lower for img in image_keywords):
             is_image_request = True
-            
         if not is_image_request and any(prompt_lower.endswith(act) for act in action_keywords):
             if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
                 is_image_request = True
         
-        # --- ŞƏKİL YARATMA LOQİKASI (DALL-E 3 İLƏ KUSURSUZ RENDER) ---
+        # --- ŞƏKİL YARATMA LOQİKASI (PULSUZ VƏ QÜSURSUZ YANAŞMA) ---
         if is_image_request and use_vision_gen:
-            with st.spinner("🎨 Kortex Vision (DALL-E 3) Şəkli Hazırlayır..."):
+            with st.spinner("🎨 Kortex Vision Şəkli Hazırlayır..."):
                 try:
-                    # DALL-E 3 üçün xüsusi prompt tərcüməçisi
                     prompt_converter_msg = [
-                        {"role": "system", "content": """Sən peşəkar DALL-E 3 prompt mühəndisisən. 
-                        İstifadəçi bir ölkənin (məsələn: Azərbaycan) bayrağını yaratmağı istəyirsə, sadəcə bayrağı yox, mütləq onu o ölkənin ən məşhur məkanlarından birində (məsələn: Bakıda Heydər Əliyev Mərkəzi) realistik şəkildə dalğalanarkən təsvir et. 
-                        Təsviri İNGİLİS DİLİNDƏ yaz və "highly detailed, cinematic lighting, 8k resolution, photorealistic" sözlərini əlavə et. Yalnız promptu qaytar. XƏBƏRDARLIQ: Mətndə heç bir halda (ə, ö, ğ, ç, ş, ı, ü) kimi qeyri-ingilis hərfləri İSTİFADƏ ETMƏ!"""},
+                        {"role": "system", "content": """Sən peşəkar prompt mühəndisisən. 
+                        İstifadəçi bir ölkənin (məsələn: Azərbaycan) bayrağını yaratmağı istəyirsə, onu mütləq o ölkənin məşhur məkanında (məsələn: Bakı) dalğalanarkən təsvir et. 
+                        Təsviri yalnız İNGİLİS DİLİNDƏ yaz. XƏBƏRDARLIQ: Yalnız sadə ingilis hərflərindən istifadə et."""},
                         {"role": "user", "content": prompt}
                     ]
                     converter_chat = client.chat.completions.create(
@@ -304,34 +176,22 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: azerbaycan bayr
                     )
                     enhanced_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
-                    enhanced_prompt = prompt_lower.replace("yarat", "").replace("çək", "").strip()
-                    enhanced_prompt += " photorealistic, 8k, extremely detailed, if flag make it fly in capital city"
+                    enhanced_prompt = "photorealistic image of " + prompt_lower.replace("yarat", "").replace("çək", "").strip()
                 
-                # ASCII ERROR FIX (ASCII xətasının qarşısını alan qoruyucu kod)
+                # ASCII ERROR FIX (ASCII xətasının qarşısını bir daha almaq üçün)
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
-
-                # DALL-E 3 API ÇAĞIRIŞI
-                try:
-                    response = openai_client.images.generate(
-                        model="dall-e-3",
-                        prompt=safe_prompt,
-                        size="1024x1024",
-                        quality="hd",
-                        n=1,
-                    )
-                    image_url = response.data[0].url
-                    
-                    response_text = f"Buyur, istədiyin şəkil hazırdır! Kortex Vision DALL-E 3 mühərriki ilə qüsursuz yaradıldı. 💎"
-                    st.markdown(response_text)
-                    st.image(image_url, caption=f"Kortex Vision DALL-E 3: Yüksək Keyfiyyət")
-                    st.session_state.messages.append({"role": "assistant", "content": response_text, "generated_image_url": image_url})
                 
-                except Exception as e:
-                    error_str = str(e).lower()
-                    if "api_key" in error_str or "not provided" in error_str or "401" in error_str:
-                         st.error("⚠️ Kortex Təhlükəsizlik Sistemi: OpenAI (DALL-E 3) API açarı koda daxil edilməyib. Zəhmət olmasa kodun 62-ci sətrinə `sk-` ilə başlayan açarınızı əlavə edin.")
-                    else:
-                         st.error(f"Şəkil yaradılarkən DALL-E xətası: {e}")
+                # BAYRAQ MƏNTİQİ: Əgər daxilində azərbaycan sözü varsa gücləndir
+                if "azerbaijan" in safe_prompt.lower():
+                    safe_prompt += ", Azerbaijan flag with perfectly accurate blue, red, and green horizontal stripes, a crisp white crescent, and an exactly eight-pointed star on the red stripe, flying proudly in Baku, photorealistic 8k, highly detailed"
+
+                # Pulsuz API çağırışı
+                image_url = generate_image_free_flux(safe_prompt)
+                
+                response_text = f"Buyur, istədiyin şəkil hazırdır! Kortex Vision tərəfindən yaradıldı. 💎"
+                st.markdown(response_text)
+                st.image(image_url, caption=f"Kortex Vision: Yüksək Keyfiyyət")
+                st.session_state.messages.append({"role": "assistant", "content": response_text, "generated_image_url": image_url})
                 
         # --- DİGƏR FUNKSİYALAR (VİDEO/MUSİQİ) ---
         elif "video" in prompt_lower and use_video:
@@ -374,11 +234,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: azerbaycan bayr
                         )
                         response = chat_completion.choices[0].message.content
                     except Exception as e:
-                        error_msg = str(e)
-                        if "401" in error_msg or "Invalid API Key" in error_msg:
-                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir."
-                        else:
-                            response = f"⚠️ Şəkil oxunarkən xəta yarandı: Mühərrik müvəqqəti məşğuldur."
+                        response = f"⚠️ Şəkil oxunarkən xəta yarandı."
                         
             else:
                 if use_internet:
@@ -409,11 +265,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: azerbaycan bayr
                         )
                         response = chat_completion.choices[0].message.content
                     except Exception as e:
-                        error_msg = str(e)
-                        if "401" in error_msg or "Invalid API Key" in error_msg:
-                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir."
-                        else:
-                            response = f"⚠️ Kortex sistemi müvəqqəti olaraq yüklənmə yaşayır. Xəta: {error_msg}"
+                        response = f"⚠️ Kortex sistemi müvəqqəti olaraq yüklənmə yaşayır."
 
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
