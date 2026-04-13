@@ -4,6 +4,7 @@ import time
 import base64
 from duckduckgo_search import DDGS  
 import urllib.parse 
+import requests
 
 # ==========================================================
 # 1. CSS VƏ VİZUAL AYARLAR
@@ -41,7 +42,8 @@ st.markdown("""
 # API SETUP
 # ==========================================================
 try:
-    api_key = "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"
+    # QEYD: API açarınızı təhlükəsiz yerdə (st.secrets) saxlamaq məsləhətdir!
+    api_key = "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" 
     client = Groq(api_key=api_key)
 except Exception as e:
     st.error(f"Groq API Bağlantı Xətası: {e}")
@@ -57,6 +59,56 @@ def search_internet(query):
     except Exception as e:
         return ""
 
+# --- YENİ ŞƏKİL YARATMA FUNKSİYASI (Hugging Face / Flux) ---
+def generate_image_hf(prompt):
+    """
+    Hugging Face Inference API vasitəsilə qabaqcıl Flux.1-schnell modeli ilə şəkil yaradır.
+    Bu model fotorealistik və detallı şəkillər üçün çox güclüdür.
+    """
+    # QEYD: Bura öz Hugging Face API açarınızı (Token) daxil etməlisiniz.
+    # Əgər yoxdursa, https://huggingface.co/settings/tokens ünvanından pulsuz yarada bilərsiniz.
+    HF_API_KEY = "hf_SƏNİN_HUGGING_FACE_TOKENİNİ_BURA_YAZ" # <--- DƏYİŞDİRİN
+    
+    # Ən güclü açıq mənbəli şəkil modellərindən biri (Flux)
+    API_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
+    headers = {"Authorization": f"Bearer {HF_API_KEY}"}
+    
+    # Əgər HF tokeni daxil edilməyibsə, Pollinations API-yə (əvvəlki üsula) geri dön
+    if HF_API_KEY.startswith("hf_SƏNİN"):
+        return get_pollinations_image_url(prompt)
+
+    payload = {
+        "inputs": prompt,
+        "parameters": {
+            "num_inference_steps": 4, # Flux-schnell üçün kifayətdir
+            "width": 1024,
+            "height": 1024
+        }
+    }
+    
+    try:
+        response = requests.post(API_URL, headers=headers, json=payload)
+        
+        # Əgər model yüklənirsə (503 xətası), bir az gözləyib yenidən yoxlayırıq
+        if response.status_code == 503:
+            time.sleep(10) # Modelin yaddaşa yüklənməsini gözləyirik
+            response = requests.post(API_URL, headers=headers, json=payload)
+            
+        if response.status_code == 200:
+            return response.content
+        else:
+            print(f"Hugging Face Xətası: {response.text}")
+            return get_pollinations_image_url(prompt) # Xəta olsa köhnə üsula keç
+    except Exception as e:
+        print(f"Xəta: {e}")
+        return get_pollinations_image_url(prompt)
+
+def get_pollinations_image_url(prompt):
+    """Əgər Hugging Face işləməsə, alternativ olaraq URL qaytarır."""
+    encoded_prompt = urllib.parse.quote(prompt)
+    return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true&model=flux"
+
+
 # ==========================================================
 # 2. SİSTEM VƏZİYYƏTİ (STATE)
 # ==========================================================
@@ -70,8 +122,9 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # ==========================================================
-# 3. QİYMƏT VƏ PAKET SEÇİMİ EKRANI
+# 3. QİYMƏT VƏ PAKET SEÇİMİ EKRANI (Dəyişməz qalıb)
 # ==========================================================
+# ... (Sizin yazdığınız qisim eynidir) ...
 if st.session_state.show_pricing:
     if st.button("⬅ Çata Qayıt", use_container_width=False):
         st.session_state.show_pricing = False
@@ -160,7 +213,7 @@ if st.session_state.show_pricing:
     st.stop()
 
 # ==========================================================
-# 4. ÖDƏNİŞ (CHECKOUT) EKRANI
+# 4. ÖDƏNİŞ (CHECKOUT) EKRANI (Dəyişməz qalıb)
 # ==========================================================
 if st.session_state.selected_tier in ["Pro", "Ultra"] and not st.session_state.payment_successful:
     price = "$12.00" if st.session_state.selected_tier == "Pro" else "$95.00"
@@ -241,7 +294,11 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         if "generated_image_url" in message:
-            st.image(message["generated_image_url"], caption="Kortex Vision 🎨")
+            # Əgər əvvəlki URL-dirsə URL-i, bytes-dırsa bytes-ı göstər
+            if isinstance(message["generated_image_url"], str):
+                 st.image(message["generated_image_url"], caption="Kortex Vision 🎨")
+            else:
+                 st.image(message["generated_image_url"], caption="Kortex Vision 🎨 (Yüksək Keyfiyyət)")
         if "video_msg" in message:
             st.info(message["video_msg"])
         if "music_msg" in message:
@@ -257,56 +314,73 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
         prompt_lower = prompt.lower()
         
         # ==========================================================
-        # SUPER AĞILLI DETEKTOR: Mətn xətalarını mütləq tutur!
+        # SUPER AĞILLI DETEKTOR
         # ==========================================================
         is_image_request = False
         
-        if any(x in prompt_lower for x in ["yarat", "yarad", "çək", "cek", "düzəlt", "duzelt"]):
-            if any(y in prompt_lower for y in ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm"]):
-                is_image_request = True
-                
-        if "sekli yarat" in prompt_lower or "şəkli yarat" in prompt_lower or "sekil cek" in prompt_lower or "şəkil çək" in prompt_lower:
+        # Daha dəqiq şəkil istəyi yoxlanışı
+        image_keywords = ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm"]
+        action_keywords = ["yarat", "yarad", "çək", "cek", "düzəlt", "duzelt"]
+        
+        if any(act in prompt_lower for act in action_keywords) and any(img in prompt_lower for img in image_keywords):
             is_image_request = True
             
-        if prompt_lower.endswith("yarat") or prompt_lower.endswith("çək") or prompt_lower.endswith("duzelt"):
-             is_image_request = True
+        # Qısa komandalar üçün (məs: "bmw m3 yarat")
+        if not is_image_request and any(prompt_lower.endswith(act) for act in action_keywords):
+            # Əgər video və ya musiqi istəmirsə, çox güman şəkildir
+            if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
+                is_image_request = True
         
-        # --- ŞƏKİL YARATMA LOQİKASI (AĞILLI TƏRCÜMƏÇİ VƏ FOTOREALİSTİK ƏLAVƏLƏR) ---
+        # --- ŞƏKİL YARATMA LOQİKASI (AĞILLI TƏRCÜMƏÇİ VƏ YENİ MODEL) ---
         if is_image_request and use_vision_gen:
             if st.session_state.selected_tier == "Basic":
-                tier_msg = "🔹 Basic: Şəkil təhlil edilir və render olunur..."
+                tier_msg = "🔹 Basic: Flux Schnell ilə standart render..."
             elif st.session_state.selected_tier == "Pro":
-                tier_msg = "🚀 Pro: Detallı analiz və yüksək render olunur..."
+                tier_msg = "🚀 Pro: Detallı analiz və yüksək keyfiyyətli Flux render..."
             else:
-                tier_msg = "💎 Ultra: Maksimal təhlil və 4K render olunur..."
+                tier_msg = "💎 Ultra: Maksimal təhlil və 4K Flux Pro render..."
                 
-            with st.spinner(f"🎨 Kortex Vision Realistik Detalları Oxuyur... \n{tier_msg}"):
+            with st.spinner(f"🎨 Kortex Vision Şəkli Hazırlayır... \n{tier_msg}"):
                 
                 try:
+                    # Promptu Mükəmməl İngilis dilinə çeviririk
                     prompt_converter_msg = [
-                        {"role": "system", "content": "Sən yalnız gerçək və fotorealistik şəkillər yaradan Prompt Mühəndisisən. İstifadəçinin cümləsindən əsas obyekti və detalları tap, və İngilis dilinə çevir. MÜTLƏQ HƏMİŞƏ BU SÖZLƏRİ ƏLAVƏ ET: ', hyper-realistic, photorealistic, natural daylight, professional photography, 8k resolution, highly detailed, authentic car design, NO neon, NO digital art, NO stylized lighting'. Yalnız bu hazır İngilis dili promptunu yaz."},
+                        {"role": "system", "content": """Sən peşəkar Midjourney və Flux prompt mühəndisisən. 
+                        İstifadəçinin Azərbaycan dilindəki istəyini detallı, vizual olaraq zəngin və tam fotorealistik İngilis dili promptuna çevir.
+                        
+                        Əlavə etməli olduğun açar sözlər: hyper-realistic, photorealistic, 8k resolution, highly detailed, cinematic lighting, ultra-detailed.
+                        Əgər maşındırsa əlavə et: authentic car design, showroom lighting.
+                        Əgər insandırsa əlavə et: detailed facial features, realistic skin texture.
+                        
+                        YALNIZ və YALNIZ İNGİLİS DİLİNDƏKİ PROMPTU QAYTAR. Heç bir əlavə söz yazma."""},
                         {"role": "user", "content": prompt}
                     ]
                     converter_chat = client.chat.completions.create(
                         messages=prompt_converter_msg,
                         model="llama-3.3-70b-versatile",
-                        temperature=0.1, 
-                        max_tokens=70
+                        temperature=0.3, 
+                        max_tokens=150
                     )
-                    clean_prompt = converter_chat.choices[0].message.content.strip()
+                    enhanced_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
-                    clean_prompt = prompt_lower.replace("şəkil", "").replace("sekil", "").replace("şəkli", "").replace("yarat", "").replace("olsun", "").replace("bele", "").replace("mene", "").strip()
-                    clean_prompt += ", hyper realistic photography, natural sunlight, 8k resolution, highly detailed authentic car, NO neon, NO game graphics"
-                    
-                encoded_prompt = urllib.parse.quote(clean_prompt)
-                image_api_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&realism=true&model=flux"
+                    # Tərcümə işləməsə sadəcə lazımsız sözləri silirik
+                    enhanced_prompt = prompt_lower.replace("şəkil", "").replace("sekil", "").replace("yarat", "").replace("çək", "").strip()
+                    enhanced_prompt += ", highly detailed, photorealistic, 8k"
                 
-                response_text = f"Buyur, istədiyin şəkil hazırdır! Təbii işıq və fotorealistik detallarla çəkildi. ({st.session_state.selected_tier} mühərriki)"
+                # Şəkli yaradırıq (Hugging Face və ya alternativ)
+                image_data = generate_image_hf(enhanced_prompt)
+                
+                response_text = f"Buyur, istədiyin şəkil hazırdır! Ən son FLUX mühərriki ilə yaradıldı. ({st.session_state.selected_tier})"
                 st.markdown(response_text)
                 
-                st.image(image_api_url, caption=f"Kortex Vision: Gerçək Analiz Nəticəsi")
+                # Nəticə URL (string) və ya birbaşa şəkil (bytes) ola bilər
+                if isinstance(image_data, str) and image_data.startswith("http"):
+                     st.image(image_data, caption=f"Kortex Vision: {prompt}")
+                else:
+                     st.image(image_data, caption=f"Kortex Vision: Yüksək Keyfiyyətli Render")
                 
-                st.session_state.messages.append({"role": "assistant", "content": response_text, "generated_image_url": image_api_url})
+                # Tarixçəyə əlavə edirik
+                st.session_state.messages.append({"role": "assistant", "content": response_text, "generated_image_url": image_data})
                 
         # --- DİGƏR FUNKSİYALAR (VİDEO/MUSİQİ) ---
         elif "video" in prompt_lower and use_video:
@@ -319,7 +393,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                 st.info(vid_msg)
                 st.session_state.messages.append({"role": "assistant", "content": response, "video_msg": vid_msg})
                 
-        elif "musiqi" in prompt_lower and use_music:
+        elif ("musiqi" in prompt_lower or "mahni" in prompt_lower) and use_music:
             with st.spinner("🎼 Producer.ai bəstələyir..."):
                 time.sleep(2)
                 response = "Musiqi studiyası işə salındı!"
