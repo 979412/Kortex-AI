@@ -41,8 +41,7 @@ st.markdown("""
 # API SETUP
 # ==========================================================
 try:
-    # MEMARIN YENİ AÇARI (Uğurla yerləşdirildi!)
-    api_key = "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"
+    api_key = "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"
     client = Groq(api_key=api_key)
 except Exception as e:
     st.error(f"Groq API Bağlantı Xətası: {e}")
@@ -283,7 +282,6 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                 
             with st.spinner(f"🎨 Kortex Vision Realistik Detalları Oxuyur... \n{tier_msg}"):
                 
-                # Bura AĞILLI TƏRCÜMƏÇİ hissəsidir. Sərt fotorealizm əmrləri vurulub!
                 try:
                     prompt_converter_msg = [
                         {"role": "system", "content": "Sən yalnız gerçək və fotorealistik şəkillər yaradan Prompt Mühəndisisən. İstifadəçinin cümləsindən əsas obyekti və detalları tap, və İngilis dilinə çevir. MÜTLƏQ HƏMİŞƏ BU SÖZLƏRİ ƏLAVƏ ET: ', hyper-realistic, photorealistic, natural daylight, professional photography, 8k resolution, highly detailed, authentic car design, NO neon, NO digital art, NO stylized lighting'. Yalnız bu hazır İngilis dili promptunu yaz."},
@@ -297,11 +295,9 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                     )
                     clean_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
-                    # Əgər API xəta verirsə (məsələn 401), bu blok işləyir ki, yenə də gerçəkçi olsun!
                     clean_prompt = prompt_lower.replace("şəkil", "").replace("sekil", "").replace("şəkli", "").replace("yarat", "").replace("olsun", "").replace("bele", "").replace("mene", "").strip()
                     clean_prompt += ", hyper realistic photography, natural sunlight, 8k resolution, highly detailed authentic car, NO neon, NO game graphics"
                     
-                # URL kodlaması - Geniş ekran (1280x720) üçün ayarlar əlavə edildi!
                 encoded_prompt = urllib.parse.quote(clean_prompt)
                 image_api_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&realism=true&model=flux"
                 
@@ -355,7 +351,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                     except Exception as e:
                         error_msg = str(e)
                         if "401" in error_msg or "Invalid API Key" in error_msg:
-                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir. Zəhmət olmasa yeni açar daxil edin!"
+                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir."
                         else:
                             response = f"⚠️ Şəkil oxunarkən xəta yarandı: Mühərrik müvəqqəti məşğuldur."
                         
@@ -390,7 +386,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                     except Exception as e:
                         error_msg = str(e)
                         if "401" in error_msg or "Invalid API Key" in error_msg:
-                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir. 54-cü sətirdə yeni açarı yazın!"
+                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir."
                         else:
                             response = f"⚠️ Kortex sistemi müvəqqəti olaraq yüklənmə yaşayır. Xəta: {error_msg}"
 
