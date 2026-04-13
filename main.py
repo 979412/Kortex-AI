@@ -247,7 +247,7 @@ for message in st.session_state.messages:
         if "music_msg" in message:
             st.success(message["music_msg"])
 
-if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: birdene bmw m3 sekli yarat)"):
+if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yarat, qırmızı faralarla)"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -269,37 +269,52 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: birdene bmw m3 
         # Qısa komandalar üçün birbaşa nəzarət
         if "sekli yarat" in prompt_lower or "şəkli yarat" in prompt_lower or "sekil cek" in prompt_lower or "şəkil çək" in prompt_lower:
             is_image_request = True
+            
+        # Əgər cümlə yalnız "yarat" və ya "çək" ilə bitirsə, yenə şəkil sayılır
+        if prompt_lower.endswith("yarat") or prompt_lower.endswith("çək") or prompt_lower.endswith("duzelt"):
+             is_image_request = True
         
-        # --- ŞƏKİL YARATMA LOQİKASI (FLUX 4K MODEL) ---
+        # --- ŞƏKİL YARATMA LOQİKASI (AĞILLI TƏRCÜMƏÇİ İLƏ FLUX 4K MODEL) ---
         if is_image_request and use_vision_gen:
             if st.session_state.selected_tier == "Basic":
-                tier_msg = "🔹 Basic: Standart şəkil render olunur..."
+                tier_msg = "🔹 Basic: Şəkil təhlil edilir və render olunur..."
             elif st.session_state.selected_tier == "Pro":
-                tier_msg = "🚀 Pro: Yüksək detallı şəkil render olunur..."
+                tier_msg = "🚀 Pro: Detallı analiz və yüksək render olunur..."
             else:
-                tier_msg = "💎 Ultra: Maksimal (4K fotorealistik) şəkil render olunur..."
+                tier_msg = "💎 Ultra: Maksimal təhlil və 4K render olunur..."
                 
-            with st.spinner(f"🎨 Kortex Vision işləyir... \n{tier_msg}"):
-                time.sleep(1)
+            with st.spinner(f"🎨 Kortex Vision Detalları Oxuyur... \n{tier_msg}"):
                 
-                # Zəhlətökən sözləri promptdan kəsib atırıq ki, ancaq "bmw m3" qalsın
-                clean_prompt = prompt_lower
-                words_to_remove = ["şəkil", "sekil", "şəkli", "seklini", "sekli", "yarat", "yarad", "çək", "cek", "düzəlt", "duzelt", "bir", "dənə", "dene", "birdene", "mənə", "mene", "zəhmət", "zehmet", "olmasa"]
-                for w in words_to_remove:
-                    clean_prompt = clean_prompt.replace(w, "")
-                clean_prompt = clean_prompt.strip()
-                
+                # Bura AĞILLI TƏRCÜMƏÇİ hissəsidir. Llama sən yazan uzuuun Azərbaycan dili cümləsini 
+                # (məsələn: bmw m3 olsun rengi qara faralari qirmizi olsun) götürüb qısa İngilis dili 
+                # promptuna (black bmw m3, red headlights, photorealistic, 8k) çevirir!
+                try:
+                    prompt_converter_msg = [
+                        {"role": "system", "content": "Sən şəkil yaratmaq üçün Prompt mühəndisisən. İstifadəçinin cümləsindən əsas obyekti, rəngini, xüsusiyyətlərini tapıb qısa, vergüllərlə ayrılmış İngilis dili promptu yazmalısan. Yalnız İngilis dili sözləri yaz, başqa heç nə. Məsələn: 'black bmw m3, glowing red headlights, photorealistic'"},
+                        {"role": "user", "content": prompt}
+                    ]
+                    converter_chat = client.chat.completions.create(
+                        messages=prompt_converter_msg,
+                        model="llama-3.3-70b-versatile",
+                        temperature=0.1, 
+                        max_tokens=50
+                    )
+                    clean_prompt = converter_chat.choices[0].message.content.strip()
+                except Exception as e:
+                    # Əgər tərcümə xəta versə, sadə üsulla davam etsin
+                    clean_prompt = prompt_lower.replace("şəkil", "").replace("sekil", "").replace("şəkli", "").replace("yarat", "").replace("olsun", "").replace("bele", "").replace("mene", "").strip()
+                    
                 if not clean_prompt: clean_prompt = "hyper realistic futuristic car"
                 
-                # URL kodlaması və sən atdığın flux, nologo, realism dəyərləri
+                # URL kodlaması
                 encoded_prompt = urllib.parse.quote(clean_prompt)
                 image_api_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?nologo=true&realism=true&model=flux"
                 
-                response_text = f"Buyur, istədiyin **'{clean_prompt.upper()}'** şəkli hazırdır! ({st.session_state.selected_tier} 4K mühərriki ilə çəkildi)"
+                response_text = f"Buyur, istədiyin şəkil hazırdır! ({st.session_state.selected_tier} 4K mühərriki ilə çəkildi)"
                 st.markdown(response_text)
                 
                 # Şəkli çata yerləşdiririk
-                st.image(image_api_url, caption=f"Kortex Vision tərəfindən yaradıldı")
+                st.image(image_api_url, caption=f"Kortex Vision: Detallı Analiz Nəticəsi")
                 
                 # Mesajı tarixçəyə yadda saxlayırıq 
                 st.session_state.messages.append({"role": "assistant", "content": response_text, "generated_image_url": image_api_url})
