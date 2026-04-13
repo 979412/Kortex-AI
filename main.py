@@ -60,15 +60,18 @@ def search_internet(query):
     except Exception as e:
         return ""
 
-# --- YENİ ŞƏKİL YARATMA FUNKSİYASI (Hugging Face / Flux) ---
-def generate_image_hf(prompt):
+# --- TƏKMİLLƏŞDİRİLMİŞ ŞƏKİL YARATMA FUNKSİYASI (Hugging Face / Flux) ---
+def generate_image_hf(prompt, max_retries=12, sleep_interval=3):
     """
     Hugging Face Inference API vasitəsilə qabaqcıl Flux.1-schnell modeli ilə şəkil yaradır.
-    Bu model fotorealistik və detallı şəkillər üçün çox güclüdür.
+    Modelin yüklənməsini (503 xətası) ağıllı təkrar cəhdlərlə gözləyir.
     """
-    # QEYD: Bura öz Hugging Face API açarınızı (Token) daxil etməlisiniz.
+    # ==========================================================
+    # KRİTİK QEYD: Bura öz Hugging Face API açarınızı (Token) daxil etməlisiniz!
     # Əgər yoxdursa, https://huggingface.co/settings/tokens ünvanından pulsuz yarada bilərsiniz.
-    HF_API_KEY = "hf_SƏNİN_HUGGING_FACE_TOKENİNİ_BURA_YAZ" # <--- BU HİSSƏNİ DƏYİŞDİRİN
+    # Bu funksiya yalnız keçərli bir tokenlə işləyəcək.
+    # ==========================================================
+    HF_API_KEY = "hf_SƏNİN_HUGGING_FACE_TOKENİNİ_BURA_YAZ" # <--- BU HİSSƏNİ MÜTLƏQ DƏYİŞDİRİN
     
     # Ən güclü açıq mənbəli şəkil modellərindən biri (Flux)
     API_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
@@ -87,22 +90,33 @@ def generate_image_hf(prompt):
         }
     }
     
-    try:
-        response = requests.post(API_URL, headers=headers, json=payload)
-        
-        # Əgər model yüklənirsə (503 xətası), bir az gözləyib yenidən yoxlayırıq
-        if response.status_code == 503:
-            time.sleep(10) # Modelin yaddaşa yüklənməsini gözləyirik
+    # Təkrar cəhd dövrü
+    for attempt in range(max_retries):
+        try:
             response = requests.post(API_URL, headers=headers, json=payload)
             
-        if response.status_code == 200:
-            return response.content
-        else:
-            print(f"Hugging Face Xətası: {response.text}")
-            return get_pollinations_image_url(prompt) # Xəta olsa köhnə üsula keç
-    except Exception as e:
-        print(f"Xəta: {e}")
-        return get_pollinations_image_url(prompt)
+            if response.status_code == 200:
+                return response.content
+            
+            # Əgər model yüklənirsə (503 xətası), gözləyirik
+            elif response.status_code == 503:
+                # streamlit-də istifadəçiyə məlumat vermək üçün terminala çap edirik
+                print(f"Cəhd {attempt+1}/{max_retries}: Model yüklənir, {sleep_interval} saniyə gözlənilir...")
+                time.sleep(sleep_interval)
+            
+            else:
+                print(f"Hugging Face Xətası (Status: {response.status_code}): {response.text}")
+                # Digər xətalarda təkrar cəhd etməyə dəyməz, Pollinations-a keçirik
+                break 
+
+        except Exception as e:
+            print(f"Xəta baş verdi: {e}")
+            # Bağlantı xətalarında da təkrar cəhd etmirik
+            break
+
+    # Əgər dövr bitdisə və şəkil yaranmadısa, alternativ üsula keçirik
+    print("Hugging Face modeli yüklənə bilmədi. Alternativ üsul yoxlanılır...")
+    return get_pollinations_image_url(prompt)
 
 def get_pollinations_image_url(prompt):
     """Əgər Hugging Face işləməsə, alternativ olaraq URL qaytarır."""
