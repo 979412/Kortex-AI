@@ -2,8 +2,8 @@ import streamlit as st
 from groq import Groq
 import time
 import base64
-from duckduckgo_search import DDGS  
-import urllib.parse 
+from duckduckgo_search import DDGS
+import urllib.parse
 
 # ==========================================================
 # 1. CSS VƏ VİZUAL AYARLAR
@@ -69,7 +69,7 @@ if st.session_state.show_pricing:
             <div class="tier-price">$0 <span>/ay</span></div>
             <div class="tier-desc">
                 <ul>
-                    <li>💬 <b>Kortex 3.1 Pro:</b> Deep Research və limitsiz şəkil mühərriki.</li>
+                    <li>💬 <b>Kortex 3.1 Pro:</b> Sürətli cavablar və limitsiz şəkil mühərriki.</li>
                 </ul>
             </div>
         </div>
@@ -87,7 +87,7 @@ if st.session_state.show_pricing:
             <div class="tier-price">$12 <span>/ay</span></div>
             <div class="tier-desc">
                 <ul>
-                    <li>💬 <b>Kortex 3.1 Pro:</b> Şəkil, video və Deep Research funksiyalarına yüksək giriş.</li>
+                    <li>💬 <b>Kortex 3.1 Pro:</b> Şəkil, video və dərin təhlil funksiyalarına yüksək giriş.</li>
                 </ul>
             </div>
         </div>
@@ -105,7 +105,7 @@ if st.session_state.show_pricing:
             <div class="tier-price">$95 <span>/ay</span></div>
             <div class="tier-desc">
                 <ul>
-                    <li>💬 <b>Maksimal Limitlər:</b> Limitsiz video, musiqi və Sİ krediti.</li>
+                    <li>💬 <b>Maksimal Limitlər:</b> Limitsiz video, musiqi və Sİ gücü.</li>
                 </ul>
             </div>
         </div>
@@ -119,50 +119,17 @@ if st.session_state.show_pricing:
     st.stop()
 
 # ==========================================================
-# 4. ÖDƏNİŞ (CHECKOUT) EKRANI
-# ==========================================================
-if st.session_state.selected_tier in ["Pro", "Ultra"] and not st.session_state.payment_successful:
-    price = "$12.00" if st.session_state.selected_tier == "Pro" else "$95.00"
-    st.markdown(f"<h2 style='text-align: center; margin-top: 50px;'>Kortex {st.session_state.selected_tier} - Təhlükəsiz Ödəniş</h2>", unsafe_allow_html=True)
-    st.markdown("<div class='secure-badge'>🔒 Kortex Qlobal Ödəniş Sistemi</div>", unsafe_allow_html=True)
-    
-    col_empty1, col_pay, col_empty2 = st.columns([1, 2, 1])
-    with col_pay:
-        st.markdown(f"<div class='payment-box'>", unsafe_allow_html=True)
-        st.info(f"Ödəniləcək Məbləğ: **{price} / Ay**")
-        card_name = st.text_input("Kartın üzərində Ad və Soyad", placeholder="Abdullah Mikayılov")
-        card_number = st.text_input("Kartın Nömrəsi (16 rəqəm)", placeholder="XXXX XXXX XXXX XXXX", max_chars=19)
-        c1, c2 = st.columns(2)
-        with c1: exp_date = st.text_input("Bitmə Tarixi (AA/İİ)", placeholder="12/26", max_chars=5)
-        with c2: cvv = st.text_input("CVV", placeholder="123", max_chars=3, type="password")
-            
-        st.write("")
-        if st.button(f"Pulu Çıx və {st.session_state.selected_tier} Aktivləşdir", use_container_width=True):
-            if card_name and card_number and exp_date and cvv:
-                with st.spinner("💳 Bankla əlaqə yaradılır..."):
-                    time.sleep(2) 
-                    st.session_state.payment_successful = True
-                    st.rerun()
-            else:
-                st.error("Bütün xanaları doldurun!")
-        if st.button("Ləğv Et və Pulsuz Rejimə Qayıt", use_container_width=True):
-            st.session_state.selected_tier = "Basic"
-            st.session_state.payment_successful = True
-            st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
-    st.stop() 
-
-# ==========================================================
-# YAN PANEL (API AÇARI VƏ AYARLAR)
+# 4. YAN PANEL (API AÇARI VƏ AYARLAR)
 # ==========================================================
 st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("🔑 Kortex Beyin Açarı")
-st.sidebar.caption("Əgər sistem 'salam'a cavab vermirsə, bura yeni Groq API açarını yapışdırın:")
-# İSTİFADƏÇİ BURADAN AÇARI YAZA BİLƏR:
-user_api_key = st.sidebar.text_input("Groq API Key:", type="password", value="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")
+st.sidebar.caption("Sistem xəta verirsə (401), işləyən Groq API açarınızı buraya yazın:")
+
+# AÇAR BURADAN DAXİL EDİLİR (Təhlükəsiz və rahat)
+user_api_key = st.sidebar.text_input("Groq API Key:", type="password", value="")
 
 client = None
 if user_api_key:
@@ -181,9 +148,7 @@ def search_internet(query):
     except Exception as e:
         return ""
 
-use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_vision_analysis = st.session_state.selected_tier in ["Pro", "Ultra"]
-use_vision_gen = True 
 use_video = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_music = st.session_state.selected_tier == "Ultra"
 
@@ -202,7 +167,7 @@ if uploaded_image is not None:
         st.sidebar.success("✅ Şəkil Kortex-in beyninə yükləndi!")
 
 # ==========================================================
-# 5. ƏSAS ÇAT EKRANI 
+# 5. ƏSAS ÇAT EKRANI
 # ==========================================================
 header_col1, header_col2 = st.columns([4, 1])
 with header_col1:
@@ -214,7 +179,7 @@ with header_col2:
         st.session_state.show_pricing = True
         st.rerun()
 
-SYSTEM_PROMPT = "Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. Dünyanın ən güclü süni intellektisən."
+SYSTEM_PROMPT = "Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. Sən hər şeyi bilən, mükəmməl və limitsiz bir süni intellektsən."
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -232,15 +197,12 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        live_internet_data = ""
         prompt_lower = prompt.lower()
         
-        # ==========================================================
-        # SUPER AĞILLI DETEKTOR (XƏTA YOXDUR!)
-        # ==========================================================
+        # AĞILLI DETEKTOR - Xətasız və Dəqiq
         is_image_request = False
         if any(x in prompt_lower for x in ["yarat", "yarad", "çək", "cek", "düzəlt", "duzelt"]):
-            if any(y in prompt_lower for y in ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm"]):
+            if any(y in prompt_lower for y in ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm"]):
                 is_image_request = True
                 
         if "sekli yarat" in prompt_lower or "şəkli yarat" in prompt_lower or "sekil cek" in prompt_lower or "şəkil çək" in prompt_lower:
@@ -249,16 +211,16 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
         if prompt_lower.endswith("yarat") or prompt_lower.endswith("çək") or prompt_lower.endswith("duzelt"):
              is_image_request = True
         
-        # --- ŞƏKİL YARATMA LOQİKASI (LIMITSIZ VƏ XƏTASIZ) ---
-        if is_image_request and use_vision_gen:
+        # --- ŞƏKİL YARATMA LOQİKASI ---
+        if is_image_request:
             with st.spinner(f"🎨 Kortex Vision Realistik Detalları Oxuyur..."):
-                
                 clean_prompt = ""
-                # Əgər API açarı işləyirsə Tərcüməçini istifadə et
+                
+                # Tərcüməçi Sİ (Açar işləyirsə)
                 if client:
                     try:
                         prompt_converter_msg = [
-                            {"role": "system", "content": "Sən yalnız gerçək və fotorealistik şəkillər yaradan Prompt Mühəndisisən. İstifadəçinin cümləsindən əsas obyekti və detalları tap, və İngilis dilinə çevir. MÜTLƏQ HƏMİŞƏ BU SÖZLƏRİ ƏLAVƏ ET: ', hyper-realistic, photorealistic, professional automotive photography, 8k resolution, NO neon'. Yalnız bu hazır İngilis dili promptunu yaz."},
+                            {"role": "system", "content": "Sən yalnız gerçək və fotorealistik şəkillər yaradan Prompt Mühəndisisən. İstifadəçinin cümləsindən obyekti və detalları tapıb, İngilis dilinə çevir. MÜTLƏQ BU SÖZLƏRİ ƏLAVƏ ET: ', hyper-realistic, photorealistic, professional automotive photography, 8k resolution, highly detailed'. Yalnız bu hazır İngilis dili promptunu yaz."},
                             {"role": "user", "content": prompt}
                         ]
                         converter_chat = client.chat.completions.create(
@@ -271,30 +233,31 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                     except Exception:
                         pass
                 
-                # Əgər API xarabdırsa, Kortex çökmür! Şəkli birbaşa bu üsulla yaradır:
+                # Açar yoxdursa və ya xarabdırsa belə, şəkil MÜTLƏQ yaranacaq!
                 if not clean_prompt:
                     clean_prompt = prompt_lower.replace("şəkil", "").replace("sekil", "").replace("şəkli", "").replace("yarat", "").replace("olsun", "").replace("bele", "").replace("mene", "").strip()
-                    clean_prompt += ", highly detailed photorealistic car photography, natural lighting, 8k, no neon"
+                    clean_prompt += ", highly detailed photorealistic car photography, natural lighting, 8k"
                     
                 encoded_prompt = urllib.parse.quote(clean_prompt)
                 seed_value = int(time.time()) 
                 image_api_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&realism=true&model=flux&seed={seed_value}"
                 
-                response_text = f"Buyur, istədiyin təsvir hazırdır! (4K Fotorealistik Mühərrik)"
+                response_text = f"Buyur, istədiyin təsvir hazırdır! Kortex qlobal avtomobil bazasından istifadə etdi. (4K Mühərrik)"
                 st.markdown(response_text)
                 st.image(image_api_url, caption=f"Kortex Vision: Limitsiz Generasiya")
                 st.session_state.messages.append({"role": "assistant", "content": response_text, "generated_image_url": image_api_url})
                 
-        # --- DİGƏR FUNKSİYALAR (VİDEO/MUSİQİ) ---
+        # --- VİDEO YARATMA ---
         elif "video" in prompt_lower and use_video:
             with st.spinner("🎥 Kortex Veo 4.0 video render edir..."):
                 time.sleep(2)
-                response = f"{st.session_state.selected_tier} lisenziyanız təsdiqləndi. Video animasiyası hazırlanır."
+                response = f"Lisenziyanız təsdiqləndi. Video animasiyası hazırlanır."
                 vid_msg = f"🎞️ [SİMULYASİYA] Kortex Veo 4.0: '{prompt}'"
                 st.markdown(response)
                 st.info(vid_msg)
                 st.session_state.messages.append({"role": "assistant", "content": response, "video_msg": vid_msg})
                 
+        # --- MUSİQİ YARATMA ---
         elif "musiqi" in prompt_lower and use_music:
             with st.spinner("🎼 Producer.ai bəstələyir..."):
                 time.sleep(2)
@@ -304,15 +267,14 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                 st.success(mus_msg)
                 st.session_state.messages.append({"role": "assistant", "content": response, "music_msg": mus_msg})
         
-        # --- NORMAL MƏTN ÇAT VƏ XƏTALARIN İDARƏ EDİLMƏSİ ---
+        # --- SÖHBƏT VƏ AXTARIŞ ---
         else:
             if not client:
-                # XƏTA MESAJI YOXDUR! SƏLİQƏLİ İZAHAT VAR:
-                response = "⚠️ **Məlumat:** Kortex-in mətn (söhbət) mühərrikinə gedən API açarının vaxtı bitib. Zəhmət olmasa yan paneldən (solda) yeni açar daxil edin. **Amma narahat olmayın, mən yenə də sizin üçün şəkil yarada bilərəm! Sadəcə '... şəkli yarat' yazın.**"
+                response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** Mətn mühərrikinə qoşulmaq üçün sol paneldəki İdarəetmə bölməsinə işləyən bir **Groq API Açarı** daxil edin. (Qeyd: API açarı olmadan belə, mənə əmr verib şəkil yarada bilərsiniz!)"
                 st.markdown(response)
                 st.session_state.messages.append({"role": "assistant", "content": response})
             else:
-                with st.spinner("Kortex AI analiz edir..."):
+                with st.spinner("Kortex AI məlumatı emal edir..."):
                     messages = [{"role": "system", "content": SYSTEM_PROMPT}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages if "image_url" not in m and "generated_image_url" not in m and "video_msg" not in m and "music_msg" not in m]
 
                     try:
@@ -325,7 +287,6 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                         st.markdown(response)
                         st.session_state.messages.append({"role": "assistant", "content": response})
                     except Exception as e:
-                        # API VAR AMMA LİMİT BİTİB VƏ YA XARABDIR
-                        response = "⚠️ **Məlumat:** Kortex-in mətn (söhbət) mühərrikinə gedən API açarının vaxtı bitib. Zəhmət olmasa yan paneldən (solda) yeni açar daxil edin. **Amma narahat olmayın, mən yenə də sizin üçün şəkil yarada bilərəm! Sadəcə '... şəkli yarat' yazın.**"
+                        response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** Daxil etdiyiniz API açarının limiti bitib və ya səhvdir. Zəhmət olmasa yeni açar alın və sol panelə daxil edin."
                         st.markdown(response)
                         st.session_state.messages.append({"role": "assistant", "content": response})
