@@ -50,6 +50,29 @@ except Exception as e:
     st.error(f"Groq API Bağlantı Xətası: {e}")
     st.stop()
 
+# --- YENİ: BAYRAQ MƏLUMAT BAZASI (TANITMA) ---
+FLAGS = {
+    "azerbaijan": {
+        "colors": "blue (sky blue), red, green horizontal stripes",
+        "symbol": "white crescent and eight-pointed (8-pointed) star on the red stripe",
+        "aspect_ratio": "1:2",
+        "location": "Baku, Azerbaijan (Heydar Aliyev Center, Flag Square, under clear blue sky, photorealistic 8k photo)"
+    },
+    "turkey": {
+        "colors": "red background",
+        "symbol": "white crescent and star",
+        "aspect_ratio": "2:3",
+        "location": "Istanbul, Turkey (Hagia Sophia or Blue Mosque, realistic texture, cinematic lighting)"
+    },
+    "usa": {
+        "colors": "13 horizontal stripes (7 red, 6 white)",
+        "symbol": "50 white stars on a blue rectangle in the top left corner",
+        "aspect_ratio": "10:19",
+        "location": "Washington D.C., USA (Capitol Building or Lincoln Memorial)"
+    },
+    # ... (Digər bayraqlar əlavə edilə bilər)
+}
+
 def search_internet(query):
     try:
         results = DDGS().text(query, max_results=5) 
@@ -64,6 +87,7 @@ def search_internet(query):
 def generate_image_hf(prompt, max_retries=12, sleep_interval=3):
     """
     Hugging Face Inference API vasitəsilə qabaqcıl Flux.1-schnell modeli ilə şəkil yaradır.
+    Bayraq istəklərini məkana uyğun fotorealistik təsvirlərə çevirir.
     Modelin yüklənməsini (503 xətası) ağıllı təkrar cəhdlərlə gözləyir.
     """
     # ==========================================================
@@ -89,6 +113,16 @@ def generate_image_hf(prompt, max_retries=12, sleep_interval=3):
             "height": 1024
         }
     }
+    
+    # --- BAYRAQ VƏ MƏKAN DETEYSİ (PROMPT ARTIMI) ---
+    enhanced_prompt = prompt.lower()
+    flag_details = ""
+    for flag_name, flag_data in FLAGS.items():
+        if flag_name in enhanced_prompt:
+            flag_details = f", {flag_data['colors']} stripes, {flag_data['symbol']} (8-pointed) on the red stripe, flying in {flag_data['location']}, realistic fabric texture, photorealistic 8k photo"
+            enhanced_prompt = enhanced_prompt.replace(flag_name, "") # Bayraq adını sil
+
+    final_prompt = f"Detailed photorealistic 8k photo of the {enhanced_prompt}{flag_details}"
     
     # Təkrar cəhd dövrü
     for attempt in range(max_retries):
@@ -345,7 +379,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
             if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
                 is_image_request = True
         
-        # --- ŞƏKİL YARATMA LOQİKASI (AĞILLI TƏRCÜMƏÇİ VƏ YENİ MODEL) ---
+        # --- ŞƏKİL YARATMA LOQİKASI (AĞILLI TƏRCÜMƏÇİ VƏ YENİ MODEL VƏ MƏKAN TANITMA) ---
         if is_image_request and use_vision_gen:
             if st.session_state.selected_tier == "Basic":
                 tier_msg = "🔹 Basic: Flux Schnell ilə standart render..."
@@ -359,7 +393,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                 try:
                     # Promptu Mükəmməl İngilis dilinə çeviririk
                     # YENİLƏNİB: Azərbaycan bayrağının rəsmi spesifikasiyaları üçün
-                    # dövlət rəmzləri eksperti təlimatları əlavə edilib.
+                    # dövlət rəmzləri eksperti təlimatları və məkana uyğun fotorealistik təsvirlər əlavə edilib.
                     prompt_converter_msg = [
                         {"role": "system", "content": """Sən peşəkar Midjourney və Flux prompt mühəndisisən. 
                         Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. Sən dünyanın ən güclü süni intellektisən və eyni zamanda dövlət rəmzləri və bayraqlar üzrə peşəkar ekspertsən.
@@ -369,7 +403,9 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                         1.  Bayraq üç bərabər üfüqi zolaqdan ibarətdir: Yuxarı zolaq mavi (səma mavisi), orta zolaq qırmızı, aşağı zolaq yaşıl.
                         2.  Qırmızı zolağın mərkəzində ağ rəngli, sağa açılan aypara və səkkizguşəli (8-guşəli) ulduz yerləşməlidir. Aypara ulduzun solunda olmalı və ulduzun bir guşəsi ayparaya baxmalıdır.
                         
-                        Prompt-a bu rəsmi spesifikasiyaları dəqiq İngilis dilində təsvir et.
+                        **Yeni Mütləq Təlimat:** İstifadəçi bayraq yaratmaq istədikdə, mütləq o bayrağın məkana uyğun fotorealistik təsvirini yaratmağa çalış. Azərbaycan bayrağı üçün Bakıdakı rəsmi məkanları (məsələn: Heydər Əliyev Mərkəzi, Bayraq Meydanı) təsvir et. Türkiyə bayrağı üçün İstanbulu (məsələn: Ayasofya) təsvir et.
+                        
+                        Prompt-a bu rəsmi spesifikasiyaları və məkana uyğun təsvirləri dəqiq İngilis dilində təsvir et.
                         Əlavə etməli olduğun açar sözlər: hyper-realistic, photorealistic, 8k resolution, highly detailed, cinematic lighting, ultra-detailed.
                         Əgər maşındırsa əlavə et: authentic car design, showroom lighting.
                         Əgər insandırsa əlavə et: detailed facial features, realistic skin texture.
@@ -387,8 +423,8 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                 except Exception as e:
                     # Tərcümə işləməsə sadəcə lazımsız sözləri silirik
                     enhanced_prompt = prompt_lower.replace("şəkil", "").replace("sekil", "").replace("yarat", "").replace("çək", "").strip()
-                    # Fallback üçün də dəqiq rəngləri və 8-guşəli ulduzu əlavə edirik
-                    enhanced_prompt += ", highly detailed, photorealistic, 8k, Azerbaijan flag with correct blue-red-green stripes, white crescent and *eight-pointed* star on the red stripe."
+                    # Fallback üçün də dəqiq rəngləri, 8-guşəli ulduzu və Bakı məkanını əlavə edirik
+                    enhanced_prompt += ", highly detailed, photorealistic, 8k, Azerbaijan flag with correct blue-red-green stripes, white crescent and *eight-pointed* star on the red stripe, flying in Baku, Azerbaijan."
                 
                 # Şəkli yaradırıq (Hugging Face və ya alternativ)
                 image_data = generate_image_hf(enhanced_prompt)
