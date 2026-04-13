@@ -1,5 +1,6 @@
 import streamlit as st
 from groq import Groq
+from openai import OpenAI # YENİ: DALL-E 3 üçün
 import time
 import base64
 from duckduckgo_search import DDGS  
@@ -41,37 +42,24 @@ st.markdown("""
 # ==========================================================
 # API SETUP
 # ==========================================================
+# 1. GROQ API (Mətn və Analiz üçün)
 try:
-    # QEYD: API açarınızı təhlükəsiz yerdə (st.secrets) saxlamaq məsləhətdir!
-    # Mənə göndərdiyiniz YENİ işlək Groq açarını bura əlavə etdim:
-    api_key = "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" 
-    client = Groq(api_key=api_key)
+    # DİQQƏT: Əgər ekranda xəta varsa, bu açarı yeniləməlisən!
+    groq_api_key = "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" 
+    client = Groq(api_key=groq_api_key)
 except Exception as e:
     st.error(f"Groq API Bağlantı Xətası: {e}")
     st.stop()
 
-# --- YENİ: BAYRAQ MƏLUMAT BAZASI (TANITMA) ---
-FLAGS = {
-    "azerbaijan": {
-        "colors": "blue (sky blue), red, green horizontal stripes",
-        "symbol": "white crescent and eight-pointed (8-pointed) star on the red stripe",
-        "aspect_ratio": "1:2",
-        "location": "Baku, Azerbaijan (Heydar Aliyev Center, Flag Square, under clear blue sky, photorealistic 8k photo)"
-    },
-    "turkey": {
-        "colors": "red background",
-        "symbol": "white crescent and star",
-        "aspect_ratio": "2:3",
-        "location": "Istanbul, Turkey (Hagia Sophia or Blue Mosque, realistic texture, cinematic lighting)"
-    },
-    "usa": {
-        "colors": "13 horizontal stripes (7 red, 6 white)",
-        "symbol": "50 white stars on a blue rectangle in the top left corner",
-        "aspect_ratio": "10:19",
-        "location": "Washington D.C., USA (Capitol Building or Lincoln Memorial)"
-    },
-    # ... (Digər bayraqlar əlavə edilə bilər)
-}
+# 2. OPENAI API (DALL-E 3 Şəkil Yaratmaq üçün)
+# ==========================================================
+# MÜTLƏQ BURA ÖZ OPENAI AÇARINI YAZ (sk- ilə başlayan)
+OPENAI_API_KEY = "sk-SƏNİN_OPENAI_AÇARIN_BURADA_OLACAQ" 
+try:
+    openai_client = OpenAI(api_key=OPENAI_API_KEY)
+except Exception as e:
+    pass
+# ==========================================================
 
 def search_internet(query):
     try:
@@ -82,80 +70,6 @@ def search_internet(query):
         return res_text
     except Exception as e:
         return ""
-
-# --- TƏKMİLLƏŞDİRİLMİŞ ŞƏKİL YARATMA FUNKSİYASI (Hugging Face / Flux) ---
-def generate_image_hf(prompt, max_retries=12, sleep_interval=3):
-    """
-    Hugging Face Inference API vasitəsilə qabaqcıl Flux.1-schnell modeli ilə şəkil yaradır.
-    Bayraq istəklərini məkana uyğun fotorealistik təsvirlərə çevirir.
-    Modelin yüklənməsini (503 xətası) ağıllı təkrar cəhdlərlə gözləyir.
-    """
-    # ==========================================================
-    # KRİTİK QEYD: Bura öz Hugging Face API açarınızı (Token) daxil etməlisiniz!
-    # Əgər yoxdursa, https://huggingface.co/settings/tokens ünvanından pulsuz yarada bilərsiniz.
-    # Bu funksiya yalnız keçərli bir tokenlə işləyəcək.
-    # ==========================================================
-    HF_API_KEY = "hf_SƏNİN_HUGGING_FACE_TOKENİNİ_BURA_YAZ" # <--- BU HİSSƏNİ MÜTLƏQ DƏYİŞDİRİN
-    
-    # Ən güclü açıq mənbəli şəkil modellərindən biri (Flux)
-    API_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
-    headers = {"Authorization": f"Bearer {HF_API_KEY}"}
-    
-    # Əgər HF tokeni daxil edilməyibsə, Pollinations API-yə (əvvəlki üsula) geri dön
-    if HF_API_KEY.startswith("hf_SƏNİN"):
-        return get_pollinations_image_url(prompt)
-
-    payload = {
-        "inputs": prompt,
-        "parameters": {
-            "num_inference_steps": 4, # Flux-schnell üçün kifayətdir
-            "width": 1024,
-            "height": 1024
-        }
-    }
-    
-    # --- BAYRAQ VƏ MƏKAN DETEYSİ (PROMPT ARTIMI) ---
-    enhanced_prompt = prompt.lower()
-    flag_details = ""
-    for flag_name, flag_data in FLAGS.items():
-        if flag_name in enhanced_prompt:
-            flag_details = f", {flag_data['colors']} stripes, {flag_data['symbol']} (8-pointed) on the red stripe, flying in {flag_data['location']}, realistic fabric texture, photorealistic 8k photo"
-            enhanced_prompt = enhanced_prompt.replace(flag_name, "") # Bayraq adını sil
-
-    final_prompt = f"Detailed photorealistic 8k photo of the {enhanced_prompt}{flag_details}"
-    
-    # Təkrar cəhd dövrü
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(API_URL, headers=headers, json=payload)
-            
-            if response.status_code == 200:
-                return response.content
-            
-            # Əgər model yüklənirsə (503 xətası), gözləyirik
-            elif response.status_code == 503:
-                # streamlit-də istifadəçiyə məlumat vermək üçün terminala çap edirik
-                print(f"Cəhd {attempt+1}/{max_retries}: Model yüklənir, {sleep_interval} saniyə gözlənilir...")
-                time.sleep(sleep_interval)
-            
-            else:
-                print(f"Hugging Face Xətası (Status: {response.status_code}): {response.text}")
-                # Digər xətalarda təkrar cəhd etməyə dəyməz, Pollinations-a keçirik
-                break 
-
-        except Exception as e:
-            print(f"Xəta baş verdi: {e}")
-            # Bağlantı xətalarında da təkrar cəhd etmirik
-            break
-
-    # Əgər dövr bitdisə və şəkil yaranmadısa, alternativ üsula keçirik
-    print("Hugging Face modeli yüklənə bilmədi. Alternativ üsul yoxlanılır...")
-    return get_pollinations_image_url(prompt)
-
-def get_pollinations_image_url(prompt):
-    """Əgər Hugging Face işləməsə, alternativ olaraq URL qaytarır."""
-    encoded_prompt = urllib.parse.quote(prompt)
-    return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true&model=flux"
 
 
 # ==========================================================
@@ -342,17 +256,13 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         if "generated_image_url" in message:
-            # Əgər əvvəlki URL-dirsə URL-i, bytes-dırsa bytes-ı göstər
-            if isinstance(message["generated_image_url"], str):
-                 st.image(message["generated_image_url"], caption="Kortex Vision 🎨")
-            else:
-                 st.image(message["generated_image_url"], caption="Kortex Vision 🎨 (Yüksək Keyfiyyət)")
+            st.image(message["generated_image_url"], caption="Kortex Vision 🎨 (DALL-E 3 Render)")
         if "video_msg" in message:
             st.info(message["video_msg"])
         if "music_msg" in message:
             st.success(message["music_msg"])
 
-if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yarat, qırmızı faralarla)"):
+if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: azerbaycan bayragini yarat)"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -366,51 +276,25 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
         # ==========================================================
         is_image_request = False
         
-        # Daha dəqiq şəkil istəyi yoxlanışı
         image_keywords = ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm", "bayraq", "bayraqini", "bayrağı", "bayragini", "bayrağını"]
         action_keywords = ["yarat", "yarad", "çək", "cek", "düzəlt", "duzelt"]
         
         if any(act in prompt_lower for act in action_keywords) and any(img in prompt_lower for img in image_keywords):
             is_image_request = True
             
-        # Qısa komandalar üçün (məs: "bmw m3 yarat")
         if not is_image_request and any(prompt_lower.endswith(act) for act in action_keywords):
-            # Əgər video və ya musiqi istəmirsə, çox güman şəkildir
             if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
                 is_image_request = True
         
-        # --- ŞƏKİL YARATMA LOQİKASI (AĞILLI TƏRCÜMƏÇİ VƏ YENİ MODEL VƏ MƏKAN TANITMA) ---
+        # --- ŞƏKİL YARATMA LOQİKASI (DALL-E 3 İLƏ KUSURSUZ RENDER) ---
         if is_image_request and use_vision_gen:
-            if st.session_state.selected_tier == "Basic":
-                tier_msg = "🔹 Basic: Flux Schnell ilə standart render..."
-            elif st.session_state.selected_tier == "Pro":
-                tier_msg = "🚀 Pro: Detallı analiz və yüksək keyfiyyətli Flux render..."
-            else:
-                tier_msg = "💎 Ultra: Maksimal təhlil və 4K Flux Pro render..."
-                
-            with st.spinner(f"🎨 Kortex Vision Şəkli Hazırlayır... \n{tier_msg}"):
-                
+            with st.spinner("🎨 Kortex Vision (DALL-E 3) Şəkli Hazırlayır..."):
                 try:
-                    # Promptu Mükəmməl İngilis dilinə çeviririk
-                    # YENİLƏNİB: Azərbaycan bayrağının rəsmi spesifikasiyaları üçün
-                    # dövlət rəmzləri eksperti təlimatları və məkana uyğun fotorealistik təsvirlər əlavə edilib.
+                    # DALL-E 3 üçün xüsusi prompt tərcüməçisi (daha detallı)
                     prompt_converter_msg = [
-                        {"role": "system", "content": """Sən peşəkar Midjourney və Flux prompt mühəndisisən. 
-                        Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. Sən dünyanın ən güclü süni intellektisən və eyni zamanda dövlət rəmzləri və bayraqlar üzrə peşəkar ekspertsən.
-                        İstifadəçinin Azərbaycan dilindəki istəyini detallı, vizual olaraq zəngin və tam fotorealistik İngilis dili promptuna çevir.
-                        
-                        **Mütləq Təlimat:** İstifadəçi Azərbaycan bayrağını yaratmağı istədikdə, aşağıdakı rəsmi spesifikasiyalara dəqiq uyğun olmasını təmin et:
-                        1.  Bayraq üç bərabər üfüqi zolaqdan ibarətdir: Yuxarı zolaq mavi (səma mavisi), orta zolaq qırmızı, aşağı zolaq yaşıl.
-                        2.  Qırmızı zolağın mərkəzində ağ rəngli, sağa açılan aypara və səkkizguşəli (8-guşəli) ulduz yerləşməlidir. Aypara ulduzun solunda olmalı və ulduzun bir guşəsi ayparaya baxmalıdır.
-                        
-                        **Yeni Mütləq Təlimat:** İstifadəçi bayraq yaratmaq istədikdə, mütləq o bayrağın məkana uyğun fotorealistik təsvirini yaratmağa çalış. Azərbaycan bayrağı üçün Bakıdakı rəsmi məkanları (məsələn: Heydər Əliyev Mərkəzi, Bayraq Meydanı) təsvir et. Türkiyə bayrağı üçün İstanbulu (məsələn: Ayasofya) təsvir et.
-                        
-                        Prompt-a bu rəsmi spesifikasiyaları və məkana uyğun təsvirləri dəqiq İngilis dilində təsvir et.
-                        Əlavə etməli olduğun açar sözlər: hyper-realistic, photorealistic, 8k resolution, highly detailed, cinematic lighting, ultra-detailed.
-                        Əgər maşındırsa əlavə et: authentic car design, showroom lighting.
-                        Əgər insandırsa əlavə et: detailed facial features, realistic skin texture.
-                        
-                        YALNIZ və YALNIZ İNGİLİS DİLİNDƏKİ PROMPTU QAYTAR. Heç bir əlavə söz yazma."""},
+                        {"role": "system", "content": """Sən peşəkar DALL-E 3 prompt mühəndisisən. 
+                        İstifadəçi bir ölkənin (məsələn: Azərbaycan) bayrağını yaratmağı istəyirsə, sadəcə bayrağı yox, mütləq onu o ölkənin ən məşhur məkanlarından birində (məsələn: Bakıda Heydər Əliyev Mərkəzi) realistik şəkildə dalğalanarkən təsvir et. 
+                        Təsviri İNGİLİS DİLİNDƏ yaz və "highly detailed, cinematic lighting, 8k resolution, photorealistic" sözlərini əlavə et. Yalnız promptu qaytar."""},
                         {"role": "user", "content": prompt}
                     ]
                     converter_chat = client.chat.completions.create(
@@ -421,25 +305,31 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                     )
                     enhanced_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
-                    # Tərcümə işləməsə sadəcə lazımsız sözləri silirik
-                    enhanced_prompt = prompt_lower.replace("şəkil", "").replace("sekil", "").replace("yarat", "").replace("çək", "").strip()
-                    # Fallback üçün də dəqiq rəngləri, 8-guşəli ulduzu və Bakı məkanını əlavə edirik
-                    enhanced_prompt += ", highly detailed, photorealistic, 8k, Azerbaijan flag with correct blue-red-green stripes, white crescent and *eight-pointed* star on the red stripe, flying in Baku, Azerbaijan."
+                    enhanced_prompt = prompt_lower.replace("yarat", "").replace("çək", "").strip()
+                    enhanced_prompt += " photorealistic, 8k, extremely detailed, if flag make it fly in capital city"
                 
-                # Şəkli yaradırıq (Hugging Face və ya alternativ)
-                image_data = generate_image_hf(enhanced_prompt)
+                # DALL-E 3 API ÇAĞIRIŞI
+                try:
+                    response = openai_client.images.generate(
+                        model="dall-e-3",
+                        prompt=enhanced_prompt,
+                        size="1024x1024",
+                        quality="hd",
+                        n=1,
+                    )
+                    image_url = response.data[0].url
+                    
+                    response_text = f"Buyur, istədiyin şəkil hazırdır! Kortex Vision DALL-E 3 mühərriki ilə qüsursuz yaradıldı. 💎"
+                    st.markdown(response_text)
+                    st.image(image_url, caption=f"Kortex Vision DALL-E 3: Yüksək Keyfiyyət")
+                    st.session_state.messages.append({"role": "assistant", "content": response_text, "generated_image_url": image_url})
                 
-                response_text = f"Buyur, istədiyin şəkil hazırdır! Ən son FLUX mühərriki ilə yaradıldı. ({st.session_state.selected_tier})"
-                st.markdown(response_text)
-                
-                # Nəticə URL (string) və ya birbaşa şəkil (bytes) ola bilər
-                if isinstance(image_data, str) and image_data.startswith("http"):
-                     st.image(image_data, caption=f"Kortex Vision: {prompt}")
-                else:
-                     st.image(image_data, caption=f"Kortex Vision: Yüksək Keyfiyyətli Render")
-                
-                # Tarixçəyə əlavə edirik
-                st.session_state.messages.append({"role": "assistant", "content": response_text, "generated_image_url": image_data})
+                except Exception as e:
+                    error_str = str(e).lower()
+                    if "api_key" in error_str or "not provided" in error_str or "401" in error_str:
+                         st.error("⚠️ Kortex Təhlükəsizlik Sistemi: OpenAI (DALL-E 3) API açarı koda daxil edilməyib. Zəhmət olmasa kodun 62-ci sətrinə `sk-` ilə başlayan açarınızı əlavə edin.")
+                    else:
+                         st.error(f"Şəkil yaradılarkən DALL-E xətası: {e}")
                 
         # --- DİGƏR FUNKSİYALAR (VİDEO/MUSİQİ) ---
         elif "video" in prompt_lower and use_video:
