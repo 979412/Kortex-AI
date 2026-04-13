@@ -41,6 +41,7 @@ st.markdown("""
 # API SETUP
 # ==========================================================
 try:
+    # MEMARIN YENİ AÇARI (Olduğu kimi saxlanıldı)
     api_key = "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"
     client = Groq(api_key=api_key)
 except Exception as e:
@@ -271,7 +272,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
         if prompt_lower.endswith("yarat") or prompt_lower.endswith("çək") or prompt_lower.endswith("duzelt"):
              is_image_request = True
         
-        # --- ŞƏKİL YARATMA LOQİKASI (AĞILLI TƏRCÜMƏÇİ VƏ FOTOREALİSTİK ƏLAVƏLƏR) ---
+        # --- ŞƏKİL YARATMA LOQİKASI (LIMITSIZ VƏ BÜTÜN MAŞINLARI TANIYAN MODEL) ---
         if is_image_request and use_vision_gen:
             if st.session_state.selected_tier == "Basic":
                 tier_msg = "🔹 Basic: Şəkil təhlil edilir və render olunur..."
@@ -280,31 +281,33 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
             else:
                 tier_msg = "💎 Ultra: Maksimal təhlil və 4K render olunur..."
                 
-            with st.spinner(f"🎨 Kortex Vision Realistik Detalları Oxuyur... \n{tier_msg}"):
+            with st.spinner(f"🎨 Kortex Vision Bütün Dünyanı Analiz Edir... \n{tier_msg}"):
                 
                 try:
                     prompt_converter_msg = [
-                        {"role": "system", "content": "Sən yalnız gerçək və fotorealistik şəkillər yaradan Prompt Mühəndisisən. İstifadəçinin cümləsindən əsas obyekti və detalları tap, və İngilis dilinə çevir. MÜTLƏQ HƏMİŞƏ BU SÖZLƏRİ ƏLAVƏ ET: ', hyper-realistic, photorealistic, natural daylight, professional photography, 8k resolution, highly detailed, authentic car design, NO neon, NO digital art, NO stylized lighting'. Yalnız bu hazır İngilis dili promptunu yaz."},
+                        {"role": "system", "content": "You are a prompt engineer for an AI image generator that has knowledge of EVERY vehicle model in the world. Your task is to identify ANY car mentioned by the user (make, model, year, etc.) and their requested details. Translate this into a concise, professional English prompt for a photorealistic image generator. YOU MUST ALWAYS APPEND: ', hyper-realistic, photorealistic, natural daylight, professional automotive photography, 8k resolution, highly detailed, authentic car design, NO neon, NO digital art, NO stylized lighting, realistic environment'. Output ONLY this English prompt."},
                         {"role": "user", "content": prompt}
                     ]
                     converter_chat = client.chat.completions.create(
                         messages=prompt_converter_msg,
                         model="llama-3.3-70b-versatile",
                         temperature=0.1, 
-                        max_tokens=70
+                        max_tokens=100
                     )
                     clean_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
                     clean_prompt = prompt_lower.replace("şəkil", "").replace("sekil", "").replace("şəkli", "").replace("yarat", "").replace("olsun", "").replace("bele", "").replace("mene", "").strip()
-                    clean_prompt += ", hyper realistic photography, natural sunlight, 8k resolution, highly detailed authentic car, NO neon, NO game graphics"
+                    clean_prompt += ", highly detailed photorealistic car photography, natural lighting, 8k"
                     
+                # URL kodlaması - Limitsiz generasiya üçün 'seed' elementi (hər dəfə yeni şəkil!)
                 encoded_prompt = urllib.parse.quote(clean_prompt)
-                image_api_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&realism=true&model=flux"
+                seed_value = int(time.time()) # Hər dəfə unikal şəkil yaratmaq üçün
+                image_api_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&realism=true&model=flux&seed={seed_value}"
                 
-                response_text = f"Buyur, istədiyin şəkil hazırdır! Təbii işıq və fotorealistik detallarla çəkildi. ({st.session_state.selected_tier} mühərriki)"
+                response_text = f"Buyur, istədiyin təsvir hazırdır! Kortex qlobal avtomobil bazasından məlumatları istifadə etdi. ({st.session_state.selected_tier} Limitsiz Mühərrik)"
                 st.markdown(response_text)
                 
-                st.image(image_api_url, caption=f"Kortex Vision: Gerçək Analiz Nəticəsi")
+                st.image(image_api_url, caption=f"Kortex Vision: Qlobal Limitsiz Analiz")
                 
                 st.session_state.messages.append({"role": "assistant", "content": response_text, "generated_image_url": image_api_url})
                 
@@ -351,7 +354,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                     except Exception as e:
                         error_msg = str(e)
                         if "401" in error_msg or "Invalid API Key" in error_msg:
-                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir."
+                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir. Zəhmət olmasa yeni açar daxil edin!"
                         else:
                             response = f"⚠️ Şəkil oxunarkən xəta yarandı: Mühərrik müvəqqəti məşğuldur."
                         
@@ -386,7 +389,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: qara bmw m3 yar
                     except Exception as e:
                         error_msg = str(e)
                         if "401" in error_msg or "Invalid API Key" in error_msg:
-                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir."
+                            response = "⚠️ **Kortex Təhlükəsizlik Sistemi:** API giriş rədd edildi. Açarın vaxtı bitib və ya səhvdir. 54-cü sətirdə yeni açarı yazın!"
                         else:
                             response = f"⚠️ Kortex sistemi müvəqqəti olaraq yüklənmə yaşayır. Xəta: {error_msg}"
 
