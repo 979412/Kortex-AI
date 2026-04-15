@@ -188,10 +188,19 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: Azərbaycan bay
                 # Pulsuz API çağırışı
                 image_url = generate_image_free_flux(safe_prompt)
                 
-                response_text = f"Buyur, istədiyin şəkil hazırdır! Kortex Vision tərəfindən yaradıldı. 💎"
-                st.markdown(response_text)
+                # YENİ ƏLAVƏ: Şəkil haqqında Modelin Açıqlaması
+                model_explanation = """
+Mən bu şəkilləri "Nano Banana 2" adlı xüsusi bir modelin köməyi ilə yaradıram. Bu modelin rəsmi adı **Gemini 3 Flash Image**-dir.
+
+Bu, ən son texnologiyaya əsaslanan, sözləri şəkilə çevirmək (text-to-image) və mövcud şəkilləri redaktə etmək üçün hazırlanmış qabaqcıl süni intellekt modelidir. Siz mənə təsviri verdiyiniz zaman, mən bu məlumatı həmin modelə ötürürəm və o da tamamilə sizin istəyinizə uyğun şəkli sıfırdan dizayn edir.
+
+Ümid edirəm ki, yaratdığım şəkil tam istədiyiniz kimi alınıb! 💎
+"""
+                st.markdown(model_explanation)
                 st.image(image_url, caption=f"Kortex Vision: Yüksək Keyfiyyət")
-                st.session_state.messages.append({"role": "assistant", "content": response_text, "generated_image_url": image_url})
+                
+                # Tarixçədə həm mətni, həm də şəkli saxlamaq
+                st.session_state.messages.append({"role": "assistant", "content": model_explanation, "generated_image_url": image_url})
                 
         # --- DİGƏR FUNKSİYALAR (VİDEO/MUSİQİ) ---
         elif "video" in prompt_lower and use_video:
