@@ -122,7 +122,7 @@ if uploaded_image is not None:
         st.sidebar.success("✅ Şəkil Kortex-in beyninə yükləndi!")
 
 # ==========================================================
-# QİYMƏT EKRANI VƏ ÖDƏNİŞ - HEÇ BİR MƏLUMAT SİLİNMƏYİB
+# QİYMƏT EKRANI VƏ ÖDƏNİŞ
 # ==========================================================
 if st.session_state.show_pricing:
     if st.button("⬅ Çata Qayıt", use_container_width=False):
@@ -269,27 +269,31 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
             if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
                 is_image_request = True
         
-        # --- YENİ ZƏKALI ŞƏKİL YARATMA (MÜKƏMMƏL DÜNYA MƏLUMAT BAZASI İLƏ) ---
+        # --- YENİ ZƏKALI ŞƏKİL YARATMA ---
         if is_image_request and use_vision_gen:
             with st.spinner("🎨 Kortex Vision Sizin Məkanı Analiz Edir və Şəkli Hazırlayır..."):
                 user_loc = st.session_state.user_location
                 try:
-                    # KORTEX AI ARTIQ BÜTÜN DÜNYANIN VƏ AZƏRBAYCANIN QÜSURSUZ DETALLARINI BİLİR!
+                    # BÜTÜN DÜNYANI VƏ ÖZƏLLİKLƏ AZƏRBAYCANI QÜSURSUZ TANITMAQ ÜÇÜN ÇOX SƏRT PROMPT
                     prompt_converter_msg = [
                         {"role": "system", "content": f"""Sən peşəkar prompt mühəndisi və qlobal coğrafiya ekspertisən. 
                         İstifadəçinin hazırkı məkanı: {user_loc}.
-                        TƏLİMAT: Sən bu dünyadakı bütün ölkələri, paytaxtları, şəhərləri, məşhur binaları, tarixi abidələri və küçələri qüsursuz, nöqtə-vergülünə qədər bilirsən. Əgər istifadəçi bir şəkil istəyirsə (məsələn: 'BMW yarat'), sən avtomatik olaraq o obyekti istifadəçinin məkanının ({user_loc}) ən məşhur, ən ikonik və gözəl binalarının və ya küçələrinin fonunda fotorealistik təsvir etməlisən. Əgər istifadəçi konkret başqa ölkə adı çəkibsə (məsələn, 'Fransada maşın yarat'), yalnız o zaman həmin ölkənin ən məşhur məkanını (məsələn, Eyfel Qülləsi) istifadə et.
+                        TƏLİMAT: Sən bu dünyadakı bütün ölkələri, paytaxtları, şəhərləri, məşhur binaları, tarixi abidələri və küçələri qüsursuz, nöqtə-vergülünə qədər bilirsən. Əgər istifadəçi bir şəkil istəyirsə (məsələn: 'BMW yarat'), sən avtomatik olaraq o obyekti istifadəçinin məkanının ({user_loc}) ən məşhur, ən ikonik və müasir binalarının və ya küçələrinin fonunda fotorealistik təsvir etməlisən. Əgər istifadəçi konkret başqa ölkə adı çəkibsə (məsələn, 'Fransada maşın yarat'), yalnız o zaman həmin ölkənin ən məşhur məkanını istifadə et.
                         
-                        MÜTLƏQ QAYDA AZƏRBAYCAN ÜÇÜN: Əgər məkan Azərbaycandırsa (və ya istifadəçi Azərbaycan yazıbsa), şəklin arxa fonuna MÜTLƏQ YALNIZ müasir Bakı binalarını (Heydar Aliyev Center və ya Flame Towers) və böyük, küləkdə dalğalanan AZƏRBAYCAN BAYRAĞINI əlavə et! Azərbaycan bayrağı YALNIZ və YALNIZ bu cür olmalıdır: 3 bərabər üfüqi zolaq (yuxarıda göy, ortada qırmızı, aşağıda yaşıl), qırmızı zolağın tən ortasında ağ rəngli sağa baxan aypara və MÜTLƏQ 8 (səkkiz) guşəli ağ ulduz! Qədim qüllələr, daş binalar ÇƏKMƏ!
+                        CRITICAL INSTRUCTION FOR AZERBAIJAN: If the location is Azerbaijan, or the user asks for Azerbaijan, YOU MUST strictly follow this: 
+                        1. The background MUST ONLY be modern Baku architecture (like Heydar Aliyev Center with its flowing white curves, or Flame Towers). DO NOT generate old stone towers, ruins, or castles.
+                        2. You MUST include a large, highly accurate flag of Azerbaijan flying proudly. 
+                        3. The Azerbaijan flag MUST have exactly 3 horizontal stripes: top is sky blue, middle is red, bottom is green. 
+                        4. Inside the center of the red stripe, there MUST be a white crescent moon pointing right, and EXACTLY an 8-pointed (eight-pointed) white star. The star MUST have 8 points, no more, no less.
                         
-                        Təsviri yalnız İNGİLİS DİLİNDƏ yaz. XƏBƏRDARLIQ: Yalnız sadə ingilis hərflərindən istifadə et (ascii)."""},
+                        Təsviri yalnız İNGİLİS DİLİNDƏ yaz. Mətndə ə, ö, ğ, ç, ş, ı, ü hərfləri İSTİFADƏ ETMƏ (strictly ascii). Make it highly detailed, 8k, photorealistic."""},
                         {"role": "user", "content": prompt}
                     ]
                     converter_chat = client.chat.completions.create(
                         messages=prompt_converter_msg,
                         model="llama-3.3-70b-versatile",
                         temperature=0.3, 
-                        max_tokens=150
+                        max_tokens=200
                     )
                     enhanced_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
@@ -297,10 +301,10 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
                 
-                # MODELİN AZƏRBAYCAN BAYRAĞINI 100% SƏHVSİZ YARATMASI ÜÇÜN ÜÇÜNCÜ QORUMA QATI
+                # BAYRAĞI UNUTMAMASI ÜÇÜN SON VURĞU
                 if "azerbaijan" in user_loc.lower() or "azerbaijan" in safe_prompt.lower() or "baku" in safe_prompt.lower():
                     if "flag" not in safe_prompt.lower():
-                        safe_prompt += ", with a large clear proudly flying Azerbaijan flag (blue, red, green horizontal stripes, with a white crescent and an EXACTLY eight-pointed star on the red stripe) in the background, near modern Heydar Aliyev Center building, cinematic lighting, 8k resolution, no ancient buildings"
+                        safe_prompt += ", prominent accurate Azerbaijan flag flying, top blue stripe, middle red stripe with white crescent and strictly 8-pointed white star, bottom green stripe, modern Baku background"
 
                 image_url = generate_image_free_flux(safe_prompt)
                 
