@@ -27,6 +27,9 @@ st.markdown("""
     .tier-desc ul { padding-left: 20px; margin-top: 10px; }
     .tier-desc li { margin-bottom: 10px; line-height: 1.4;}
     
+    .tier-desc::-webkit-scrollbar { width: 5px; }
+    .tier-desc::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+    
     .payment-box { border: 1px solid #e2e8f0; border-radius: 10px; padding: 30px; background-color: #f8fafc; max-width: 500px; margin: 0 auto; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
     .secure-badge { color: #059669; font-weight: bold; font-size: 14px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 5px;}
     
@@ -76,12 +79,12 @@ if "user_location" not in st.session_state:
     try:
         # Pulsuz IP Geolocation API
         loc_response = requests.get("https://ipapi.co/json/", timeout=5).json()
-        city = loc_response.get("city", "Baku")
+        city = loc_response.get("city", "Ganja")
         country = loc_response.get("country_name", "Azerbaijan")
         st.session_state.user_location = f"{city}, {country}"
     except:
         # Tapa bilməsə, standart olaraq Azərbaycan qoyur
-        st.session_state.user_location = "Baku, Azerbaijan"
+        st.session_state.user_location = "Ganja, Azerbaijan"
 
 # ==========================================================
 # ƏSAS ÇAT EKRANI VƏ UI
@@ -121,61 +124,125 @@ if uploaded_image is not None:
         st.sidebar.success("✅ Şəkil Kortex-in beyninə yükləndi!")
 
 # ==========================================================
-# QİYMƏT EKRANI VƏ ÖDƏNİŞ (Sənin kodunla eyni qalır)
+# QİYMƏT EKRANI VƏ ÖDƏNİŞ
 # ==========================================================
 if st.session_state.show_pricing:
     if st.button("⬅ Çata Qayıt", use_container_width=False):
         st.session_state.show_pricing = False
         st.rerun()
-    st.markdown("<h1 style='text-align: center;'>Kortex AI - Rəqəmsal Ekosistem</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'>Süni intellektin ən yüksək limitləri ilə rəqiblərinizi geridə qoyun.</p>", unsafe_allow_html=True)
+
+    st.markdown("<h1 style='text-align: center; color: #202124;'>Kortex AI - Rəqəmsal Ekosistem</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #5f6368; margin-bottom: 40px;'>Süni intellektin ən yüksək limitləri ilə rəqiblərinizi geridə qoyun.</p>", unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
+    
     with col1:
-        st.markdown("<div class='pricing-card'><div class='tier-name'>Kortex Basic</div><div class='tier-price'>$0 <span>/ay</span></div><div class='tier-desc'><ul><li>💬 <b>Kortex 3.1 Pro:</b> Şəkil, Video və s.</li></ul></div></div>", unsafe_allow_html=True)
-        if st.button("Basic Seç", key="btn_b"):
+        st.markdown("""
+        <div class="pricing-card">
+            <div class="tier-name">Kortex Basic</div>
+            <div class="tier-price">$0 <span>/ay</span></div>
+            <div class="tier-desc">
+                <ul>
+                    <li>💬 <b>Kortex 3.1 Pro:</b> Deep Research, Nano Banana Pro ilə şəkil və Veo 3.1 ilə video yaratmaya təkmilləşdirilmiş giriş.</li>
+                    <li>🎥 <b>Flow & Whisk:</b> Kinematik səhnələr və şəkildən video yaratma alətləri.</li>
+                    <li>💎 <b>200</b> Aylıq Sİ krediti.</li>
+                    <li>🌐 <b>Axtarış & NotebookLM:</b> Audio/Video icmallar və testlərə əlavə giriş.</li>
+                    <li>🎼 <b>Producer.ai:</b> Musiqi yaratma platformamıza giriş.</li>
+                    <li>📧 <b>Kortex Tətbiqləri:</b> Gmail, Calendar və Meet üçün birbaşa giriş.</li>
+                    <li>☁️ <b>10 TB Ümumi Yaddaş</b> (Disk, Foto və s.)</li>
+                </ul>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Basic Seç", use_container_width=True, key="btn_basic"):
             st.session_state.selected_tier = "Basic"
+            st.session_state.payment_successful = True
             st.session_state.show_pricing = False
             st.rerun()
+
     with col2:
-        st.markdown("<div class='pricing-card'><div class='tier-name'>Kortex Pro</div><div class='tier-price'>$12 <span>/ay</span></div><div class='tier-desc'><ul><li>💬 Yüksək giriş limitləri</li></ul></div></div>", unsafe_allow_html=True)
-        if st.button("Pro Əldə Et", key="btn_p"):
+        st.markdown("""
+        <div class="pricing-card">
+            <div class="tier-name">Kortex Pro</div>
+            <div class="tier-price">$12 <span>/ay</span></div>
+            <div class="tier-desc">
+                <ul>
+                    <li>💬 <b>Kortex 3.1 Pro:</b> Şəkil, video və Deep Research funksiyalarına daha yüksək giriş əldə edin.</li>
+                    <li>🎥 <b>Flow & Whisk:</b> Kinematik video alətimizə və şəkildən videoya yüksək giriş.</li>
+                    <li>💎 <b>1.000</b> Aylıq Sİ krediti.</li>
+                    <li>🌐 <b>Axtarış & NotebookLM:</b> Tədqiqat partnyorumuza yüksək giriş.</li>
+                    <li>🎼 <b>Producer.ai:</b> Musiqi platformasına yüksək giriş.</li>
+                    <li>🧠 <b>Kortex Antigravity:</b> Agent inkişaf platforması üçün daha yüksək sorğu limitləri.</li>
+                    <li>💻 <b>Developer Program & Studio:</b> Sİ kod agentləri ilə Android inkişafınızı sürətləndirin.</li>
+                    <li>☁️ <b>45 TB Ümumi Yaddaş</b></li>
+                </ul>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Pro Əldə Et", use_container_width=True, key="btn_pro"):
             st.session_state.selected_tier = "Pro"
             st.session_state.payment_successful = False 
             st.session_state.show_pricing = False
             st.rerun()
+
     with col3:
-        st.markdown("<div class='pricing-card' style='border-color: #1a73e8;'><div class='tier-name'>Kortex Ultra 💎</div><div class='tier-price'>$95 <span>/ay</span></div><div class='tier-desc'><ul><li>💬 Maksimal Limitlər və Xüsusi Agent</li></ul></div></div>", unsafe_allow_html=True)
-        if st.button("Ultra Əldə Et", key="btn_u"):
+        st.markdown("""
+        <div class="pricing-card" style="border-color: #1a73e8; background: linear-gradient(to bottom, #ffffff, #f0f7ff);">
+            <div class="tier-name">Kortex Ultra 💎</div>
+            <div class="tier-price">$95 <span>/ay</span></div>
+            <div class="tier-desc">
+                <ul>
+                    <li>💬 <b>Maksimal Limitlər:</b> Deep Think, Nano Banana Pro və ən son Veo 3.1 video mühərriki.</li>
+                    <li>🎥 <b>Flow & Whisk:</b> Hekayə və kinematik səhnələr üçün maksimal limitlər.</li>
+                    <li>💎 <b>25.000</b> Aylıq Sİ krediti.</li>
+                    <li>🌐 <b>Axtarış & NotebookLM:</b> Maksimal və limitsiz giriş.</li>
+                    <li>🎼 <b>Producer.ai:</b> Birgə musiqi platformasına maksimal giriş.</li>
+                    <li>🧠 <b>Kortex Antigravity:</b> Agent modeli üçün maksimal limitlər.</li>
+                    <li>💻 <b>Developer Program & Studio:</b> CLI, Code Assist və bulud limitləri maksimal sürətdə.</li>
+                    <li>🚫 <b>Premium Əlavə:</b> Reklamsız, oflayn media (YouTube ekvivalenti).</li>
+                    <li>☁️ <b>200 TB Ümumi Yaddaş</b> (Rəqibsiz böyüklükdə)</li>
+                </ul>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Ultra Əldə Et", use_container_width=True, key="btn_ultra"):
             st.session_state.selected_tier = "Ultra"
             st.session_state.payment_successful = False 
             st.session_state.show_pricing = False
             st.rerun()
+            
     st.stop()
 
 if st.session_state.selected_tier in ["Pro", "Ultra"] and not st.session_state.payment_successful:
-    st.markdown(f"<h2 style='text-align: center;'>Kortex {st.session_state.selected_tier} - Təhlükəsiz Ödəniş</h2>", unsafe_allow_html=True)
+    price = "$12.00" if st.session_state.selected_tier == "Pro" else "$95.00"
+    st.markdown(f"<h2 style='text-align: center; margin-top: 50px;'>Kortex {st.session_state.selected_tier} - Təhlükəsiz Ödəniş</h2>", unsafe_allow_html=True)
     st.markdown("<div class='secure-badge'>🔒 Kortex Qlobal Ödəniş Sistemi</div>", unsafe_allow_html=True)
+    
     col_empty1, col_pay, col_empty2 = st.columns([1, 2, 1])
     with col_pay:
         st.markdown(f"<div class='payment-box'>", unsafe_allow_html=True)
-        card_name = st.text_input("Ad və Soyad")
-        card_number = st.text_input("Kart Nömrəsi")
+        st.info(f"Ödəniləcək Məbləğ: **{price} / Ay**")
+        card_name = st.text_input("Kartın üzərində Ad və Soyad", placeholder="Abdullah Mikayılov")
+        card_number = st.text_input("Kartın Nömrəsi (16 rəqəm)", placeholder="XXXX XXXX XXXX XXXX", max_chars=19)
         c1, c2 = st.columns(2)
-        with c1: exp_date = st.text_input("Bitmə Tarixi")
-        with c2: cvv = st.text_input("CVV", type="password")
-        if st.button("Aktivləşdir", use_container_width=True):
-            if card_name and card_number:
-                st.session_state.payment_successful = True
-                st.rerun()
+        with c1: exp_date = st.text_input("Bitmə Tarixi (AA/İİ)", placeholder="12/26", max_chars=5)
+        with c2: cvv = st.text_input("CVV", placeholder="123", max_chars=3, type="password")
+            
+        st.write("")
+        if st.button(f"Pulu Çıx və {st.session_state.selected_tier} Aktivləşdir", use_container_width=True):
+            if card_name and card_number and exp_date and cvv:
+                with st.spinner("💳 Bankla əlaqə yaradılır..."):
+                    time.sleep(2) 
+                    st.session_state.payment_successful = True
+                    st.rerun()
             else:
                 st.error("Bütün xanaları doldurun!")
-        if st.button("Ləğv Et", use_container_width=True):
+        if st.button("Ləğv Et və Pulsuz Rejimə Qayıt", use_container_width=True):
             st.session_state.selected_tier = "Basic"
             st.session_state.payment_successful = True
             st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
-    st.stop()
+    st.stop() 
 
 # ==========================================================
 # MESAJLAŞMA VƏ AĞILLI MƏNTİQ
