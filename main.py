@@ -27,6 +27,9 @@ st.markdown("""
     .tier-desc ul { padding-left: 20px; margin-top: 10px; }
     .tier-desc li { margin-bottom: 10px; line-height: 1.4;}
     
+    .tier-desc::-webkit-scrollbar { width: 5px; }
+    .tier-desc::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+    
     .payment-box { border: 1px solid #e2e8f0; border-radius: 10px; padding: 30px; background-color: #f8fafc; max-width: 500px; margin: 0 auto; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
     .secure-badge { color: #059669; font-weight: bold; font-size: 14px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 5px;}
     
@@ -152,20 +155,26 @@ if st.session_state.show_pricing:
     st.stop()
 
 if st.session_state.selected_tier in ["Pro", "Ultra"] and not st.session_state.payment_successful:
-    st.markdown(f"<h2 style='text-align: center;'>Kortex {st.session_state.selected_tier} - Təhlükəsiz Ödəniş</h2>", unsafe_allow_html=True)
+    price = "$12.00" if st.session_state.selected_tier == "Pro" else "$95.00"
+    st.markdown(f"<h2 style='text-align: center; margin-top: 50px;'>Kortex {st.session_state.selected_tier} - Təhlükəsiz Ödəniş</h2>", unsafe_allow_html=True)
     st.markdown("<div class='secure-badge'>🔒 Kortex Qlobal Ödəniş Sistemi</div>", unsafe_allow_html=True)
     col_empty1, col_pay, col_empty2 = st.columns([1, 2, 1])
     with col_pay:
         st.markdown(f"<div class='payment-box'>", unsafe_allow_html=True)
+        st.info(f"Ödəniləcək Məbləğ: **{price} / Ay**")
         card_name = st.text_input("Ad və Soyad")
         card_number = st.text_input("Kart Nömrəsi")
         c1, c2 = st.columns(2)
-        with c1: exp_date = st.text_input("Bitmə Tarixi")
+        with c1: exp_date = st.text_input("Bitmə Tarixi (AA/İİ)")
         with c2: cvv = st.text_input("CVV", type="password")
+        
+        st.write("")
         if st.button("Aktivləşdir", use_container_width=True):
-            if card_name and card_number:
-                st.session_state.payment_successful = True
-                st.rerun()
+            if card_name and card_number and exp_date and cvv:
+                with st.spinner("💳 Bankla əlaqə yaradılır..."):
+                    time.sleep(2) 
+                    st.session_state.payment_successful = True
+                    st.rerun()
             else:
                 st.error("Bütün xanaları doldurun!")
         if st.button("Ləğv Et", use_container_width=True):
@@ -214,7 +223,6 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
             with st.spinner("🎨 Kortex Vision Sizin Məkanı Analiz Edir və Şəkli Hazırlayır..."):
                 user_loc = st.session_state.user_location
                 try:
-                    # KORTEX AI ARTIQ MÜASİR BİNALARI VƏ BAYRAĞI MƏCBURİ ŞƏKİLDƏ ƏLAVƏ EDİR
                     prompt_converter_msg = [
                         {"role": "system", "content": f"""Sən peşəkar prompt mühəndisisən. 
                         İstifadəçinin hazırkı məkanı: {user_loc}.
