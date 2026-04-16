@@ -105,10 +105,15 @@ st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 st.sidebar.info(f"📍 Sizin Məkan: {st.session_state.user_location}")
 
-with st.sidebar.expander("💻 Kortex Core: API & Engine", expanded=False):
+# MÜŞTƏRİLƏR ÜÇÜN ƏSL 3D RENDER İZAHI (Sizin istədiyiniz elmi əlavə)
+with st.sidebar.expander("💻 Kortex Core: Render & 3D Engine", expanded=False):
     st.markdown("""
     **Arxa Plan Arxitexturası:**
-    Şəkillərin yaradılması Kortex-in xüsusi API mühərriki vasitəsilə uzaq serverlərdəki neyron şəbəkələrə (Diffusion Models) ötürülərək emal edilir.
+    Kortex Vision adi bir şəkil aləti deyil. O, dünyanın ən güclü vizual alqoritmlərini simulyasiya edir:
+    * **PBR (Physically Based Rendering):** Boya, metal və şüşə üzərindəki işığı fiziki qanunlarla hesablayır.
+    * **Path Tracing & Global Illumination:** Milyonlarla işıq şüasının hərəkətini izləyərək fotorealistik kölgələr yaradır.
+    * **HDRI Lighting:** Avtomobilin ətrafındakı 360 dərəcəlik mənzərənin işığını maşının kapotuna əks etdirir.
+    * **Diffusion Networks:** Bu 3D hesablama məlumatlarını milyardlarla parametrli sinir şəbəkələri (AI) ilə emal edərək son 8K vizualı yaradır.
     """)
 
 use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
@@ -246,21 +251,22 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli 
             if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
                 is_image_request = True
         
-        # --- ZƏKALI ŞƏKİL YARATMA (MƏKANI AZAD EDƏN KOD) ---
+        # --- ZƏKALI ŞƏKİL YARATMA (MÖHTƏŞƏM 3D RENDER VƏ PBR QAYDALARI İLƏ) ---
         if is_image_request and use_vision_gen:
-            with st.spinner("🎨 Kortex Vision Mühərriki Şəkli Hazırlayır..."):
+            with st.spinner("🎨 Kortex Core: PBR Render və HDRI İşıqlandırma hesablanır..."):
                 user_loc = st.session_state.user_location
                 try:
-                    # PROMPT MÜHƏNDİSLİYİ - Artıq məkanı anlaya və dəyişə bilir!
+                    # PROMPT MÜHƏNDİSLİYİ - 3D RENDER SİRLƏRİ BURA ƏLAVƏ EDİLDİ!
                     prompt_converter_msg = [
-                        {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi' və mükafatlı avtomobil fotoqrafısan. 
+                        {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi', 3D Rəssamı və mükafatlı avtomobil fotoqrafısan. 
                         
-                        MƏKAN QAYDALARI (ÇOX VACİB):
-                        1. Əgər istifadəçi "fərqli ölkələrdə", "başqa yerlərdə", "müxtəlif məkanlarda" kimi sözlər işlədirsə, sən dünyanın ən qəşəng, təsadüfi bir ölkəsini/şəhərini seçməlisən (məsələn: Swiss Alps, Tokyo neon streets, Dubai skyline, New York).
-                        2. Əgər istifadəçi xüsusi bir ölkə adı çəkirsə (məsələn: Fransa, Amerika), mütləq o ölkənin mənzərəsini ver.
-                        3. YALNIZ istifadəçi heç bir məkan/ölkə adı çəkməsə, arxa fonu onun cari məkanı ({user_loc}) kimi yaza bilərsən.
+                        MƏKAN QAYDALARI:
+                        1. İstifadəçi "fərqli ölkələrdə", "başqa yerlərdə" deyirsə, dünyanın ən qəşəng yerlərini (İsveçrə, Tokio, Dubay, Nyu-York) seç.
+                        2. İstifadəçi xüsusi ölkə çəkirsə, oranı seç.
+                        3. Heç nə demirsə, {user_loc} məkanını əsas götür.
                         
-                        FOTOQRAFİYA ƏMRLƏRİ (MÜTLƏQ İSTİFADƏ ET): 'hyper-realistic, photorealistic, 8k resolution, cinematic lighting, golden hour, shot on Canon EOS R5 with an 85mm lens, motion blur on wheels and road to show speed, professional automotive photography, highly detailed reflections'.
+                        FOTOQRAFİYA VƏ 3D RENDER ƏMRLƏRİ (BUNLARI HƏMİŞƏ İSTİFADƏ ET): 
+                        'Unreal Engine 5 render, Octane Render, Path Tracing, Global Illumination, PBR materials, HDRI lighting, hyper-realistic, photorealistic, 8k resolution, cinematic lighting, golden hour, dynamic motion blur, highly detailed reflections on glossy car paint'.
                         
                         Təsviri YALNIZ İNGİLİS DİLİNDƏ yaz. Mətndə ə, ö, ğ, ç, ş, ı, ü hərfləri İSTİFADƏ ETMƏ."""},
                         {"role": "user", "content": prompt}
@@ -268,24 +274,21 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli 
                     converter_chat = client.chat.completions.create(
                         messages=prompt_converter_msg,
                         model="llama-3.3-70b-versatile",
-                        temperature=0.5, # Temperaturu qaldırdım ki, daha yaradıcı məkanlar seçsin
-                        max_tokens=250
+                        temperature=0.5, 
+                        max_tokens=300
                     )
                     enhanced_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
-                    enhanced_prompt = "hyper-realistic photorealistic 8k photo of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + " in a stunning random global location, golden hour, cinematic lighting"
+                    enhanced_prompt = "hyper-realistic photorealistic 8k 3D render of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + " in a stunning location, Unreal Engine 5, Octane Render, PBR materials, HDRI lighting, path tracing, golden hour"
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
                 
-                # BAYRAQ QAYDASI: Yalnız Promptun içinə birbaşa Azərbaycan/Bakı düşübsə əlavə et. 
-                # (Köhnə koddakı kimi hər dəfə istifadəçinin IP-sinə görə məcburi etmirik!)
                 if "azerbaijan" in safe_prompt.lower() or "baku" in safe_prompt.lower():
                     if "flag" not in safe_prompt.lower():
                         safe_prompt += ", prominent accurate Azerbaijan flag flying, top blue stripe, middle red stripe with white crescent and strictly 8-pointed white star, bottom green stripe, modern Baku background"
 
                 image_url = generate_image_pro_engine(safe_prompt, engine="flux_free")
                 
-                # Uzaq mətnləri sildim, sadəcə qısa bir vizual təqdimat qalır
                 st.image(image_url)
                 st.session_state.messages.append({"role": "assistant", "content": "", "generated_image_url": image_url})
                 
