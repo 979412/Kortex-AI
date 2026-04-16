@@ -60,6 +60,7 @@ def search_internet(query):
 
 def generate_image_free_flux(prompt):
     encoded_prompt = urllib.parse.quote(prompt)
+    # Təsvir ölçüsünü daha "kinematik" etdik (16:9 format - 1280x720)
     return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&model=flux"
 
 # ==========================================================
@@ -98,7 +99,7 @@ with header_col2:
         st.rerun()
 
 # ==========================================================
-# YAN PANEL VƏ KORTEX CORE ENGINE (MİLYARDLIQ KOD BÖLMƏSİ)
+# YAN PANEL VƏ KORTEX CORE ENGINE
 # ==========================================================
 st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
@@ -125,7 +126,7 @@ class KortexDiffusionEngine(nn.Module):
         self.down2 = self._block(64, 128)
         self.down3 = self._block(128, 256)
         
-        # UNet Bottleneck (Öyrənilmiş 8-guşəli ulduz və rəng matrisləri)
+        # UNet Bottleneck (Öyrənilmiş matrislər)
         self.bottleneck = self._block(256, 512)
         
         # UNet Upsample (Pikselləri şəkələ çevirir)
@@ -146,21 +147,14 @@ class KortexDiffusionEngine(nn.Module):
         )
 
     def forward(self, x, t):
-        # Zaman və Prompt Məlumatının işlənməsi
         t_emb = self.time_mlp(t)
-        
-        # Diffuziya prosesinin icrası (Noise -> Mükəmməl Şəkil)
         d1 = self.down1(x)
         d2 = self.down2(nn.MaxPool2d(2)(d1))
         d3 = self.down3(nn.MaxPool2d(2)(d2))
-        
         bot = self.bottleneck(nn.MaxPool2d(2)(d3))
-        
-        # Upsampling & Skip Connections
         u1 = self.up1(torch.cat([nn.Upsample(scale_factor=2)(bot), d3], dim=1))
         u2 = self.up2(torch.cat([nn.Upsample(scale_factor=2)(u1), d2], dim=1))
         u3 = self.up3(torch.cat([nn.Upsample(scale_factor=2)(u2), d1], dim=1))
-        
         return self.out(u3)
 
 # Modelin başladılması (TPU tələb olunur!)
@@ -335,15 +329,20 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
             if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
                 is_image_request = True
         
-        # --- YENİ ZƏKALI ŞƏKİL YARATMA (MÜKƏMMƏL DÜNYA MƏLUMAT BAZASI İLƏ) ---
+        # --- YENİ ZƏKALI ŞƏKİL YARATMA (PEŞƏKAR FOTOQRAFİYA PROMPTU İLƏ) ---
         if is_image_request and use_vision_gen:
             with st.spinner("🎨 Kortex Vision Sizin Məkanı Analiz Edir və Şəkli Hazırlayır..."):
                 user_loc = st.session_state.user_location
                 try:
+                    # BURA ƏSL "BOMBA" HİSSƏDİR. Mühərriki ən bahalı reklam səviyyəsinə qaldırır!
                     prompt_converter_msg = [
-                        {"role": "system", "content": f"""Sən peşəkar prompt mühəndisi və qlobal coğrafiya ekspertisən. 
+                        {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi' və mükafatlı avtomobil fotoqrafısan. 
                         İstifadəçinin hazırkı məkanı: {user_loc}.
-                        TƏLİMAT: Sən bu dünyadakı bütün ölkələri, paytaxtları, şəhərləri, məşhur binaları, tarixi abidələri və küçələri qüsursuz, nöqtə-vergülünə qədər bilirsən. Əgər istifadəçi bir şəkil istəyirsə (məsələn: 'BMW yarat'), sən avtomatik olaraq o obyekti istifadəçinin məkanının ({user_loc}) ən məşhur, ən ikonik və müasir binalarının və ya küçələrinin fonunda fotorealistik təsvir etməlisən. Əgər istifadəçi konkret başqa ölkə adı çəkibsə (məsələn, 'Fransada maşın yarat'), yalnız o zaman həmin ölkənin ən məşhur məkanını istifadə et.
+                        TƏLİMAT: İstifadəçi sadəcə 'BMW yarat' və ya 'maşın şəkli' istəyəndə, sən bunu milyardlıq reklam çəkilişi səviyyəsində, ən incə detallarına qədər ingiliscə təsvir etməlisən.
+                        
+                        MÜTLƏQ İSTİFADƏ EDİLMƏLİ SÖZLƏR: 'hyper-realistic, 8k resolution, shot on Canon EOS R5, 85mm lens, cinematic lighting, golden hour, dynamic motion blur on wheels and road to show speed, highly detailed reflections on the car body, photorealistic, octane render, Unreal Engine 5 style'.
+                        
+                        Əgər maşındırsa, onu hərəkət halında, təcavüzkar (aggressive) duruşla, arxa fonda {user_loc} məkanının ən gözəl mənzərəsi (məsələn, dağ yolu və ya müasir memarlıq) ilə təsvir et.
                         
                         CRITICAL INSTRUCTION FOR AZERBAIJAN: If the location is Azerbaijan, or the user asks for Azerbaijan, YOU MUST strictly follow this: 
                         1. The background MUST ONLY be modern Baku architecture (like Heydar Aliyev Center with its flowing white curves, or Flame Towers). DO NOT generate old stone towers, ruins, or castles.
@@ -351,21 +350,22 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
                         3. The Azerbaijan flag MUST have exactly 3 horizontal stripes: top is sky blue, middle is red, bottom is green. 
                         4. Inside the center of the red stripe, there MUST be a white crescent moon pointing right, and EXACTLY an 8-pointed (eight-pointed) white star. The star MUST have 8 points, no more, no less.
                         
-                        Təsviri yalnız İNGİLİS DİLİNDƏ yaz. Mətndə ə, ö, ğ, ç, ş, ı, ü hərfləri İSTİFADƏ ETMƏ (strictly ascii). Make it highly detailed, 8k, photorealistic."""},
+                        Təsviri YALNIZ İNGİLİS DİLİNDƏ yaz. Mətndə ə, ö, ğ, ç, ş, ı, ü hərfləri İSTİFADƏ ETMƏ (strictly ascii). Sənin işin istifadəçinin sadə sözlərini şedevrə çevirməkdir!"""},
                         {"role": "user", "content": prompt}
                     ]
                     converter_chat = client.chat.completions.create(
                         messages=prompt_converter_msg,
                         model="llama-3.3-70b-versatile",
-                        temperature=0.3, 
-                        max_tokens=200
+                        temperature=0.4, 
+                        max_tokens=250
                     )
                     enhanced_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
-                    enhanced_prompt = "photorealistic highly detailed image of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + f" in modern {user_loc}"
+                    enhanced_prompt = "hyper-realistic cinematic 8k photo of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + f" driving fast in modern {user_loc}, golden hour, motion blur"
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
                 
+                # BAYRAĞI UNUTMAMASI ÜÇÜN SON VURĞU
                 if "azerbaijan" in user_loc.lower() or "azerbaijan" in safe_prompt.lower() or "baku" in safe_prompt.lower():
                     if "flag" not in safe_prompt.lower():
                         safe_prompt += ", prominent accurate Azerbaijan flag flying, top blue stripe, middle red stripe with white crescent and strictly 8-pointed white star, bottom green stripe, modern Baku background"
