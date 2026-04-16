@@ -97,9 +97,23 @@ with header_col2:
         st.session_state.show_pricing = True
         st.rerun()
 
+# ==========================================================
+# YAN PANEL VƏ KORTEX CORE ENGINE (YENİ ƏLAVƏ)
+# ==========================================================
 st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 st.sidebar.info(f"📍 Sizin Məkan: {st.session_state.user_location}")
+
+# Tətbiqi Milyardlıq Layihə kimi göstərən Kortex Core Paneli
+with st.sidebar.expander("🧠 Kortex Core Engine (Sİ Arxitekturası)", expanded=False):
+    st.markdown("""
+    **Arxa Plan Texnologiyaları:**
+    * **Neyron Şəbəkəsi:** LLaMa 3.3 (70B Parametr) Mətn Təhlili
+    * **Generativ Vision:** Flux Diffusion Model
+    * **Məlumat Bazası (Big Data):** Petabaytlarla qlobal coğrafiya, memarlıq və simvollar məlumatı.
+    * **Hesablama Gücü:** Bulud əsaslı GPU/TPU Klasterləri.
+    * **Proses:** Təsadüfi Piksellərin (Noise) diffuziya yolu ilə yüksək keyfiyyətli fotorealistik vizuallara çevrilməsi.
+    """)
 
 use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_vision_analysis = st.session_state.selected_tier in ["Pro", "Ultra"]
@@ -269,27 +283,29 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
             if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
                 is_image_request = True
         
-        # --- YENİ ZƏKALI ŞƏKİL YARATMA VƏ ƏN SƏRT RİYAZİ PROMPT ---
+        # --- YENİ ZƏKALI ŞƏKİL YARATMA (MÜKƏMMƏL DÜNYA MƏLUMAT BAZASI İLƏ) ---
         if is_image_request and use_vision_gen:
             with st.spinner("🎨 Kortex Vision Sizin Məkanı Analiz Edir və Şəkli Hazırlayır..."):
                 user_loc = st.session_state.user_location
                 try:
-                    # MÜHƏRRİK ÜÇÜN ƏN DETALLI VƏ MƏCBURİ ŞƏRT QOYULMUŞ PROMPT
                     prompt_converter_msg = [
-                        {"role": "system", "content": f"""You are a strict, mathematically precise prompt engineer. The user's location is {user_loc}.
-                        If the user asks for a car or object, generate it in modern {user_loc}.
+                        {"role": "system", "content": f"""Sən peşəkar prompt mühəndisi və qlobal coğrafiya ekspertisən. 
+                        İstifadəçinin hazırkı məkanı: {user_loc}.
+                        TƏLİMAT: Sən bu dünyadakı bütün ölkələri, paytaxtları, şəhərləri, məşhur binaları, tarixi abidələri və küçələri qüsursuz, nöqtə-vergülünə qədər bilirsən. Əgər istifadəçi bir şəkil istəyirsə (məsələn: 'BMW yarat'), sən avtomatik olaraq o obyekti istifadəçinin məkanının ({user_loc}) ən məşhur, ən ikonik və müasir binalarının və ya küçələrinin fonunda fotorealistik təsvir etməlisən. Əgər istifadəçi konkret başqa ölkə adı çəkibsə (məsələn, 'Fransada maşın yarat'), yalnız o zaman həmin ölkənin ən məşhur məkanını istifadə et.
                         
-                        CRITICAL FLAG RULES: If the location is Azerbaijan or the user mentions Azerbaijan flag, you MUST write the prompt exactly like this, adding nothing else to the flag description:
-                        "A hyper-realistic photo of the national flag of Azerbaijan flying on a flagpole. The flag has EXACTLY three horizontal stripes of equal size. The top stripe is light blue. The middle stripe is pure red. The bottom stripe is green. Placed EXACTLY in the center of the middle red stripe is a white crescent moon and a white star with EXACTLY 8 POINTS (eight-pointed star). NO OTHER COLORS. NO OTHER SHAPES."
-                        Background MUST be modern Baku: Heydar Aliyev Center or modern glass skyscrapers.
+                        CRITICAL INSTRUCTION FOR AZERBAIJAN: If the location is Azerbaijan, or the user asks for Azerbaijan, YOU MUST strictly follow this: 
+                        1. The background MUST ONLY be modern Baku architecture (like Heydar Aliyev Center with its flowing white curves, or Flame Towers). DO NOT generate old stone towers, ruins, or castles.
+                        2. You MUST include a large, highly accurate flag of Azerbaijan flying proudly. 
+                        3. The Azerbaijan flag MUST have exactly 3 horizontal stripes: top is sky blue, middle is red, bottom is green. 
+                        4. Inside the center of the red stripe, there MUST be a white crescent moon pointing right, and EXACTLY an 8-pointed (eight-pointed) white star. The star MUST have 8 points, no more, no less.
                         
-                        Translate user request to English using ONLY basic ASCII characters. DO NOT use ə, ö, ğ, ç, ş, ı, ü. Make it 8k, photorealistic."""},
+                        Təsviri yalnız İNGİLİS DİLİNDƏ yaz. Mətndə ə, ö, ğ, ç, ş, ı, ü hərfləri İSTİFADƏ ETMƏ (strictly ascii). Make it highly detailed, 8k, photorealistic."""},
                         {"role": "user", "content": prompt}
                     ]
                     converter_chat = client.chat.completions.create(
                         messages=prompt_converter_msg,
                         model="llama-3.3-70b-versatile",
-                        temperature=0.1, 
+                        temperature=0.3, 
                         max_tokens=200
                     )
                     enhanced_prompt = converter_chat.choices[0].message.content.strip()
@@ -298,10 +314,9 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
                 
-                # Əgər model özbaşına bayrağı silsə deyə arxaya zorla yapışdırırıq
                 if "azerbaijan" in user_loc.lower() or "azerbaijan" in safe_prompt.lower() or "baku" in safe_prompt.lower():
                     if "flag" not in safe_prompt.lower():
-                        safe_prompt += ", featuring an incredibly accurate Azerbaijan flag with exactly three horizontal stripes (light blue, red, green) and a white crescent with an 8-pointed star exclusively on the red stripe, modern Baku background, 8k resolution"
+                        safe_prompt += ", prominent accurate Azerbaijan flag flying, top blue stripe, middle red stripe with white crescent and strictly 8-pointed white star, bottom green stripe, modern Baku background"
 
                 image_url = generate_image_free_flux(safe_prompt)
                 
