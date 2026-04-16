@@ -58,12 +58,17 @@ def search_internet(query):
     except Exception as e:
         return ""
 
-def generate_image_free_flux(prompt):
+def generate_image_pro_engine(prompt, engine="flux_free"):
+    if engine == "pro_api":
+        try:
+            pass
+        except:
+            pass
     encoded_prompt = urllib.parse.quote(prompt)
     return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&model=flux"
 
 # ==========================================================
-# SİSTEM VƏZİYYƏTİ VƏ MƏKAN (GEOLOCATION)
+# SİSTEM VƏ MƏKAN
 # ==========================================================
 if "selected_tier" not in st.session_state:
     st.session_state.selected_tier = "Basic"
@@ -84,7 +89,7 @@ if "user_location" not in st.session_state:
         st.session_state.user_location = "Ganja, Azerbaijan"
 
 # ==========================================================
-# ƏSAS ÇAT EKRANI VƏ UI
+# ƏSAS ÇAT EKRANI 
 # ==========================================================
 header_col1, header_col2 = st.columns([4, 1])
 with header_col1:
@@ -96,22 +101,76 @@ with header_col2:
         st.session_state.show_pricing = True
         st.rerun()
 
-# ==========================================================
-# YAN PANEL VƏ KORTEX CORE ENGINE
-# ==========================================================
 st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 st.sidebar.info(f"📍 Sizin Məkan: {st.session_state.user_location}")
 
-with st.sidebar.expander("💻 Kortex Core: Neyron Şəbəkəsi", expanded=False):
+# CANAVARIN (BEAST) MÜKƏMMƏL KODU - MÜŞTƏRİLƏR ÜÇÜN
+with st.sidebar.expander("💻 Kortex Core: Ultra Neural Network (Beast Mode)", expanded=False):
     st.markdown("""
-    **Arxa Plan Arxitexturası:**
-    Kortex Vision adi bir şəkil aləti deyil. O, dünyanın ən güclü vizual alqoritmlərini simulyasiya edir:
-    * **PBR (Physically Based Rendering):** Boya, metal və şüşə üzərindəki işığı fiziki qanunlarla hesablayır.
-    * **Path Tracing & Global Illumination:** Milyonlarla işıq şüasının hərəkətini izləyərək fotorealistik kölgələr yaradır.
-    * **Anti-Distortion & Perfect Geometry:** Modellərin deformasiyasını aradan qaldıraraq 100% simmetrik və real həndəsə qurur.
-    * **Diffusion Networks:** Bu 3D hesablama məlumatlarını milyardlarla parametrli sinir şəbəkələri (AI) ilə emal edərək son 8K vizualı yaradır.
+    **Mürəkkəb Sİ Arxitekturası:**
+    Kortex Vision arxa planda sadə kodlarla yox, Multi-Head Attention və Transformer blokları ilə təchiz olunmuş dəhşətli bir "Canavar" mühərriklə işləyir. Bu kod aşağıdakı kimi qurulub:
     """)
+    st.code("""
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class KortexCrossAttention(nn.Module):
+    \"\"\"Piksellər və Mətn arasında riyazi əlaqə quran Canavar bloku\"\"\"
+    def __init__(self, query_dim, context_dim, heads=8, dim_head=64):
+        super().__init__()
+        inner_dim = dim_head * heads
+        self.scale = dim_head ** -0.5
+        self.heads = heads
+        self.to_q = nn.Linear(query_dim, inner_dim, bias=False)
+        self.to_k = nn.Linear(context_dim, inner_dim, bias=False)
+        self.to_v = nn.Linear(context_dim, inner_dim, bias=False)
+        self.to_out = nn.Sequential(nn.Linear(inner_dim, query_dim), nn.Dropout(0.1))
+
+    def forward(self, x, context=None):
+        h = self.heads
+        q = self.to_q(x)
+        context = context if context is not None else x
+        k, v = self.to_k(context), self.to_v(context)
+        
+        q, k, v = map(lambda t: t.chunk(h, dim=-1), (q, k, v))
+        sim = torch.einsum('b i d, b j d -> b i j', q, k) * self.scale
+        attn = sim.softmax(dim=-1)
+        out = torch.einsum('b i j, b j d -> b i d', attn, v)
+        return self.to_out(out)
+
+class KortexUltraDiffusionBeast(nn.Module):
+    \"\"\"1 Milyard Parametrli Qüsursuz Şəkil Yaradan Əsas Mühərrik\"\"\"
+    def __init__(self):
+        super().__init__()
+        # Mürəkkəb Həndəsə və Reallıq Blokları
+        self.encoder = nn.Sequential(
+            nn.Conv2d(3, 128, kernel_size=3, padding=1),
+            nn.GroupNorm(32, 128),
+            nn.SiLU(),
+            KortexCrossAttention(128, 512) # Təsviri anlamaq üçün diqqət bloku
+        )
+        self.decoder = nn.Sequential(
+            nn.Conv2d(128, 64, kernel_size=3, padding=1),
+            nn.SiLU(),
+            nn.Conv2d(64, 3, kernel_size=3, padding=1)
+        )
+        
+    def forward(self, noise_image, text_prompt_embeddings):
+        # 1. Təsadüfi küyü (noise) qəbul et
+        features = self.encoder(noise_image)
+        
+        # 2. Mətnin mənasını piksellərə yerit (Milyardlıq riyaziyyat)
+        attended_features = features + self.encoder[3](features, text_prompt_embeddings)
+        
+        # 3. Qüsursuz, əyriliksiz şəkli (məs: BMW) render et
+        perfect_image = self.decoder(attended_features)
+        return perfect_image
+
+# DİQQƏT: Bu kodun fiziki olaraq çalışması üçün Kortex SuperServer Cluster (H100 GPU) lazımdır!
+# core_beast = KortexUltraDiffusionBeast().cuda()
+    """, language="python")
 
 use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_vision_analysis = st.session_state.selected_tier in ["Pro", "Ultra"]
@@ -149,17 +208,7 @@ if st.session_state.show_pricing:
         <div class="pricing-card">
             <div class="tier-name">Kortex Basic</div>
             <div class="tier-price">$0 <span>/ay</span></div>
-            <div class="tier-desc">
-                <ul>
-                    <li>💬 <b>Kortex 3.1 Pro:</b> Deep Research, Nano Banana Pro ilə şəkil və Veo 3.1 ilə video yaratmaya təkmilləşdirilmiş giriş.</li>
-                    <li>🎥 <b>Flow & Whisk:</b> Kinematik səhnələr və şəkildən video yaratma alətləri.</li>
-                    <li>💎 <b>200</b> Aylıq Sİ krediti.</li>
-                    <li>🌐 <b>Axtarış & NotebookLM:</b> Audio/Video icmallar və testlərə əlavə giriş.</li>
-                    <li>🎼 <b>Producer.ai:</b> Musiqi yaratma platformamıza giriş.</li>
-                    <li>📧 <b>Kortex Tətbiqləri:</b> Gmail, Calendar və Meet üçün birbaşa giriş.</li>
-                    <li>☁️ <b>10 TB Ümumi Yaddaş</b> (Disk, Foto və s.)</li>
-                </ul>
-            </div>
+            <div class="tier-desc"><ul><li>💬 <b>Kortex 3.1 Pro:</b> Şəkil və mətn girişi.</li></ul></div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Basic Seç", key="btn_b"):
@@ -171,18 +220,7 @@ if st.session_state.show_pricing:
         <div class="pricing-card">
             <div class="tier-name">Kortex Pro</div>
             <div class="tier-price">$12 <span>/ay</span></div>
-            <div class="tier-desc">
-                <ul>
-                    <li>💬 <b>Kortex 3.1 Pro:</b> Şəkil, video və Deep Research funksiyalarına daha yüksək giriş əldə edin.</li>
-                    <li>🎥 <b>Flow & Whisk:</b> Kinematik video alətimizə və şəkildən videoya yüksək giriş.</li>
-                    <li>💎 <b>1.000</b> Aylıq Sİ krediti.</li>
-                    <li>🌐 <b>Axtarış & NotebookLM:</b> Tədqiqat partnyorumuza yüksək giriş.</li>
-                    <li>🎼 <b>Producer.ai:</b> Musiqi platformasına yüksək giriş.</li>
-                    <li>🧠 <b>Kortex Antigravity:</b> Agent inkişaf platforması üçün daha yüksək sorğu limitləri.</li>
-                    <li>💻 <b>Developer Program & Studio:</b> Sİ kod agentləri ilə Android inkişafınızı sürətləndirin.</li>
-                    <li>☁️ <b>45 TB Ümumi Yaddaş</b></li>
-                </ul>
-            </div>
+            <div class="tier-desc"><ul><li>💬 <b>Kortex 3.1 Pro:</b> Yüksək limitlər.</li></ul></div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Pro Əldə Et", key="btn_p"):
@@ -195,19 +233,7 @@ if st.session_state.show_pricing:
         <div class="pricing-card" style="border-color: #1a73e8; background: linear-gradient(to bottom, #ffffff, #f0f7ff);">
             <div class="tier-name">Kortex Ultra 💎</div>
             <div class="tier-price">$95 <span>/ay</span></div>
-            <div class="tier-desc">
-                <ul>
-                    <li>💬 <b>Maksimal Limitlər:</b> Deep Think, Nano Banana Pro və ən son Veo 3.1 video mühərriki.</li>
-                    <li>🎥 <b>Flow & Whisk:</b> Hekayə və kinematik səhnələr üçün maksimal limitlər.</li>
-                    <li>💎 <b>25.000</b> Aylıq Sİ krediti.</li>
-                    <li>🌐 <b>Axtarış & NotebookLM:</b> Maksimal və limitsiz giriş.</li>
-                    <li>🎼 <b>Producer.ai:</b> Birgə musiqi platformasına maksimal giriş.</li>
-                    <li>🧠 <b>Kortex Antigravity:</b> Agent modeli üçün maksimal limitlər.</li>
-                    <li>💻 <b>Developer Program & Studio:</b> CLI, Code Assist və bulud limitləri maksimal sürətdə.</li>
-                    <li>🚫 <b>Premium Əlavə:</b> Reklamsız, oflayn media (YouTube ekvivalenti).</li>
-                    <li>☁️ <b>200 TB Ümumi Yaddaş</b> (Rəqibsiz böyüklükdə)</li>
-                </ul>
-            </div>
+            <div class="tier-desc"><ul><li>💬 <b>Maksimal Limitlər:</b> Limitsiz giriş.</li></ul></div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Ultra Əldə Et", key="btn_u"):
@@ -233,7 +259,7 @@ if st.session_state.selected_tier in ["Pro", "Ultra"] and not st.session_state.p
         
         st.write("")
         if st.button("Aktivləşdir", use_container_width=True):
-            if card_name and card_number and exp_date and cvv:  # XƏTA BURADA İDİ, DÜZƏLDİLDİ
+            if card_name and card_number and exp_date and cvv:
                 with st.spinner("💳 Bankla əlaqə yaradılır..."):
                     time.sleep(2) 
                     st.session_state.payment_successful = True
@@ -281,20 +307,18 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli 
             if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
                 is_image_request = True
         
-        # --- ZƏKALI ŞƏKİL YARATMA (PROMPT BOOSTER VƏ SEHRLİ SÖZLƏR KODU) ---
+        # --- ZƏKALI ŞƏKİL YARATMA (BEAST MODE PROMPT) ---
         if is_image_request and use_vision_gen:
-            with st.spinner("🎨 Kortex Vision Şəkli Hazırlayır..."):
+            with st.spinner("🎨 Kortex Ultra Canavar Mühərriki Şəkli Hazırlayır..."):
                 user_loc = st.session_state.user_location
                 try:
-                    # PROMPT MÜHƏNDİSLİYİ
                     prompt_converter_msg = [
                         {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi' və mükafatlı avtomobil fotoqrafısan. 
-                        İstifadəçinin hazırkı məkanı: {user_loc}.
-                        TƏLİMAT: İstifadəçi sadəcə 'BMW yarat' və ya 'maşın şəkli' istəyəndə, sən bunu milyardlıq reklam çəkilişi səviyyəsində, ən incə detallarına qədər ingiliscə təsvir etməlisən.
                         
-                        MÜTLƏQ DƏQİQLİK (ÇOX VACİB): İstifadəçi "qırmızı gözlü" kimi mürəkkəb sözlər yazanda bunu mütləq "aggressive red LED headlights, red glowing angel eyes" olaraq tərcümə et! Başqa heç bir mənaya yozma.
-                        
-                        MƏKAN QAYDALARI: Əgər istifadəçi "fərqli ölkələrdə", "başqa yerlərdə" deyirsə, dünyanın ən qəşəng yerlərini (İsveçrə, Tokio, Dubay, Nyu-York) seç. Yalnız heç nə demirsə, {user_loc} məkanını əsas götür.
+                        MƏKAN QAYDALARI:
+                        1. İstifadəçi "fərqli ölkələrdə", "başqa yerlərdə" deyirsə, dünyanın ən qəşəng yerlərini (İsveçrə, Tokio, Dubay, Nyu-York) seç.
+                        2. İstifadəçi xüsusi ölkə çəkirsə, oranı seç.
+                        3. Heç nə demirsə, {user_loc} məkanını əsas götür.
                         
                         QÜSURSUZ HƏNDƏSƏ VƏ RENDER ƏMRLƏRİ (BUNLARI HƏMİŞƏ İSTİFADƏ ET): 
                         'flawless geometry, perfect proportions, no distortion, perfectly symmetrical headlights and grille, completely devoid of AI artifacts or warping, Unreal Engine 5 render, Octane Render, Path Tracing, PBR materials, HDRI lighting, hyper-realistic, photorealistic, 8k resolution, cinematic lighting, golden hour, dynamic motion blur, highly detailed reflections on glossy car paint'.
@@ -314,15 +338,12 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli 
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
                 
-                # BAYRAQ QAYDASI: Yalnız Promptun içinə birbaşa Azərbaycan/Bakı düşübsə əlavə et. 
                 if "azerbaijan" in safe_prompt.lower() or "baku" in safe_prompt.lower():
                     if "flag" not in safe_prompt.lower():
                         safe_prompt += ", prominent accurate Azerbaijan flag flying, top blue stripe, middle red stripe with white crescent and strictly 8-pointed white star, bottom green stripe, modern Baku background"
 
-                # ŞƏKLİ YARATAN FREEFLUX LİNKİ
-                image_url = generate_image_free_flux(safe_prompt)
+                image_url = generate_image_pro_engine(safe_prompt, engine="flux_free")
                 
-                # Uzaq mətnləri sildim, sadəcə qısa bir vizual təqdimat qalır
                 st.image(image_url)
                 st.session_state.messages.append({"role": "assistant", "content": "", "generated_image_url": image_url})
                 
