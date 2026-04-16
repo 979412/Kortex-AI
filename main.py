@@ -7,7 +7,7 @@ import urllib.parse
 import requests
 
 # ==========================================================
-# 1. CSS VƏ VİZUAL AYARLAR
+# 1. CSS VƏ VİZUAL AYARLAR - KORTEX MODERN DİZAYN
 # ==========================================================
 st.set_page_config(page_title="Kortex AI", page_icon="🧠", layout="wide")
 
@@ -75,7 +75,7 @@ if "payment_successful" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# --- YENİ: İSTİFADƏÇİNİN YERİNİ AVTOMATİK TAPMA SİSTEMİ ---
+# --- İSTİFADƏÇİNİN YERİNİ AVTOMATİK TAPMA SİSTEMİ ---
 if "user_location" not in st.session_state:
     try:
         loc_response = requests.get("https://ipapi.co/json/", timeout=5).json()
@@ -99,7 +99,7 @@ with header_col2:
         st.rerun()
 
 # ==========================================================
-# YAN PANEL VƏ KORTEX CORE ENGINE
+# YAN PANEL VƏ KORTEX CORE ENGINE (MİLYARDLIQ KOD BÖLMƏSİ)
 # ==========================================================
 st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
@@ -182,7 +182,7 @@ if uploaded_image is not None:
         st.sidebar.success("✅ Şəkil Kortex-in beyninə yükləndi!")
 
 # ==========================================================
-# QİYMƏT EKRANI VƏ ÖDƏNİŞ
+# QİYMƏT EKRANI VƏ ÖDƏNİŞ - HEÇ BİR MƏLUMAT SİLİNMƏYİB
 # ==========================================================
 if st.session_state.show_pricing:
     if st.button("⬅ Çata Qayıt", use_container_width=False):
@@ -334,9 +334,9 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
             with st.spinner("🎨 Kortex Vision Sizin Məkanı Analiz Edir və Şəkli Hazırlayır..."):
                 user_loc = st.session_state.user_location
                 try:
-                    # BURA ƏSL "BOMBA" HİSSƏDİR. Mühərriki ən bahalı reklam səviyyəsinə qaldırır!
+                    # PROMPT MÜHƏNDİSLİYİ - Modelə realistik təlimat verilir
                     prompt_converter_msg = [
-                        {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi' və mükafatlı avtomobil fotoqrafısan. 
+                        {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi' və mükafatlı avtomobil fotoqrafısan. 
                         İstifadəçinin hazırkı məkanı: {user_loc}.
                         TƏLİMAT: İstifadəçi sadəcə 'BMW yarat' və ya 'maşın şəkli' istəyəndə, sən bunu milyardlıq reklam çəkilişi səviyyəsində, ən incə detallarına qədər ingiliscə təsvir etməlisən.
                         
@@ -344,10 +344,10 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
                         
                         Əgər maşındırsa, onu hərəkət halında, təcavüzkar (aggressive) duruşla, arxa fonda {user_loc} məkanının ən gözəl mənzərəsi (məsələn, dağ yolu və ya müasir memarlıq) ilə təsvir et.
                         
-                        CRITICAL INSTRUCTION FOR AZERBAIJAN: If the location is Azerbaijan, or the user asks for Azerbaijan, YOU MUST strictly follow this: 
+                        CRITICAL INSTRUCTION FOR AZERBAIJAN: If the location is Azerbaijan, or the user asks for Azerbaijan, YOU MUST strictly follow this: 
                         1. The background MUST ONLY be modern Baku architecture (like Heydar Aliyev Center with its flowing white curves, or Flame Towers). DO NOT generate old stone towers, ruins, or castles.
-                        2. You MUST include a large, highly accurate flag of Azerbaijan flying proudly. 
-                        3. The Azerbaijan flag MUST have exactly 3 horizontal stripes: top is sky blue, middle is red, bottom is green. 
+                        2. You MUST include a large, highly accurate flag of Azerbaijan flying proudly. 
+                        3. The Azerbaijan flag MUST have exactly 3 horizontal stripes: top is sky blue, middle is red, bottom is green. 
                         4. Inside the center of the red stripe, there MUST be a white crescent moon pointing right, and EXACTLY an 8-pointed (eight-pointed) white star. The star MUST have 8 points, no more, no less.
                         
                         Təsviri YALNIZ İNGİLİS DİLİNDƏ yaz. Mətndə ə, ö, ğ, ç, ş, ı, ü hərfləri İSTİFADƏ ETMƏ (strictly ascii). Sənin işin istifadəçinin sadə sözlərini şedevrə çevirməkdir!"""},
@@ -365,7 +365,7 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
                 
-                # BAYRAĞI UNUTMAMASI ÜÇÜN SON VURĞU
+                # BAYRAĞI UNUTMAMASI ÜÇÜN SON VURĞU - BÜTÜN DÜNYADA AZƏRBAYCAN BAYRAĞI QAYDASI
                 if "azerbaijan" in user_loc.lower() or "azerbaijan" in safe_prompt.lower() or "baku" in safe_prompt.lower():
                     if "flag" not in safe_prompt.lower():
                         safe_prompt += ", prominent accurate Azerbaijan flag flying, top blue stripe, middle red stripe with white crescent and strictly 8-pointed white star, bottom green stripe, modern Baku background"
