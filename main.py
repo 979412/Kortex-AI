@@ -7,7 +7,7 @@ import urllib.parse
 import requests
 
 # ==========================================================
-# 1. CSS VƏ VİZUAL AYARLAR - KORTEX MODERN DİZAYN
+# 1. CSS VƏ VİZUAL AYARLAR
 # ==========================================================
 st.set_page_config(page_title="Kortex AI", page_icon="🧠", layout="wide")
 
@@ -39,7 +39,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================================
-# API SETUP (YALNIZ GROQ - PULSUZ MƏTN ÜÇÜN)
+# API SETUP 
 # ==========================================================
 try:
     groq_api_key = "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" 
@@ -58,13 +58,17 @@ def search_internet(query):
     except Exception as e:
         return ""
 
-def generate_image_free_flux(prompt):
+def generate_image_pro_engine(prompt, engine="flux_free"):
+    if engine == "pro_api":
+        try:
+            pass
+        except:
+            pass
     encoded_prompt = urllib.parse.quote(prompt)
-    # Təsvir ölçüsünü daha "kinematik" etdik (16:9 format - 1280x720)
     return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&model=flux"
 
 # ==========================================================
-# SİSTEM VƏZİYYƏTİ VƏ MƏKAN (GEOLOCATION)
+# SİSTEM VƏ MƏKAN
 # ==========================================================
 if "selected_tier" not in st.session_state:
     st.session_state.selected_tier = "Basic"
@@ -75,7 +79,6 @@ if "payment_successful" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# --- İSTİFADƏÇİNİN YERİNİ AVTOMATİK TAPMA SİSTEMİ ---
 if "user_location" not in st.session_state:
     try:
         loc_response = requests.get("https://ipapi.co/json/", timeout=5).json()
@@ -86,7 +89,7 @@ if "user_location" not in st.session_state:
         st.session_state.user_location = "Ganja, Azerbaijan"
 
 # ==========================================================
-# ƏSAS ÇAT EKRANI VƏ UI
+# ƏSAS ÇAT EKRANI 
 # ==========================================================
 header_col1, header_col2 = st.columns([4, 1])
 with header_col1:
@@ -98,68 +101,15 @@ with header_col2:
         st.session_state.show_pricing = True
         st.rerun()
 
-# ==========================================================
-# YAN PANEL VƏ KORTEX CORE ENGINE
-# ==========================================================
 st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 st.sidebar.info(f"📍 Sizin Məkan: {st.session_state.user_location}")
 
-with st.sidebar.expander("💻 Kortex Core: Neyron Şəbəkəsi Kodu", expanded=False):
+with st.sidebar.expander("💻 Kortex Core: API & Engine", expanded=False):
     st.markdown("""
-    **Diqqət:** Aşağıdakı kod Kortex AI-ın arxa planda istifadə etdiyi təməl PyTorch (Deep Learning) arxitekturasıdır. Sistem çökməsin deyə bu kod Cloud TPU-larda (Serverlərdə) icra olunur, proqramın daxilində yalnız API vasitəsilə çağırılır.
+    **Arxa Plan Arxitexturası:**
+    Şəkillərin yaradılması Kortex-in xüsusi API mühərriki vasitəsilə uzaq serverlərdəki neyron şəbəkələrə (Diffusion Models) ötürülərək emal edilir.
     """)
-    st.code("""
-import torch
-import torch.nn as nn
-
-class KortexDiffusionEngine(nn.Module):
-    def __init__(self, in_channels=3, out_channels=3, time_emb_dim=256):
-        super(KortexDiffusionEngine, self).__init__()
-        self.time_mlp = nn.Sequential(
-            nn.Linear(1, time_emb_dim),
-            nn.GELU(),
-            nn.Linear(time_emb_dim, time_emb_dim)
-        )
-        # UNet Downsample (Böyük məlumatı analiz edir)
-        self.down1 = self._block(in_channels, 64)
-        self.down2 = self._block(64, 128)
-        self.down3 = self._block(128, 256)
-        
-        # UNet Bottleneck (Öyrənilmiş matrislər)
-        self.bottleneck = self._block(256, 512)
-        
-        # UNet Upsample (Pikselləri şəkələ çevirir)
-        self.up1 = self._block(512 + 256, 256)
-        self.up2 = self._block(256 + 128, 128)
-        self.up3 = self._block(128 + 64, 64)
-        
-        self.out = nn.Conv2d(64, out_channels, kernel_size=1)
-
-    def _block(self, in_c, out_c):
-        return nn.Sequential(
-            nn.Conv2d(in_c, out_c, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_c),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_c, out_c, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_c),
-            nn.ReLU(inplace=True)
-        )
-
-    def forward(self, x, t):
-        t_emb = self.time_mlp(t)
-        d1 = self.down1(x)
-        d2 = self.down2(nn.MaxPool2d(2)(d1))
-        d3 = self.down3(nn.MaxPool2d(2)(d2))
-        bot = self.bottleneck(nn.MaxPool2d(2)(d3))
-        u1 = self.up1(torch.cat([nn.Upsample(scale_factor=2)(bot), d3], dim=1))
-        u2 = self.up2(torch.cat([nn.Upsample(scale_factor=2)(u1), d2], dim=1))
-        u3 = self.up3(torch.cat([nn.Upsample(scale_factor=2)(u2), d1], dim=1))
-        return self.out(u3)
-
-# Modelin başladılması (TPU tələb olunur!)
-# kortex_model = KortexDiffusionEngine().to('cuda')
-    """, language="python")
 
 use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_vision_analysis = st.session_state.selected_tier in ["Pro", "Ultra"]
@@ -197,17 +147,7 @@ if st.session_state.show_pricing:
         <div class="pricing-card">
             <div class="tier-name">Kortex Basic</div>
             <div class="tier-price">$0 <span>/ay</span></div>
-            <div class="tier-desc">
-                <ul>
-                    <li>💬 <b>Kortex 3.1 Pro:</b> Deep Research, Nano Banana Pro ilə şəkil və Veo 3.1 ilə video yaratmaya təkmilləşdirilmiş giriş.</li>
-                    <li>🎥 <b>Flow & Whisk:</b> Kinematik səhnələr və şəkildən video yaratma alətləri.</li>
-                    <li>💎 <b>200</b> Aylıq Sİ krediti.</li>
-                    <li>🌐 <b>Axtarış & NotebookLM:</b> Audio/Video icmallar və testlərə əlavə giriş.</li>
-                    <li>🎼 <b>Producer.ai:</b> Musiqi yaratma platformamıza giriş.</li>
-                    <li>📧 <b>Kortex Tətbiqləri:</b> Gmail, Calendar və Meet üçün birbaxa giriş.</li>
-                    <li>☁️ <b>10 TB Ümumi Yaddaş</b> (Disk, Foto və s.)</li>
-                </ul>
-            </div>
+            <div class="tier-desc"><ul><li>💬 <b>Kortex 3.1 Pro:</b> Şəkil və mətn girişi.</li></ul></div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Basic Seç", key="btn_b"):
@@ -219,18 +159,7 @@ if st.session_state.show_pricing:
         <div class="pricing-card">
             <div class="tier-name">Kortex Pro</div>
             <div class="tier-price">$12 <span>/ay</span></div>
-            <div class="tier-desc">
-                <ul>
-                    <li>💬 <b>Kortex 3.1 Pro:</b> Şəkil, video və Deep Research funksiyalarına daha yüksək giriş əldə edin.</li>
-                    <li>🎥 <b>Flow & Whisk:</b> Kinematik video alətimizə və şəkildən videoya yüksək giriş.</li>
-                    <li>💎 <b>1.000</b> Aylıq Sİ krediti.</li>
-                    <li>🌐 <b>Axtarış & NotebookLM:</b> Tədqiqat partnyorumuza yüksək giriş.</li>
-                    <li>🎼 <b>Producer.ai:</b> Musiqi platformasına yüksək giriş.</li>
-                    <li>🧠 <b>Kortex Antigravity:</b> Agent inkişaf platforması üçün daha yüksək sorğu limitləri.</li>
-                    <li>💻 <b>Developer Program & Studio:</b> Sİ kod agentləri ilə Android inkişafınızı sürətləndirin.</li>
-                    <li>☁️ <b>45 TB Ümumi Yaddaş</b></li>
-                </ul>
-            </div>
+            <div class="tier-desc"><ul><li>💬 <b>Kortex 3.1 Pro:</b> Yüksək limitlər.</li></ul></div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Pro Əldə Et", key="btn_p"):
@@ -243,19 +172,7 @@ if st.session_state.show_pricing:
         <div class="pricing-card" style="border-color: #1a73e8; background: linear-gradient(to bottom, #ffffff, #f0f7ff);">
             <div class="tier-name">Kortex Ultra 💎</div>
             <div class="tier-price">$95 <span>/ay</span></div>
-            <div class="tier-desc">
-                <ul>
-                    <li>💬 <b>Maksimal Limitlər:</b> Deep Think, Nano Banana Pro və ən son Veo 3.1 video mühərriki.</li>
-                    <li>🎥 <b>Flow & Whisk:</b> Hekayə və kinematik səhnələr üçün maksimal limitlər.</li>
-                    <li>💎 <b>25.000</b> Aylıq Sİ krediti.</li>
-                    <li>🌐 <b>Axtarış & NotebookLM:</b> Maksimal və limitsiz giriş.</li>
-                    <li>🎼 <b>Producer.ai:</b> Birgə musiqi platformasına maksimal giriş.</li>
-                    <li>🧠 <b>Kortex Antigravity:</b> Agent modeli üçün maksimal limitlər.</li>
-                    <li>💻 <b>Developer Program & Studio:</b> CLI, Code Assist və bulud limitləri maksimal sürətdə.</li>
-                    <li>🚫 <b>Premium Əlavə:</b> Reklamsız, oflayn media (YouTube ekvivalenti).</li>
-                    <li>☁️ <b>200 TB Ümumi Yaddaş</b> (Rəqibsiz böyüklükdə)</li>
-                </ul>
-            </div>
+            <div class="tier-desc"><ul><li>💬 <b>Maksimal Limitlər:</b> Limitsiz giriş.</li></ul></div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Ultra Əldə Et", key="btn_u"):
@@ -304,13 +221,13 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         if "generated_image_url" in message:
-            st.image(message["generated_image_url"], caption="Kortex Vision 🎨")
+            st.image(message["generated_image_url"])
         if "video_msg" in message:
             st.info(message["video_msg"])
         if "music_msg" in message:
             st.success(message["music_msg"])
 
-if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dənə qara bmw yarat)"):
+if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli ölkələrdə qara bmw yarat)"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -329,51 +246,48 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
             if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
                 is_image_request = True
         
-        # --- ZƏKALI ŞƏKİL YARATMA (MÜKƏMMƏL DÜNYA MƏLUMAT BAZASI İLƏ) ---
+        # --- ZƏKALI ŞƏKİL YARATMA (MƏKANI AZAD EDƏN KOD) ---
         if is_image_request and use_vision_gen:
             with st.spinner("🎨 Kortex Vision Mühərriki Şəkli Hazırlayır..."):
                 user_loc = st.session_state.user_location
                 try:
-                    # PROMPT MÜHƏNDİSLİYİ - Modelə daha 'reallıq' tələb edən aqressiv təlimat verilir
+                    # PROMPT MÜHƏNDİSLİYİ - Artıq məkanı anlaya və dəyişə bilir!
                     prompt_converter_msg = [
                         {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi' və mükafatlı avtomobil fotoqrafısan. 
-                        İstifadəçinin hazırkı məkanı: {user_loc}.
-                        TƏLİMAT: İstifadəçi sadəcə 'BMW yarat' və ya 'maşın şəkli' istəyəndə, sən bunu milyardlıq reklam çəkilişi səviyyəsində, ən incə detallarına qədər ingiliscə təsvir etməlisən.
                         
-                        ƏMRLƏR (MÜTLƏQ İSTİFADƏ ET): 'hyper-realistic, photorealistic, 8k resolution, cinematic lighting, golden hour, shot on Canon EOS R5 with an 85mm lens, motion blur on wheels and road to show speed, professional automotive photography, highly detailed reflections on the car body'.
+                        MƏKAN QAYDALARI (ÇOX VACİB):
+                        1. Əgər istifadəçi "fərqli ölkələrdə", "başqa yerlərdə", "müxtəlif məkanlarda" kimi sözlər işlədirsə, sən dünyanın ən qəşəng, təsadüfi bir ölkəsini/şəhərini seçməlisən (məsələn: Swiss Alps, Tokyo neon streets, Dubai skyline, New York).
+                        2. Əgər istifadəçi xüsusi bir ölkə adı çəkirsə (məsələn: Fransa, Amerika), mütləq o ölkənin mənzərəsini ver.
+                        3. YALNIZ istifadəçi heç bir məkan/ölkə adı çəkməsə, arxa fonu onun cari məkanı ({user_loc}) kimi yaza bilərsən.
                         
-                        Əgər maşındırsa, onu hərəkət halında, təcavüzkar (aggressive) duruşla, arxa fonda {user_loc} məkanının ən gözəl mənzərəsi (məsələn, dağ yolu və ya müasir memarlıq) ilə təsvir et.
+                        FOTOQRAFİYA ƏMRLƏRİ (MÜTLƏQ İSTİFADƏ ET): 'hyper-realistic, photorealistic, 8k resolution, cinematic lighting, golden hour, shot on Canon EOS R5 with an 85mm lens, motion blur on wheels and road to show speed, professional automotive photography, highly detailed reflections'.
                         
-                        CRITICAL INSTRUCTION FOR AZERBAIJAN: If the location is Azerbaijan, or the user asks for Azerbaijan, YOU MUST strictly follow this: 
-                        1. The background MUST ONLY be modern Baku architecture (like Heydar Aliyev Center with its flowing white curves, or Flame Towers). DO NOT generate old stone towers, ruins, or castles.
-                        2. You MUST include a large, highly accurate flag of Azerbaijan flying proudly. 
-                        3. The Azerbaijan flag MUST have exactly 3 horizontal stripes: top is sky blue, middle is red, bottom is green. 
-                        4. Inside the center of the red stripe, there MUST be a white crescent moon pointing right, and EXACTLY an 8-pointed (eight-pointed) white star. The star MUST have 8 points, no more, no less.
-                        
-                        Təsviri YALNIZ İNGİLİS DİLİNDƏ yaz. Mətndə ə, ö, ğ, ç, ş, ı, ü hərfləri İSTİFADƏ ETMƏ (strictly ascii)."""},
+                        Təsviri YALNIZ İNGİLİS DİLİNDƏ yaz. Mətndə ə, ö, ğ, ç, ş, ı, ü hərfləri İSTİFADƏ ETMƏ."""},
                         {"role": "user", "content": prompt}
                     ]
                     converter_chat = client.chat.completions.create(
                         messages=prompt_converter_msg,
                         model="llama-3.3-70b-versatile",
-                        temperature=0.3, 
+                        temperature=0.5, # Temperaturu qaldırdım ki, daha yaradıcı məkanlar seçsin
                         max_tokens=250
                     )
                     enhanced_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
-                    enhanced_prompt = "hyper-realistic photorealistic 8k photo of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + f" in modern {user_loc}, golden hour, cinematic lighting"
+                    enhanced_prompt = "hyper-realistic photorealistic 8k photo of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + " in a stunning random global location, golden hour, cinematic lighting"
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
                 
-                if "azerbaijan" in user_loc.lower() or "azerbaijan" in safe_prompt.lower() or "baku" in safe_prompt.lower():
+                # BAYRAQ QAYDASI: Yalnız Promptun içinə birbaşa Azərbaycan/Bakı düşübsə əlavə et. 
+                # (Köhnə koddakı kimi hər dəfə istifadəçinin IP-sinə görə məcburi etmirik!)
+                if "azerbaijan" in safe_prompt.lower() or "baku" in safe_prompt.lower():
                     if "flag" not in safe_prompt.lower():
                         safe_prompt += ", prominent accurate Azerbaijan flag flying, top blue stripe, middle red stripe with white crescent and strictly 8-pointed white star, bottom green stripe, modern Baku background"
 
-                image_url = generate_image_free_flux(safe_prompt)
+                image_url = generate_image_pro_engine(safe_prompt, engine="flux_free")
                 
-                # O SÖNÜK MƏTNİ SİLDİM, ARTIQ ASSISTANT YALNIZ ŞƏKLİ GÖSTƏRƏCƏK
-                st.image(image_url, caption=f"Kortex Vision | Location: {user_loc}")
-                st.session_state.messages.append({"role": "assistant", "generated_image_url": image_url})
+                # Uzaq mətnləri sildim, sadəcə qısa bir vizual təqdimat qalır
+                st.image(image_url)
+                st.session_state.messages.append({"role": "assistant", "content": "", "generated_image_url": image_url})
                 
         elif "video" in prompt_lower and use_video:
             with st.spinner("🎥 Kortex Veo 4.0 video render edir..."):
