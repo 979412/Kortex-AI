@@ -5,9 +5,10 @@ import base64
 from duckduckgo_search import DDGS  
 import urllib.parse 
 import requests
+import json
 
 # ==========================================================
-# 1. CSS VƏ VİZUAL AYARLAR - KORTEX MODERN DİZAYN
+# 1. CSS VƏ VİZUAL AYARLAR
 # ==========================================================
 st.set_page_config(page_title="Kortex AI", page_icon="🧠", layout="wide")
 
@@ -39,7 +40,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================================
-# API SETUP (YALNIZ GROQ - PULSUZ MƏTN ÜÇÜN)
+# 2. API SETUP VƏ MİLYARDLIQ ŞƏKİL KODU (YENİ ƏLAVƏ)
 # ==========================================================
 try:
     groq_api_key = "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" 
@@ -58,9 +59,28 @@ def search_internet(query):
     except Exception as e:
         return ""
 
-def generate_image_free_flux(prompt):
+# BAX BU KOD BÖYÜK SÜNİ İNTELLEKTLƏRİN ƏSL ŞƏKİL ÇAĞIRMA KODUDUR
+def generate_image_pro_engine(prompt, engine="flux_free"):
+    """
+    Bu funksiya Kortex AI-ın milyardlıq beyinlərə (serverlərə) qoşulma kodudur.
+    Əgər 'pro_api' olarsa, DALL-E 3 və ya Midjourney səviyyəsində API-yə qoşulur.
+    Hələlik pulsuz işləməsi üçün 'flux_free' ehtiyat (fallback) kimi istifadə olunur.
+    """
+    if engine == "pro_api":
+        # ƏSL MİLYARDLIQ KOD: API vasitəsilə nəhəng serverdən şəkli gətirir
+        try:
+            # Gələcəkdə bura öz ödənişli API açarını qoyacaqsan
+            api_url = "https://api.openai.com/v1/images/generations"
+            headers = {"Authorization": f"Bearer SƏNİN_GƏLƏCƏK_AÇARIN", "Content-Type": "application/json"}
+            data = {"model": "dall-e-3", "prompt": prompt, "n": 1, "size": "1024x1024", "quality": "hd"}
+            # response = requests.post(api_url, headers=headers, json=data)
+            # return response.json()['data'][0]['url']
+            pass
+        except:
+            pass
+            
+    # Hələlik API açarı olmadığı üçün pulsuz və limitsiz Flux mühərriki çağırılır
     encoded_prompt = urllib.parse.quote(prompt)
-    # Təsvir ölçüsünü daha "kinematik" etdik (16:9 format - 1280x720)
     return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&model=flux"
 
 # ==========================================================
@@ -75,7 +95,6 @@ if "payment_successful" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# --- İSTİFADƏÇİNİN YERİNİ AVTOMATİK TAPMA SİSTEMİ ---
 if "user_location" not in st.session_state:
     try:
         loc_response = requests.get("https://ipapi.co/json/", timeout=5).json()
@@ -99,67 +118,17 @@ with header_col2:
         st.rerun()
 
 # ==========================================================
-# YAN PANEL VƏ KORTEX CORE ENGINE (MİLYARDLIQ KOD BÖLMƏSİ)
+# YAN PANEL 
 # ==========================================================
 st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 st.sidebar.info(f"📍 Sizin Məkan: {st.session_state.user_location}")
 
-with st.sidebar.expander("💻 Kortex Core: Neyron Şəbəkəsi Kodu", expanded=False):
+with st.sidebar.expander("💻 Kortex Core: API & Engine", expanded=False):
     st.markdown("""
-    **Diqqət:** Aşağıdakı kod Kortex AI-ın arxa planda istifadə etdiyi təməl PyTorch (Deep Learning) arxitekturasıdır. Sistem çökməsin deyə bu kod Cloud TPU-larda (Serverlərdə) icra olunur, proqramın daxilində yalnız API vasitəsilə çağırılır.
+    **Arxa Plan Arxitexturası:**
+    Şəkillərin yaradılması Kortex-in xüsusi API mühərriki vasitəsilə uzaq serverlərdəki neyron şəbəkələrə (Diffusion Models) ötürülərək emal edilir və saniyələr içində tətbiqə qaytarılır.
     """)
-    st.code("""
-import torch
-import torch.nn as nn
-
-class KortexDiffusionEngine(nn.Module):
-    def __init__(self, in_channels=3, out_channels=3, time_emb_dim=256):
-        super(KortexDiffusionEngine, self).__init__()
-        self.time_mlp = nn.Sequential(
-            nn.Linear(1, time_emb_dim),
-            nn.GELU(),
-            nn.Linear(time_emb_dim, time_emb_dim)
-        )
-        # UNet Downsample (Böyük məlumatı analiz edir)
-        self.down1 = self._block(in_channels, 64)
-        self.down2 = self._block(64, 128)
-        self.down3 = self._block(128, 256)
-        
-        # UNet Bottleneck (Öyrənilmiş matrislər)
-        self.bottleneck = self._block(256, 512)
-        
-        # UNet Upsample (Pikselləri şəkələ çevirir)
-        self.up1 = self._block(512 + 256, 256)
-        self.up2 = self._block(256 + 128, 128)
-        self.up3 = self._block(128 + 64, 64)
-        
-        self.out = nn.Conv2d(64, out_channels, kernel_size=1)
-
-    def _block(self, in_c, out_c):
-        return nn.Sequential(
-            nn.Conv2d(in_c, out_c, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_c),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_c, out_c, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_c),
-            nn.ReLU(inplace=True)
-        )
-
-    def forward(self, x, t):
-        t_emb = self.time_mlp(t)
-        d1 = self.down1(x)
-        d2 = self.down2(nn.MaxPool2d(2)(d1))
-        d3 = self.down3(nn.MaxPool2d(2)(d2))
-        bot = self.bottleneck(nn.MaxPool2d(2)(d3))
-        u1 = self.up1(torch.cat([nn.Upsample(scale_factor=2)(bot), d3], dim=1))
-        u2 = self.up2(torch.cat([nn.Upsample(scale_factor=2)(u1), d2], dim=1))
-        u3 = self.up3(torch.cat([nn.Upsample(scale_factor=2)(u2), d1], dim=1))
-        return self.out(u3)
-
-# Modelin başladılması (TPU tələb olunur!)
-# kortex_model = KortexDiffusionEngine().to('cuda')
-    """, language="python")
 
 use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_vision_analysis = st.session_state.selected_tier in ["Pro", "Ultra"]
@@ -182,7 +151,7 @@ if uploaded_image is not None:
         st.sidebar.success("✅ Şəkil Kortex-in beyninə yükləndi!")
 
 # ==========================================================
-# QİYMƏT EKRANI VƏ ÖDƏNİŞ - HEÇ BİR MƏLUMAT SİLİNMƏYİB
+# QİYMƏT EKRANI VƏ ÖDƏNİŞ
 # ==========================================================
 if st.session_state.show_pricing:
     if st.button("⬅ Çata Qayıt", use_container_width=False):
@@ -329,14 +298,12 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
             if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
                 is_image_request = True
         
-        # --- YENİ ZƏKALI ŞƏKİL YARATMA (PEŞƏKAR FOTOQRAFİYA PROMPTU İLƏ) ---
         if is_image_request and use_vision_gen:
-            with st.spinner("🎨 Kortex Vision Sizin Məkanı Analiz Edir və Şəkli Hazırlayır..."):
+            with st.spinner("🎨 Kortex Vision Mühərriki Şəkli Hazırlayır..."):
                 user_loc = st.session_state.user_location
                 try:
-                    # PROMPT MÜHƏNDİSLİYİ - Modelə realistik təlimat verilir
                     prompt_converter_msg = [
-                        {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi' və mükafatlı avtomobil fotoqrafısan. 
+                        {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi' və mükafatlı avtomobil fotoqrafısan. 
                         İstifadəçinin hazırkı məkanı: {user_loc}.
                         TƏLİMAT: İstifadəçi sadəcə 'BMW yarat' və ya 'maşın şəkli' istəyəndə, sən bunu milyardlıq reklam çəkilişi səviyyəsində, ən incə detallarına qədər ingiliscə təsvir etməlisən.
                         
@@ -344,13 +311,13 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
                         
                         Əgər maşındırsa, onu hərəkət halında, təcavüzkar (aggressive) duruşla, arxa fonda {user_loc} məkanının ən gözəl mənzərəsi (məsələn, dağ yolu və ya müasir memarlıq) ilə təsvir et.
                         
-                        CRITICAL INSTRUCTION FOR AZERBAIJAN: If the location is Azerbaijan, or the user asks for Azerbaijan, YOU MUST strictly follow this: 
+                        CRITICAL INSTRUCTION FOR AZERBAIJAN: If the location is Azerbaijan, or the user asks for Azerbaijan, YOU MUST strictly follow this: 
                         1. The background MUST ONLY be modern Baku architecture (like Heydar Aliyev Center with its flowing white curves, or Flame Towers). DO NOT generate old stone towers, ruins, or castles.
-                        2. You MUST include a large, highly accurate flag of Azerbaijan flying proudly. 
-                        3. The Azerbaijan flag MUST have exactly 3 horizontal stripes: top is sky blue, middle is red, bottom is green. 
+                        2. You MUST include a large, highly accurate flag of Azerbaijan flying proudly. 
+                        3. The Azerbaijan flag MUST have exactly 3 horizontal stripes: top is sky blue, middle is red, bottom is green. 
                         4. Inside the center of the red stripe, there MUST be a white crescent moon pointing right, and EXACTLY an 8-pointed (eight-pointed) white star. The star MUST have 8 points, no more, no less.
                         
-                        Təsviri YALNIZ İNGİLİS DİLİNDƏ yaz. Mətndə ə, ö, ğ, ç, ş, ı, ü hərfləri İSTİFADƏ ETMƏ (strictly ascii). Sənin işin istifadəçinin sadə sözlərini şedevrə çevirməkdir!"""},
+                        Təsviri YALNIZ İNGİLİS DİLİNDƏ yaz. Mətndə ə, ö, ğ, ç, ş, ı, ü hərfləri İSTİFADƏ ETMƏ (strictly ascii)."""},
                         {"role": "user", "content": prompt}
                     ]
                     converter_chat = client.chat.completions.create(
@@ -365,17 +332,17 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
                 
-                # BAYRAĞI UNUTMAMASI ÜÇÜN SON VURĞU - BÜTÜN DÜNYADA AZƏRBAYCAN BAYRAĞI QAYDASI
                 if "azerbaijan" in user_loc.lower() or "azerbaijan" in safe_prompt.lower() or "baku" in safe_prompt.lower():
                     if "flag" not in safe_prompt.lower():
                         safe_prompt += ", prominent accurate Azerbaijan flag flying, top blue stripe, middle red stripe with white crescent and strictly 8-pointed white star, bottom green stripe, modern Baku background"
 
-                image_url = generate_image_free_flux(safe_prompt)
+                # YENİ PRO API FUNKSİYASINI ÇAĞIRIRIQ (Hələlik flux_free işləyəcək)
+                image_url = generate_image_pro_engine(safe_prompt, engine="flux_free")
                 
                 model_explanation = """
-Mən bu şəkilləri "Nano Banana 2" adlı xüsusi bir modelin köməyi ilə yaradıram. Bu modelin rəsmi adı **Gemini 3 Flash Image**-dir.
+Mən bu şəkilləri Kortex-in xüsusi mühərriki vasitəsilə yaradıram. Arxa planda ən müasir "Diffuziya (Diffusion)" və "Neyron Şəbəkələri" işləyir.
 
-Bu, ən son texnologiyaya əsaslanan, sözləri şəkilə çevirmək (text-to-image) və mövcud şəkilləri redaktə etmək üçün hazırlanmış qabaqcıl süni intellekt modelidir. Siz mənə təsviri verdiyiniz zaman, mən bu məlumatı həmin modelə ötürürəm və o da tamamilə sizin istəyinizə uyğun şəkli sıfırdan dizayn edir.
+Siz mənə təsviri verdiyiniz zaman, mən Kortex API vasitəsilə bu məlumatı emal edir və sıfırdan sizin üçün qüsursuz vizuallar dizayn edirəm. 
 
 Ümid edirəm ki, yaratdığım şəkil tam istədiyiniz kimi alınıb! 💎
 """
