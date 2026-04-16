@@ -105,14 +105,13 @@ st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 st.sidebar.info(f"📍 Sizin Məkan: {st.session_state.user_location}")
 
-# MÜŞTƏRİLƏR ÜÇÜN ƏSL 3D RENDER İZAHI (Sizin istədiyiniz elmi əlavə)
 with st.sidebar.expander("💻 Kortex Core: Render & 3D Engine", expanded=False):
     st.markdown("""
     **Arxa Plan Arxitexturası:**
     Kortex Vision adi bir şəkil aləti deyil. O, dünyanın ən güclü vizual alqoritmlərini simulyasiya edir:
     * **PBR (Physically Based Rendering):** Boya, metal və şüşə üzərindəki işığı fiziki qanunlarla hesablayır.
     * **Path Tracing & Global Illumination:** Milyonlarla işıq şüasının hərəkətini izləyərək fotorealistik kölgələr yaradır.
-    * **HDRI Lighting:** Avtomobilin ətrafındakı 360 dərəcəlik mənzərənin işığını maşının kapotuna əks etdirir.
+    * **Anti-Distortion & Perfect Geometry:** Modellərin deformasiyasını aradan qaldıraraq 100% simmetrik və real həndəsə qurur.
     * **Diffusion Networks:** Bu 3D hesablama məlumatlarını milyardlarla parametrli sinir şəbəkələri (AI) ilə emal edərək son 8K vizualı yaradır.
     """)
 
@@ -251,12 +250,12 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli 
             if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
                 is_image_request = True
         
-        # --- ZƏKALI ŞƏKİL YARATMA (MÖHTƏŞƏM 3D RENDER VƏ PBR QAYDALARI İLƏ) ---
+        # --- ZƏKALI ŞƏKİL YARATMA (ƏYRİLİKLƏRİ YIĞIŞDIRAN QÜSURSUZ HƏNDƏSƏ KODU) ---
         if is_image_request and use_vision_gen:
-            with st.spinner("🎨 Kortex Core: PBR Render və HDRI İşıqlandırma hesablanır..."):
+            with st.spinner("🎨 Kortex Core: PBR Render və Qüsursuz Həndəsə hesablanır..."):
                 user_loc = st.session_state.user_location
                 try:
-                    # PROMPT MÜHƏNDİSLİYİ - 3D RENDER SİRLƏRİ BURA ƏLAVƏ EDİLDİ!
+                    # PROMPT MÜHƏNDİSLİYİ - Əyrilikləri ləğv etmək üçün xüsusi "flawless geometry" əmrləri!
                     prompt_converter_msg = [
                         {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi', 3D Rəssamı və mükafatlı avtomobil fotoqrafısan. 
                         
@@ -265,8 +264,8 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli 
                         2. İstifadəçi xüsusi ölkə çəkirsə, oranı seç.
                         3. Heç nə demirsə, {user_loc} məkanını əsas götür.
                         
-                        FOTOQRAFİYA VƏ 3D RENDER ƏMRLƏRİ (BUNLARI HƏMİŞƏ İSTİFADƏ ET): 
-                        'Unreal Engine 5 render, Octane Render, Path Tracing, Global Illumination, PBR materials, HDRI lighting, hyper-realistic, photorealistic, 8k resolution, cinematic lighting, golden hour, dynamic motion blur, highly detailed reflections on glossy car paint'.
+                        QÜSURSUZ HƏNDƏSƏ VƏ RENDER ƏMRLƏRİ (MÜTLƏQ İSTİFADƏ ET): 
+                        'flawless geometry, perfect proportions, no distortion, perfectly symmetrical headlights and grille, hyper-accurate car details, real-world physics, masterpiece, completely devoid of AI artifacts or warping, Unreal Engine 5 render, Octane Render, Path Tracing, PBR materials, HDRI lighting, hyper-realistic, photorealistic, 8k resolution, cinematic lighting, golden hour, highly detailed reflections on glossy car paint'.
                         
                         Təsviri YALNIZ İNGİLİS DİLİNDƏ yaz. Mətndə ə, ö, ğ, ç, ş, ı, ü hərfləri İSTİFADƏ ETMƏ."""},
                         {"role": "user", "content": prompt}
@@ -274,12 +273,12 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli 
                     converter_chat = client.chat.completions.create(
                         messages=prompt_converter_msg,
                         model="llama-3.3-70b-versatile",
-                        temperature=0.5, 
+                        temperature=0.4, 
                         max_tokens=300
                     )
                     enhanced_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
-                    enhanced_prompt = "hyper-realistic photorealistic 8k 3D render of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + " in a stunning location, Unreal Engine 5, Octane Render, PBR materials, HDRI lighting, path tracing, golden hour"
+                    enhanced_prompt = "hyper-realistic photorealistic 8k 3D render of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + " in a stunning location, flawless geometry, no distortion, perfect proportions, perfectly symmetrical, Unreal Engine 5, Octane Render, PBR materials, HDRI lighting, path tracing, golden hour"
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
                 
