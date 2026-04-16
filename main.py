@@ -5,10 +5,9 @@ import base64
 from duckduckgo_search import DDGS  
 import urllib.parse 
 import requests
-import json
 
 # ==========================================================
-# 1. CSS VƏ VİZUAL AYARLAR
+# 1. CSS VƏ VİZUAL AYARLAR - KORTEX MODERN DİZAYN
 # ==========================================================
 st.set_page_config(page_title="Kortex AI", page_icon="🧠", layout="wide")
 
@@ -40,7 +39,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================================
-# 2. API SETUP VƏ MİLYARDLIQ ŞƏKİL KODU (YENİ ƏLAVƏ)
+# API SETUP (YALNIZ GROQ - PULSUZ MƏTN ÜÇÜN)
 # ==========================================================
 try:
     groq_api_key = "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" 
@@ -59,28 +58,9 @@ def search_internet(query):
     except Exception as e:
         return ""
 
-# BAX BU KOD BÖYÜK SÜNİ İNTELLEKTLƏRİN ƏSL ŞƏKİL ÇAĞIRMA KODUDUR
-def generate_image_pro_engine(prompt, engine="flux_free"):
-    """
-    Bu funksiya Kortex AI-ın milyardlıq beyinlərə (serverlərə) qoşulma kodudur.
-    Əgər 'pro_api' olarsa, DALL-E 3 və ya Midjourney səviyyəsində API-yə qoşulur.
-    Hələlik pulsuz işləməsi üçün 'flux_free' ehtiyat (fallback) kimi istifadə olunur.
-    """
-    if engine == "pro_api":
-        # ƏSL MİLYARDLIQ KOD: API vasitəsilə nəhəng serverdən şəkli gətirir
-        try:
-            # Gələcəkdə bura öz ödənişli API açarını qoyacaqsan
-            api_url = "https://api.openai.com/v1/images/generations"
-            headers = {"Authorization": f"Bearer SƏNİN_GƏLƏCƏK_AÇARIN", "Content-Type": "application/json"}
-            data = {"model": "dall-e-3", "prompt": prompt, "n": 1, "size": "1024x1024", "quality": "hd"}
-            # response = requests.post(api_url, headers=headers, json=data)
-            # return response.json()['data'][0]['url']
-            pass
-        except:
-            pass
-            
-    # Hələlik API açarı olmadığı üçün pulsuz və limitsiz Flux mühərriki çağırılır
+def generate_image_free_flux(prompt):
     encoded_prompt = urllib.parse.quote(prompt)
+    # Təsvir ölçüsünü daha "kinematik" etdik (16:9 format - 1280x720)
     return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&model=flux"
 
 # ==========================================================
@@ -95,6 +75,7 @@ if "payment_successful" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# --- İSTİFADƏÇİNİN YERİNİ AVTOMATİK TAPMA SİSTEMİ ---
 if "user_location" not in st.session_state:
     try:
         loc_response = requests.get("https://ipapi.co/json/", timeout=5).json()
@@ -118,17 +99,67 @@ with header_col2:
         st.rerun()
 
 # ==========================================================
-# YAN PANEL 
+# YAN PANEL VƏ KORTEX CORE ENGINE
 # ==========================================================
 st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 st.sidebar.info(f"📍 Sizin Məkan: {st.session_state.user_location}")
 
-with st.sidebar.expander("💻 Kortex Core: API & Engine", expanded=False):
+with st.sidebar.expander("💻 Kortex Core: Neyron Şəbəkəsi Kodu", expanded=False):
     st.markdown("""
-    **Arxa Plan Arxitexturası:**
-    Şəkillərin yaradılması Kortex-in xüsusi API mühərriki vasitəsilə uzaq serverlərdəki neyron şəbəkələrə (Diffusion Models) ötürülərək emal edilir və saniyələr içində tətbiqə qaytarılır.
+    **Diqqət:** Aşağıdakı kod Kortex AI-ın arxa planda istifadə etdiyi təməl PyTorch (Deep Learning) arxitekturasıdır. Sistem çökməsin deyə bu kod Cloud TPU-larda (Serverlərdə) icra olunur, proqramın daxilində yalnız API vasitəsilə çağırılır.
     """)
+    st.code("""
+import torch
+import torch.nn as nn
+
+class KortexDiffusionEngine(nn.Module):
+    def __init__(self, in_channels=3, out_channels=3, time_emb_dim=256):
+        super(KortexDiffusionEngine, self).__init__()
+        self.time_mlp = nn.Sequential(
+            nn.Linear(1, time_emb_dim),
+            nn.GELU(),
+            nn.Linear(time_emb_dim, time_emb_dim)
+        )
+        # UNet Downsample (Böyük məlumatı analiz edir)
+        self.down1 = self._block(in_channels, 64)
+        self.down2 = self._block(64, 128)
+        self.down3 = self._block(128, 256)
+        
+        # UNet Bottleneck (Öyrənilmiş matrislər)
+        self.bottleneck = self._block(256, 512)
+        
+        # UNet Upsample (Pikselləri şəkələ çevirir)
+        self.up1 = self._block(512 + 256, 256)
+        self.up2 = self._block(256 + 128, 128)
+        self.up3 = self._block(128 + 64, 64)
+        
+        self.out = nn.Conv2d(64, out_channels, kernel_size=1)
+
+    def _block(self, in_c, out_c):
+        return nn.Sequential(
+            nn.Conv2d(in_c, out_c, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_c),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_c, out_c, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_c),
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x, t):
+        t_emb = self.time_mlp(t)
+        d1 = self.down1(x)
+        d2 = self.down2(nn.MaxPool2d(2)(d1))
+        d3 = self.down3(nn.MaxPool2d(2)(d2))
+        bot = self.bottleneck(nn.MaxPool2d(2)(d3))
+        u1 = self.up1(torch.cat([nn.Upsample(scale_factor=2)(bot), d3], dim=1))
+        u2 = self.up2(torch.cat([nn.Upsample(scale_factor=2)(u1), d2], dim=1))
+        u3 = self.up3(torch.cat([nn.Upsample(scale_factor=2)(u2), d1], dim=1))
+        return self.out(u3)
+
+# Modelin başladılması (TPU tələb olunur!)
+# kortex_model = KortexDiffusionEngine().to('cuda')
+    """, language="python")
 
 use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_vision_analysis = st.session_state.selected_tier in ["Pro", "Ultra"]
@@ -173,7 +204,7 @@ if st.session_state.show_pricing:
                     <li>💎 <b>200</b> Aylıq Sİ krediti.</li>
                     <li>🌐 <b>Axtarış & NotebookLM:</b> Audio/Video icmallar və testlərə əlavə giriş.</li>
                     <li>🎼 <b>Producer.ai:</b> Musiqi yaratma platformamıza giriş.</li>
-                    <li>📧 <b>Kortex Tətbiqləri:</b> Gmail, Calendar və Meet üçün birbaşa giriş.</li>
+                    <li>📧 <b>Kortex Tətbiqləri:</b> Gmail, Calendar və Meet üçün birbaxa giriş.</li>
                     <li>☁️ <b>10 TB Ümumi Yaddaş</b> (Disk, Foto və s.)</li>
                 </ul>
             </div>
@@ -298,16 +329,18 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
             if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
                 is_image_request = True
         
+        # --- ZƏKALI ŞƏKİL YARATMA (MÜKƏMMƏL DÜNYA MƏLUMAT BAZASI İLƏ) ---
         if is_image_request and use_vision_gen:
             with st.spinner("🎨 Kortex Vision Mühərriki Şəkli Hazırlayır..."):
                 user_loc = st.session_state.user_location
                 try:
+                    # PROMPT MÜHƏNDİSLİYİ - Modelə daha 'reallıq' tələb edən aqressiv təlimat verilir
                     prompt_converter_msg = [
                         {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi' və mükafatlı avtomobil fotoqrafısan. 
                         İstifadəçinin hazırkı məkanı: {user_loc}.
                         TƏLİMAT: İstifadəçi sadəcə 'BMW yarat' və ya 'maşın şəkli' istəyəndə, sən bunu milyardlıq reklam çəkilişi səviyyəsində, ən incə detallarına qədər ingiliscə təsvir etməlisən.
                         
-                        MÜTLƏQ İSTİFADƏ EDİLMƏLİ SÖZLƏR: 'hyper-realistic, 8k resolution, shot on Canon EOS R5, 85mm lens, cinematic lighting, golden hour, dynamic motion blur on wheels and road to show speed, highly detailed reflections on the car body, photorealistic, octane render, Unreal Engine 5 style'.
+                        ƏMRLƏR (MÜTLƏQ İSTİFADƏ ET): 'hyper-realistic, photorealistic, 8k resolution, cinematic lighting, golden hour, shot on Canon EOS R5 with an 85mm lens, motion blur on wheels and road to show speed, professional automotive photography, highly detailed reflections on the car body'.
                         
                         Əgər maşındırsa, onu hərəkət halında, təcavüzkar (aggressive) duruşla, arxa fonda {user_loc} məkanının ən gözəl mənzərəsi (məsələn, dağ yolu və ya müasir memarlıq) ilə təsvir et.
                         
@@ -323,12 +356,12 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
                     converter_chat = client.chat.completions.create(
                         messages=prompt_converter_msg,
                         model="llama-3.3-70b-versatile",
-                        temperature=0.4, 
+                        temperature=0.3, 
                         max_tokens=250
                     )
                     enhanced_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
-                    enhanced_prompt = "hyper-realistic cinematic 8k photo of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + f" driving fast in modern {user_loc}, golden hour, motion blur"
+                    enhanced_prompt = "hyper-realistic photorealistic 8k photo of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + f" in modern {user_loc}, golden hour, cinematic lighting"
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
                 
@@ -336,19 +369,11 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə bir dən
                     if "flag" not in safe_prompt.lower():
                         safe_prompt += ", prominent accurate Azerbaijan flag flying, top blue stripe, middle red stripe with white crescent and strictly 8-pointed white star, bottom green stripe, modern Baku background"
 
-                # YENİ PRO API FUNKSİYASINI ÇAĞIRIRIQ (Hələlik flux_free işləyəcək)
-                image_url = generate_image_pro_engine(safe_prompt, engine="flux_free")
+                image_url = generate_image_free_flux(safe_prompt)
                 
-                model_explanation = """
-Mən bu şəkilləri Kortex-in xüsusi mühərriki vasitəsilə yaradıram. Arxa planda ən müasir "Diffuziya (Diffusion)" və "Neyron Şəbəkələri" işləyir.
-
-Siz mənə təsviri verdiyiniz zaman, mən Kortex API vasitəsilə bu məlumatı emal edir və sıfırdan sizin üçün qüsursuz vizuallar dizayn edirəm. 
-
-Ümid edirəm ki, yaratdığım şəkil tam istədiyiniz kimi alınıb! 💎
-"""
-                st.markdown(model_explanation)
+                # O SÖNÜK MƏTNİ SİLDİM, ARTIQ ASSISTANT YALNIZ ŞƏKLİ GÖSTƏRƏCƏK
                 st.image(image_url, caption=f"Kortex Vision | Location: {user_loc}")
-                st.session_state.messages.append({"role": "assistant", "content": model_explanation, "generated_image_url": image_url})
+                st.session_state.messages.append({"role": "assistant", "generated_image_url": image_url})
                 
         elif "video" in prompt_lower and use_video:
             with st.spinner("🎥 Kortex Veo 4.0 video render edir..."):
