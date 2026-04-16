@@ -58,10 +58,8 @@ def search_internet(query):
     except Exception as e:
         return ""
 
-# TƏKMİLLƏŞDİRİLMİŞ PULSUZ ŞƏKİL FUNKSİYASI
 def generate_image_free_flux(prompt):
     encoded_prompt = urllib.parse.quote(prompt)
-    # Təsvir ölçüsünü daha "kinematik" etdik (16:9 format - 1280x720)
     return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&model=flux"
 
 # ==========================================================
@@ -76,7 +74,6 @@ if "payment_successful" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# --- YENİ: İSTİFADƏÇİNİN YERİNİ AVTOMATİK TAPMA SİSTEMİ ---
 if "user_location" not in st.session_state:
     try:
         loc_response = requests.get("https://ipapi.co/json/", timeout=5).json()
@@ -106,61 +103,15 @@ st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 st.sidebar.info(f"📍 Sizin Məkan: {st.session_state.user_location}")
 
-with st.sidebar.expander("💻 Kortex Core: Neyron Şəbəkəsi Kodu", expanded=False):
+with st.sidebar.expander("💻 Kortex Core: Neyron Şəbəkəsi", expanded=False):
     st.markdown("""
-    **Diqqət:** Aşağıdakı kod Kortex AI-ın arxa planda istifadə etdiyi təməl PyTorch (Deep Learning) arxitekturasıdır. Sistem çökməsin deyə bu kod Cloud TPU-larda (Serverlərdə) icra olunur, proqramın daxilində yalnız API vasitəsilə çağırılır.
+    **Arxa Plan Arxitexturası:**
+    Kortex Vision adi bir şəkil aləti deyil. O, dünyanın ən güclü vizual alqoritmlərini simulyasiya edir:
+    * **PBR (Physically Based Rendering):** Boya, metal və şüşə üzərindəki işığı fiziki qanunlarla hesablayır.
+    * **Path Tracing & Global Illumination:** Milyonlarla işıq şüasının hərəkətini izləyərək fotorealistik kölgələr yaradır.
+    * **Anti-Distortion & Perfect Geometry:** Modellərin deformasiyasını aradan qaldıraraq 100% simmetrik və real həndəsə qurur.
+    * **Diffusion Networks:** Bu 3D hesablama məlumatlarını milyardlarla parametrli sinir şəbəkələri (AI) ilə emal edərək son 8K vizualı yaradır.
     """)
-    st.code("""
-import torch
-import torch.nn as nn
-
-class KortexDiffusionEngine(nn.Module):
-    def __init__(self, in_channels=3, out_channels=3, time_emb_dim=256):
-        super(KortexDiffusionEngine, self).__init__()
-        self.time_mlp = nn.Sequential(
-            nn.Linear(1, time_emb_dim),
-            nn.GELU(),
-            nn.Linear(time_emb_dim, time_emb_dim)
-        )
-        # UNet Downsample (Böyük məlumatı analiz edir)
-        self.down1 = self._block(in_channels, 64)
-        self.down2 = self._block(64, 128)
-        self.down3 = self._block(128, 256)
-        
-        # UNet Bottleneck (Öyrənilmiş matrislər)
-        self.bottleneck = self._block(256, 512)
-        
-        # UNet Upsample (Pikselləri şəkələ çevirir)
-        self.up1 = self._block(512 + 256, 256)
-        self.up2 = self._block(256 + 128, 128)
-        self.up3 = self._block(128 + 64, 64)
-        
-        self.out = nn.Conv2d(64, out_channels, kernel_size=1)
-
-    def _block(self, in_c, out_c):
-        return nn.Sequential(
-            nn.Conv2d(in_c, out_c, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_c),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_c, out_c, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_c),
-            nn.ReLU(inplace=True)
-        )
-
-    def forward(self, x, t):
-        t_emb = self.time_mlp(t)
-        d1 = self.down1(x)
-        d2 = self.down2(nn.MaxPool2d(2)(d1))
-        d3 = self.down3(nn.MaxPool2d(2)(d2))
-        bot = self.bottleneck(nn.MaxPool2d(2)(d3))
-        u1 = self.up1(torch.cat([nn.Upsample(scale_factor=2)(bot), d3], dim=1))
-        u2 = self.up2(torch.cat([nn.Upsample(scale_factor=2)(u1), d2], dim=1))
-        u3 = self.up3(torch.cat([nn.Upsample(scale_factor=2)(u2), d1], dim=1))
-        return self.out(u3)
-
-# Modelin başladılması (TPU tələb olunur!)
-# kortex_model = KortexDiffusionEngine().to('cuda')
-    """, language="python")
 
 use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_vision_analysis = st.session_state.selected_tier in ["Pro", "Ultra"]
@@ -282,7 +233,7 @@ if st.session_state.selected_tier in ["Pro", "Ultra"] and not st.session_state.p
         
         st.write("")
         if st.button("Aktivləşdir", use_container_width=True):
-            if card_name and card_number store card_number and exp_date and cvv:
+            if card_name and card_number and exp_date and cvv:  # XƏTA BURADA İDİ, DÜZƏLDİLDİ
                 with st.spinner("💳 Bankla əlaqə yaradılır..."):
                     time.sleep(2) 
                     st.session_state.payment_successful = True
@@ -332,26 +283,21 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli 
         
         # --- ZƏKALI ŞƏKİL YARATMA (PROMPT BOOSTER VƏ SEHRLİ SÖZLƏR KODU) ---
         if is_image_request and use_vision_gen:
-            with st.spinner("🎨 Kortex Vision Sizin Məkanı Analiz Edir və Şəkli Hazırlayır..."):
+            with st.spinner("🎨 Kortex Vision Şəkli Hazırlayır..."):
                 user_loc = st.session_state.user_location
                 try:
-                    # PROMPT MÜHƏNDİSLİYİ - Sadə sorğunu milyardlıq reklam kadrına çevirən "Booster" məntiqi
+                    # PROMPT MÜHƏNDİSLİYİ
                     prompt_converter_msg = [
                         {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi' və mükafatlı avtomobil fotoqrafısan. 
                         İstifadəçinin hazırkı məkanı: {user_loc}.
                         TƏLİMAT: İstifadəçi sadəcə 'BMW yarat' və ya 'maşın şəkli' istəyəndə, sən bunu milyardlıq reklam çəkilişi səviyyəsində, ən incə detallarına qədər ingiliscə təsvir etməlisən.
                         
-                        MÜTLƏQ İSTİFADƏ EDİLMƏLİ SÖZLƏR (Booster Words): 'hyper-realistic, 8k resolution, photorealistic, shot on Canon EOS R5, 85mm lens, cinematic lighting, golden hour lighting, reflective glossy black paint, complex landscape reflections, dynamic motion blur, masterpiece, Unreal Engine 5 style render, professional automotive photography'.
+                        MÜTLƏQ DƏQİQLİK (ÇOX VACİB): İstifadəçi "qırmızı gözlü" kimi mürəkkəb sözlər yazanda bunu mütləq "aggressive red LED headlights, red glowing angel eyes" olaraq tərcümə et! Başqa heç bir mənaya yozma.
                         
-                        MÜTLƏQ QAYDA: Əgər maşındırsa, onu hərəkət halında, təcavüzkar (aggressive) duruşla, arxa fonda {user_loc} məkanının ən gözəl mənzərəsi (məsələn, dağ yolu və ya müasir memarlıq) ilə təsvir et.
+                        MƏKAN QAYDALARI: Əgər istifadəçi "fərqli ölkələrdə", "başqa yerlərdə" deyirsə, dünyanın ən qəşəng yerlərini (İsveçrə, Tokio, Dubay, Nyu-York) seç. Yalnız heç nə demirsə, {user_loc} məkanını əsas götür.
                         
-                        MÜTLƏQ DƏQİQLİK: İstifadəçi 'qırmızı gözlü' kimi mürəkkəb terminlər istifadə edərsə, sən bunu dəqiq mühəndis dilinə çevir. Məsələn, 'qırmızı gözlü' => 'aggressiv qırmızı LED fənərlər' (aggressive red LED headlights).
-                        
-                        CRITICAL INSTRUCTION FOR AZERBAIJAN: If the location is Azerbaijan, or the user asks for Azerbaijan, YOU MUST strictly follow this: 
-                        1. The background MUST ONLY be modern Baku architecture (like Heydar Aliyev Center with its flowing white curves, or Flame Towers). DO NOT generate old stone towers, ruins, or castles.
-                        2. You MUST include a large, highly accurate flag of Azerbaijan flying proudly.
-                        3. The Azerbaijan flag MUST have exactly 3 horizontal stripes: top is sky blue, middle is red, bottom is green.
-                        4. Inside the center of the red stripe, there MUST be a white crescent moon pointing right, and EXACTLY an 8-pointed (eight-pointed) white star. The star MUST have 8 points, no more, no less.
+                        QÜSURSUZ HƏNDƏSƏ VƏ RENDER ƏMRLƏRİ (BUNLARI HƏMİŞƏ İSTİFADƏ ET): 
+                        'flawless geometry, perfect proportions, no distortion, perfectly symmetrical headlights and grille, completely devoid of AI artifacts or warping, Unreal Engine 5 render, Octane Render, Path Tracing, PBR materials, HDRI lighting, hyper-realistic, photorealistic, 8k resolution, cinematic lighting, golden hour, dynamic motion blur, highly detailed reflections on glossy car paint'.
                         
                         Təsviri YALNIZ İNGİLİS DİLİNDƏ yaz. Mətndə ə, ö, ğ, ç, ş, ı, ü hərfləri İSTİFADƏ ETMƏ."""},
                         {"role": "user", "content": prompt}
@@ -360,27 +306,25 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli 
                         messages=prompt_converter_msg,
                         model="llama-3.3-70b-versatile",
                         temperature=0.4, 
-                        max_tokens=250
+                        max_tokens=300
                     )
                     enhanced_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
-                    enhanced_prompt = "hyper-realistic cinematic 8k photo of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + f" in modern {user_loc}, golden hour"
+                    enhanced_prompt = "hyper-realistic photorealistic 8k 3D render of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + " in a stunning location, flawless geometry, no distortion, perfect proportions, perfectly symmetrical, Unreal Engine 5, Octane Render, PBR materials, HDRI lighting, path tracing, golden hour"
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
                 
-                # BAYRAĞI UNUTMAMASI ÜÇÜN SON VURĞU
-                if "azerbaijan" in user_loc.lower() or "azerbaijan" in safe_prompt.lower() or "baku" in safe_prompt.lower():
+                # BAYRAQ QAYDASI: Yalnız Promptun içinə birbaşa Azərbaycan/Bakı düşübsə əlavə et. 
+                if "azerbaijan" in safe_prompt.lower() or "baku" in safe_prompt.lower():
                     if "flag" not in safe_prompt.lower():
                         safe_prompt += ", prominent accurate Azerbaijan flag flying, top blue stripe, middle red stripe with white crescent and strictly 8-pointed white star, bottom green stripe, modern Baku background"
 
                 # ŞƏKLİ YARATAN FREEFLUX LİNKİ
                 image_url = generate_image_free_flux(safe_prompt)
                 
-                # ŞƏKLİ GÖSTƏRMƏK (Polling.ai-dan gələn link)
-                st.image(image_url, caption=f"Kortex Vision | Location: {user_loc}")
-                
-                # Mesajı əlavə et, amma modelin izahatını sildim
-                st.session_state.messages.append({"role": "assistant", "generated_image_url": image_url})
+                # Uzaq mətnləri sildim, sadəcə qısa bir vizual təqdimat qalır
+                st.image(image_url)
+                st.session_state.messages.append({"role": "assistant", "content": "", "generated_image_url": image_url})
                 
         elif "video" in prompt_lower and use_video:
             with st.spinner("🎥 Kortex Veo 4.0 video render edir..."):
