@@ -144,12 +144,11 @@ class KortexUltraDiffusionBeast(nn.Module):
     \"\"\"1 Milyard Parametrli Qüsursuz Şəkil Yaradan Əsas Mühərrik\"\"\"
     def __init__(self):
         super().__init__()
-        # Mürəkkəb Həndəsə və Reallıq Blokları
         self.encoder = nn.Sequential(
             nn.Conv2d(3, 128, kernel_size=3, padding=1),
             nn.GroupNorm(32, 128),
             nn.SiLU(),
-            KortexCrossAttention(128, 512) # Təsviri anlamaq üçün diqqət bloku
+            KortexCrossAttention(128, 512)
         )
         self.decoder = nn.Sequential(
             nn.Conv2d(128, 64, kernel_size=3, padding=1),
@@ -158,17 +157,11 @@ class KortexUltraDiffusionBeast(nn.Module):
         )
         
     def forward(self, noise_image, text_prompt_embeddings):
-        # 1. Təsadüfi küyü (noise) qəbul et
         features = self.encoder(noise_image)
-        
-        # 2. Mətnin mənasını piksellərə yerit (Milyardlıq riyaziyyat)
         attended_features = features + self.encoder[3](features, text_prompt_embeddings)
-        
-        # 3. Qüsursuz, əyriliksiz şəkli (məs: BMW) render et
         perfect_image = self.decoder(attended_features)
         return perfect_image
 
-# DİQQƏT: Bu kodun fiziki olaraq çalışması üçün Kortex SuperServer Cluster (H100 GPU) lazımdır!
 # core_beast = KortexUltraDiffusionBeast().cuda()
     """, language="python")
 
@@ -288,7 +281,7 @@ for message in st.session_state.messages:
         if "music_msg" in message:
             st.success(message["music_msg"])
 
-if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli ölkələrdə qara bmw yarat)"):
+if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə dünyanın şəklini yarat)"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -298,8 +291,8 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli 
         prompt_lower = prompt.lower()
         
         is_image_request = False
-        image_keywords = ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm", "bayraq", "bayrağı", "bayragini", "bayrağını", "avtomobil", "masin", "maşın"]
-        action_keywords = ["yarat", "yarad", "çək", "cek", "düzəlt", "duzelt"]
+        image_keywords = ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm", "bayraq", "bayrağı", "bayragini", "bayrağını", "avtomobil", "masin", "maşın", "dünya", "dunya", "planet"]
+        action_keywords = ["yarat", "yarad", "çək", "cek", "düzəlt", "duzelt", "göstər", "goster"]
         
         if any(act in prompt_lower for act in action_keywords) and any(img in prompt_lower for img in image_keywords):
             is_image_request = True
@@ -307,21 +300,26 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli 
             if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
                 is_image_request = True
         
-        # --- ZƏKALI ŞƏKİL YARATMA (BEAST MODE PROMPT) ---
+        # --- ZƏKALI ŞƏKİL YARATMA (UNIVERSAL FOTOREALİZM) ---
         if is_image_request and use_vision_gen:
             with st.spinner("🎨 Kortex Ultra Canavar Mühərriki Şəkli Hazırlayır..."):
                 user_loc = st.session_state.user_location
                 try:
+                    # PROMPT MÜHƏNDİSLİYİ - Bütün obyektlər (Dünya, Təbiət, Maşın) üçün 100% Realizm
                     prompt_converter_msg = [
-                        {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi' və mükafatlı avtomobil fotoqrafısan. 
+                        {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi', 3D Rəssamı və Realizm üzrə ekspertsən.
+                        
+                        TƏLİMAT: İstifadəçi sənə nə yaradılmasını istəyirsə (maşın, dünya, təbiət, insan, obyekt), sən onu HƏQİQİ DÜNYADAKI (Real World) kimi 100% fotorealistik, heç bir cizgi filmi və ya süni qüsur (AI artifact) olmadan ingiliscə təsvir etməlisən.
+                        
+                        ƏGƏR İSTİFADƏÇİ 'DÜNYA', 'PLANET' VƏ YA 'TƏBİƏT' İSTƏYİRSƏ BİRBAŞA BU SÖZLƏRİ İSTİFADƏ ET:
+                        'hyper-realistic high-resolution photograph, National Geographic style, shot from space/satellite (if planet), true real-world physics, extremely detailed textures, breathtaking absolute photorealism, completely devoid of AI artifacts or cartoonish look, 8k resolution, cinematic'.
+                        
+                        ƏGƏR İSTİFADƏÇİ 'MAŞIN' İSTƏYİRSƏ BİRBAŞA BU SÖZLƏRİ İSTİFADƏ ET:
+                        'flawless geometry, perfect proportions, no distortion, perfectly symmetrical headlights and grille, completely devoid of AI artifacts or warping, Unreal Engine 5 render, Octane Render, Path Tracing, PBR materials, HDRI lighting, hyper-realistic, photorealistic, 8k resolution, cinematic lighting, dynamic motion blur, highly detailed reflections'.
                         
                         MƏKAN QAYDALARI:
-                        1. İstifadəçi "fərqli ölkələrdə", "başqa yerlərdə" deyirsə, dünyanın ən qəşəng yerlərini (İsveçrə, Tokio, Dubay, Nyu-York) seç.
-                        2. İstifadəçi xüsusi ölkə çəkirsə, oranı seç.
-                        3. Heç nə demirsə, {user_loc} məkanını əsas götür.
-                        
-                        QÜSURSUZ HƏNDƏSƏ VƏ RENDER ƏMRLƏRİ (BUNLARI HƏMİŞƏ İSTİFADƏ ET): 
-                        'flawless geometry, perfect proportions, no distortion, perfectly symmetrical headlights and grille, completely devoid of AI artifacts or warping, Unreal Engine 5 render, Octane Render, Path Tracing, PBR materials, HDRI lighting, hyper-realistic, photorealistic, 8k resolution, cinematic lighting, golden hour, dynamic motion blur, highly detailed reflections on glossy car paint'.
+                        1. İstifadəçi "fərqli ölkələrdə", "başqa yerlərdə" deyirsə, dünyanın ən qəşəng yerlərini seç.
+                        2. Heç nə demirsə və obyekt yer üzündədirsə, {user_loc} məkanını əsas götür.
                         
                         Təsviri YALNIZ İNGİLİS DİLİNDƏ yaz. Mətndə ə, ö, ğ, ç, ş, ı, ü hərfləri İSTİFADƏ ETMƏ."""},
                         {"role": "user", "content": prompt}
@@ -334,12 +332,13 @@ if prompt := st.chat_input("Kortex AI-a əmr ver... (Məsələn: mənə fərqli 
                     )
                     enhanced_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception as e:
-                    enhanced_prompt = "hyper-realistic photorealistic 8k 3D render of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + " in a stunning location, flawless geometry, no distortion, perfect proportions, perfectly symmetrical, Unreal Engine 5, Octane Render, PBR materials, HDRI lighting, path tracing, golden hour"
+                    enhanced_prompt = "hyper-realistic photorealistic 8k photo of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + ", absolute real-world realism, highly detailed, masterpiece, 8k resolution"
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
                 
+                # BAYRAQ QAYDASI yalnız yerdəki obyektlər üçündür (kosmosa və ya dünyaya bayraq qoymasın)
                 if "azerbaijan" in safe_prompt.lower() or "baku" in safe_prompt.lower():
-                    if "flag" not in safe_prompt.lower():
+                    if "flag" not in safe_prompt.lower() and "earth" not in safe_prompt.lower() and "space" not in safe_prompt.lower():
                         safe_prompt += ", prominent accurate Azerbaijan flag flying, top blue stripe, middle red stripe with white crescent and strictly 8-pointed white star, bottom green stripe, modern Baku background"
 
                 image_url = generate_image_pro_engine(safe_prompt, engine="flux_free")
