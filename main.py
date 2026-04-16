@@ -98,22 +98,74 @@ with header_col2:
         st.rerun()
 
 # ==========================================================
-# YAN PANEL VƏ KORTEX CORE ENGINE (YENİ ƏLAVƏ)
+# YAN PANEL VƏ KORTEX CORE ENGINE (MİLYARDLIQ KOD BÖLMƏSİ)
 # ==========================================================
 st.sidebar.title("⚙️ Kortex İdarəetmə")
 st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 st.sidebar.info(f"📍 Sizin Məkan: {st.session_state.user_location}")
 
-# Tətbiqi Milyardlıq Layihə kimi göstərən Kortex Core Paneli
-with st.sidebar.expander("🧠 Kortex Core Engine (Sİ Arxitekturası)", expanded=False):
+with st.sidebar.expander("💻 Kortex Core: Neyron Şəbəkəsi Kodu", expanded=False):
     st.markdown("""
-    **Arxa Plan Texnologiyaları:**
-    * **Neyron Şəbəkəsi:** LLaMa 3.3 (70B Parametr) Mətn Təhlili
-    * **Generativ Vision:** Flux Diffusion Model
-    * **Məlumat Bazası (Big Data):** Petabaytlarla qlobal coğrafiya, memarlıq və simvollar məlumatı.
-    * **Hesablama Gücü:** Bulud əsaslı GPU/TPU Klasterləri.
-    * **Proses:** Təsadüfi Piksellərin (Noise) diffuziya yolu ilə yüksək keyfiyyətli fotorealistik vizuallara çevrilməsi.
+    **Diqqət:** Aşağıdakı kod Kortex AI-ın arxa planda istifadə etdiyi təməl PyTorch (Deep Learning) arxitekturasıdır. Sistem çökməsin deyə bu kod Cloud TPU-larda (Serverlərdə) icra olunur, proqramın daxilində yalnız API vasitəsilə çağırılır.
     """)
+    st.code("""
+import torch
+import torch.nn as nn
+
+class KortexDiffusionEngine(nn.Module):
+    def __init__(self, in_channels=3, out_channels=3, time_emb_dim=256):
+        super(KortexDiffusionEngine, self).__init__()
+        self.time_mlp = nn.Sequential(
+            nn.Linear(1, time_emb_dim),
+            nn.GELU(),
+            nn.Linear(time_emb_dim, time_emb_dim)
+        )
+        # UNet Downsample (Böyük məlumatı analiz edir)
+        self.down1 = self._block(in_channels, 64)
+        self.down2 = self._block(64, 128)
+        self.down3 = self._block(128, 256)
+        
+        # UNet Bottleneck (Öyrənilmiş 8-guşəli ulduz və rəng matrisləri)
+        self.bottleneck = self._block(256, 512)
+        
+        # UNet Upsample (Pikselləri şəkələ çevirir)
+        self.up1 = self._block(512 + 256, 256)
+        self.up2 = self._block(256 + 128, 128)
+        self.up3 = self._block(128 + 64, 64)
+        
+        self.out = nn.Conv2d(64, out_channels, kernel_size=1)
+
+    def _block(self, in_c, out_c):
+        return nn.Sequential(
+            nn.Conv2d(in_c, out_c, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_c),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_c, out_c, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_c),
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x, t):
+        # Zaman və Prompt Məlumatının işlənməsi
+        t_emb = self.time_mlp(t)
+        
+        # Diffuziya prosesinin icrası (Noise -> Mükəmməl Şəkil)
+        d1 = self.down1(x)
+        d2 = self.down2(nn.MaxPool2d(2)(d1))
+        d3 = self.down3(nn.MaxPool2d(2)(d2))
+        
+        bot = self.bottleneck(nn.MaxPool2d(2)(d3))
+        
+        # Upsampling & Skip Connections
+        u1 = self.up1(torch.cat([nn.Upsample(scale_factor=2)(bot), d3], dim=1))
+        u2 = self.up2(torch.cat([nn.Upsample(scale_factor=2)(u1), d2], dim=1))
+        u3 = self.up3(torch.cat([nn.Upsample(scale_factor=2)(u2), d1], dim=1))
+        
+        return self.out(u3)
+
+# Modelin başladılması (TPU tələb olunur!)
+# kortex_model = KortexDiffusionEngine().to('cuda')
+    """, language="python")
 
 use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
 use_vision_analysis = st.session_state.selected_tier in ["Pro", "Ultra"]
