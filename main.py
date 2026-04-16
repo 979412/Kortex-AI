@@ -186,7 +186,7 @@ if uploaded_image is not None:
         st.sidebar.success("✅ Şəkil Kortex-in beyninə yükləndi!")
 
 # ==========================================================
-# QİYMƏT EKRANI VƏ ÖDƏNİŞ
+# QİYMƏT EKRANI VƏ ÖDƏNİŞ (BÜTÜN MƏLUMATLAR GERİ QAYTARILDI)
 # ==========================================================
 if st.session_state.show_pricing:
     if st.button("⬅ Çata Qayıt", use_container_width=False):
@@ -201,7 +201,17 @@ if st.session_state.show_pricing:
         <div class="pricing-card">
             <div class="tier-name">Kortex Basic</div>
             <div class="tier-price">$0 <span>/ay</span></div>
-            <div class="tier-desc"><ul><li>💬 <b>Kortex 3.1 Pro:</b> Şəkil və mətn girişi.</li></ul></div>
+            <div class="tier-desc">
+                <ul>
+                    <li>💬 <b>Kortex 3.1 Pro:</b> Deep Research, Nano Banana Pro ilə şəkil və Veo 3.1 ilə video yaratmaya təkmilləşdirilmiş giriş.</li>
+                    <li>🎥 <b>Flow & Whisk:</b> Kinematik səhnələr və şəkildən video yaratma alətləri.</li>
+                    <li>💎 <b>200</b> Aylıq Sİ krediti.</li>
+                    <li>🌐 <b>Axtarış & NotebookLM:</b> Audio/Video icmallar və testlərə əlavə giriş.</li>
+                    <li>🎼 <b>Producer.ai:</b> Musiqi yaratma platformamıza giriş.</li>
+                    <li>📧 <b>Kortex Tətbiqləri:</b> Gmail, Calendar və Meet üçün birbaşa giriş.</li>
+                    <li>☁️ <b>10 TB Ümumi Yaddaş</b> (Disk, Foto və s.)</li>
+                </ul>
+            </div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Basic Seç", key="btn_b"):
@@ -213,7 +223,18 @@ if st.session_state.show_pricing:
         <div class="pricing-card">
             <div class="tier-name">Kortex Pro</div>
             <div class="tier-price">$12 <span>/ay</span></div>
-            <div class="tier-desc"><ul><li>💬 <b>Kortex 3.1 Pro:</b> Yüksək limitlər.</li></ul></div>
+            <div class="tier-desc">
+                <ul>
+                    <li>💬 <b>Kortex 3.1 Pro:</b> Şəkil, video və Deep Research funksiyalarına daha yüksək giriş əldə edin.</li>
+                    <li>🎥 <b>Flow & Whisk:</b> Kinematik video alətimizə və şəkildən videoya yüksək giriş.</li>
+                    <li>💎 <b>1.000</b> Aylıq Sİ krediti.</li>
+                    <li>🌐 <b>Axtarış & NotebookLM:</b> Tədqiqat partnyorumuza yüksək giriş.</li>
+                    <li>🎼 <b>Producer.ai:</b> Musiqi platformasına yüksək giriş.</li>
+                    <li>🧠 <b>Kortex Antigravity:</b> Agent inkişaf platforması üçün daha yüksək sorğu limitləri.</li>
+                    <li>💻 <b>Developer Program & Studio:</b> Sİ kod agentləri ilə Android inkişafınızı sürətləndirin.</li>
+                    <li>☁️ <b>45 TB Ümumi Yaddaş</b></li>
+                </ul>
+            </div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Pro Əldə Et", key="btn_p"):
@@ -226,7 +247,19 @@ if st.session_state.show_pricing:
         <div class="pricing-card" style="border-color: #1a73e8; background: linear-gradient(to bottom, #ffffff, #f0f7ff);">
             <div class="tier-name">Kortex Ultra 💎</div>
             <div class="tier-price">$95 <span>/ay</span></div>
-            <div class="tier-desc"><ul><li>💬 <b>Maksimal Limitlər:</b> Limitsiz giriş.</li></ul></div>
+            <div class="tier-desc">
+                <ul>
+                    <li>💬 <b>Maksimal Limitlər:</b> Deep Think, Nano Banana Pro və ən son Veo 3.1 video mühərriki.</li>
+                    <li>🎥 <b>Flow & Whisk:</b> Hekayə və kinematik səhnələr üçün maksimal limitlər.</li>
+                    <li>💎 <b>25.000</b> Aylıq Sİ krediti.</li>
+                    <li>🌐 <b>Axtarış & NotebookLM:</b> Maksimal və limitsiz giriş.</li>
+                    <li>🎼 <b>Producer.ai:</b> Birgə musiqi platformasına maksimal giriş.</li>
+                    <li>🧠 <b>Kortex Antigravity:</b> Agent modeli üçün maksimal limitlər.</li>
+                    <li>💻 <b>Developer Program & Studio:</b> CLI, Code Assist və bulud limitləri maksimal sürətdə.</li>
+                    <li>🚫 <b>Premium Əlavə:</b> Reklamsız, oflayn media (YouTube ekvivalenti).</li>
+                    <li>☁️ <b>200 TB Ümumi Yaddaş</b> (Rəqibsiz böyüklükdə)</li>
+                </ul>
+            </div>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Ultra Əldə Et", key="btn_u"):
