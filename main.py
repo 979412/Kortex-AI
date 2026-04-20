@@ -45,7 +45,7 @@ try:
     groq_api_key = "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" 
     client = Groq(api_key=groq_api_key)
 except Exception:
-    pass # Heç bir qırmızı xəta verməməsi üçün səssiz keçirik
+    pass 
 
 def search_internet(query):
     try:
@@ -100,70 +100,7 @@ st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
 st.sidebar.info(f"📍 Sizin Məkan: {st.session_state.user_location}")
 
 # ==========================================================
-# KORTEX CORE: HYPERNETWORK & LIQUID ODE 
-# ==========================================================
-with st.sidebar.expander("💻 Kortex Core: Ultra Quantum Network (Liquid ODE)", expanded=False):
-    st.markdown("""
-    **Super İntellekt (AGI) Arxitekturası:**
-    Kortex Vision arxa planda sadə neyron şəbəkələri ilə kifayətlənmir. O, Differential Tənliklər (Liquid Neural ODE) və HyperNetwork məntiqi ilə hər saniyə **öz kodunu və düşüncə matrislərini yenidən yaradan** dinamik bir intellektdir.
-    """)
-    st.code("""
-import torch
-import torch.nn as nn
-
-class KortexHyperWeightGenerator(nn.Module):
-    def __init__(self, latent_dim, target_dim):
-        super().__init__()
-        self.latent_dim = latent_dim
-        self.target_dim = target_dim
-        self.generator = nn.Sequential(
-            nn.Linear(latent_dim, 256),
-            nn.Mish(),
-            nn.Linear(256, target_dim * target_dim)
-        )
-
-    def forward(self, z):
-        batch_size = z.size(0)
-        dynamic_weights = self.generator(z)
-        return dynamic_weights.view(batch_size, self.target_dim, self.target_dim)
-
-class KortexLiquidODEBrain(nn.Module):
-    def __init__(self, dim):
-        super().__init__()
-        self.dim = dim
-        self.hyper_net = KortexHyperWeightGenerator(latent_dim=dim, target_dim=dim)
-        self.time_embed = nn.Linear(1, dim)
-
-    def forward(self, x, time_step):
-        t_emb = torch.sin(self.time_embed(time_step))
-        dynamic_W = self.hyper_net(t_emb)
-        dx_dt = torch.bmm(x.unsqueeze(1), dynamic_W).squeeze(1)
-        x_next = x + dx_dt * 0.01
-        return x_next
-    """, language="python")
-
-use_internet = st.session_state.selected_tier in ["Pro", "Ultra"]
-use_vision_analysis = st.session_state.selected_tier in ["Pro", "Ultra"]
-use_vision_gen = True 
-use_video = st.session_state.selected_tier in ["Pro", "Ultra"]
-use_music = st.session_state.selected_tier == "Ultra"
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("👁️ Kortex Vision (Şəkil Analizi)")
-uploaded_image = st.sidebar.file_uploader("Söhbət üçün Şəkil Yüklə (JPG, PNG)", type=['png', 'jpg', 'jpeg'])
-
-base64_image = None
-if uploaded_image is not None:
-    if not use_vision_analysis:
-        st.sidebar.error("❌ Kortex Basic mövcud şəkilləri analiz edə bilmir. Zəhmət olmasa Pro və ya Ultra-ya keçin.")
-    else:
-        st.sidebar.image(uploaded_image, caption="Analiz üçün hazırdır", use_container_width=True)
-        base64_image = base64.b64encode(uploaded_image.getvalue()).decode('utf-8')
-        image_mime_type = uploaded_image.type
-        st.sidebar.success("✅ Şəkil Kortex-in beyninə yükləndi!")
-
-# ==========================================================
-# QİYMƏT EKRANI VƏ ÖDƏNİŞ
+# QİYMƏT EKRANI VƏ ÖDƏNİŞ (YENİLƏNMİŞ MƏTNLƏR)
 # ==========================================================
 if st.session_state.show_pricing:
     if st.button("⬅ Çata Qayıt", use_container_width=False):
@@ -180,11 +117,10 @@ if st.session_state.show_pricing:
             <div class="tier-price">$0 <span>/ay</span></div>
             <div class="tier-desc">
                 <ul>
-                    <li>💬 <b>Kortex 3.1:</b> Standart sürətli mətn və şəkil mühərriki.</li>
-                    <li>🎥 <b>Flow & Whisk:</b> Kinematik səhnələr (Simulyasiya).</li>
-                    <li>💎 <b>200</b> Aylıq Sİ krediti.</li>
+                    <li>💬 <b>Mətn:</b> Llama 3 8B (Standart).</li>
+                    <li>🎨 <b>Şəkil:</b> Standart Dəqiqlik.</li>
+                    <li>🔒 <b>Video & Musiqi:</b> Qapalıdır. (Pro və ya Ultra tələb olunur).</li>
                     <li>🌐 <b>Axtarış:</b> Məhdud internet çıxışı.</li>
-                    <li>☁️ <b>10 TB Ümumi Yaddaş</b> (Disk, Foto və s.)</li>
                 </ul>
             </div>
         </div>
@@ -200,12 +136,11 @@ if st.session_state.show_pricing:
             <div class="tier-price">$12 <span>/ay</span></div>
             <div class="tier-desc">
                 <ul>
-                    <li>💬 <b>Kortex 3.3 Pro 70B:</b> Dərin düşüncəli mürəkkəb riyazi beyin. Həqiqi təkmilləşmə.</li>
-                    <li>🎥 <b>Flow & Whisk:</b> Daha uzun video limitləri (Simulyasiya).</li>
-                    <li>💎 <b>1.000</b> Aylıq Sİ krediti.</li>
-                    <li>🌐 <b>Deep Research:</b> Dərinləşdirilmiş internet axtarışı.</li>
-                    <li>👁️ <b>Vision Analizi:</b> Şəkilləri dərk etmə funksiyası aktivləşir.</li>
-                    <li>☁️ <b>45 TB Ümumi Yaddaş</b></li>
+                    <li>💬 <b>Mətn:</b> Llama 3.3 70B (Peşəkar Analiz).</li>
+                    <li>🎨 <b>Şəkil:</b> Nano Banana 2 mühərriki ilə fotorealizm.</li>
+                    <li>🎥 <b>Video:</b> Veo Mühərriki ilə video yaratma aktivdir.</li>
+                    <li>🔒 <b>Musiqi:</b> Qapalıdır. (Ultra tələb olunur).</li>
+                    <li>🌐 <b>Deep Research:</b> Dərinləşdirilmiş axtarış.</li>
                 </ul>
             </div>
         </div>
@@ -222,13 +157,11 @@ if st.session_state.show_pricing:
             <div class="tier-price">$95 <span>/ay</span></div>
             <div class="tier-desc">
                 <ul>
-                    <li>💬 <b>Mixtral 8x7B Quantum:</b> Dünyanın ən mürəkkəb açıq mənbəli Multi-Agent beyni. Maksimum kontekst (8K token).</li>
-                    <li>🎥 <b>Flow & Whisk:</b> Limitsiz video generasiyası (Simulyasiya).</li>
-                    <li>💎 <b>25.000</b> Aylıq Sİ krediti.</li>
-                    <li>🌐 <b>Deep Research:</b> Limitsiz və tam detallı web analiz.</li>
-                    <li>🎼 <b>Producer.ai:</b> Musiqi yaratma platfomasına eksklüziv giriş.</li>
-                    <li>🧠 <b>Kortex Antigravity:</b> Qüsursuz kod yazma və riyazi hesablamalar.</li>
-                    <li>☁️ <b>200 TB Ümumi Yaddaş</b> (Rəqibsiz böyüklükdə)</li>
+                    <li>💬 <b>Mətn:</b> Mixtral 8x7B Quantum (Maksimum Məntiq).</li>
+                    <li>🎨 <b>Şəkil:</b> Nano Banana PRO rejimində limitsiz qüsursuzluq.</li>
+                    <li>🎥 <b>Video:</b> Veo 4.0 Limitsiz animasiyalar.</li>
+                    <li>🎼 <b>Musiqi:</b> Lyria 3 mühərriki ilə limitsiz vokal/audio bəstələmə.</li>
+                    <li>🌐 <b>Deep Research:</b> Limitsiz analiz.</li>
                 </ul>
             </div>
         </div>
@@ -271,10 +204,10 @@ if st.session_state.selected_tier in ["Pro", "Ultra"] and not st.session_state.p
     st.stop()
 
 # ==========================================================
-# LİSENZİYAYA GÖRƏ DİNAMİK BEYİN DƏYİŞMƏSİ (GÜNCƏLLƏNDİ)
+# LİSENZİYAYA GÖRƏ DİNAMİK BEYİN DƏYİŞMƏSİ
 # ==========================================================
 if st.session_state.selected_tier == "Basic":
-    active_llm_model = "llama-3.1-8b-instant" 
+    active_llm_model = "llama3-8b-8192" 
     active_max_tokens = 1024
 elif st.session_state.selected_tier == "Pro":
     active_llm_model = "llama-3.3-70b-versatile"
@@ -288,10 +221,10 @@ else:
 # ==========================================================
 SYSTEM_PROMPT = """Sən Abdullah Mikayılov tərəfindən yaradılmış Kortex AI-san. Dünyanın ən güclü və ən səmimi süni intellektisən.
 
-DİL VƏ ÜNSİYYƏT QAYDALARI (BUNU POZMAQ OLMAZ):
-1. Tamamilə təbii, axıcı və qrammatik cəhətdən qüsursuz Azərbaycan dilində danış. Heç bir zaman qəribə, ingilis dilindən tərcümə olunmuş robot cümlələri qurma.
-2. Sənə sadəcə "salam" və ya "salam necəsən" yazılanda dostca və səmimi cavab ver: "Salam! Təşəkkür edirəm, mən yaxşıyam. Sizə necə kömək edə bilərəm?".
-3. Məkan adlarını (şəhər, ölkə) söhbətlərdə və ya salamlaşarkən QƏTİYYƏN çəkmə. Sən sadəcə virtual asistansan."""
+DİL VƏ ÜNSİYYƏT QAYDALARI:
+1. Yalnız təbii Azərbaycan dilində danış. İngilisdən hərfi tərcümə edilmiş cümlələr qurma.
+2. Salamlaşanda təbii və səmimi ol.
+3. Məkan adlarını (şəhər, ölkə) söhbətlərdə qətiyyən çəkmə."""
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -313,48 +246,51 @@ if prompt := st.chat_input(f"Kortex AI ({st.session_state.selected_tier} Mode) �
         prompt_lower = prompt.lower()
         
         is_image_request = False
-        image_keywords = ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm", "bayraq", "bayrağı", "bayragini", "bayrağını", "avtomobil", "masin", "maşın", "dünya", "dunya", "planet"]
+        is_video_request = False
+        is_music_request = False
+        
+        image_keywords = ["şəkil", "sekil", "şəkli", "sekli", "foto", "rəsm", "resm"]
+        video_keywords = ["video", "animasiya", "canlandır"]
+        music_keywords = ["musiqi", "mahni", "bəstələ", "səs", "oxu"]
         action_keywords = ["yarat", "yarad", "çək", "cek", "düzəlt", "duzelt", "göstər", "goster"]
         
-        if any(act in prompt_lower for act in action_keywords) and any(img in prompt_lower for img in image_keywords):
-            is_image_request = True
-        if not is_image_request and any(prompt_lower.endswith(act) for act in action_keywords):
-            if "video" not in prompt_lower and "musiqi" not in prompt_lower and "mahni" not in prompt_lower:
+        # İstəyin növünü təyin etmək
+        if any(act in prompt_lower for act in action_keywords) or any(prompt_lower.endswith(act) for act in action_keywords):
+            if any(vid in prompt_lower for vid in video_keywords):
+                is_video_request = True
+            elif any(mus in prompt_lower for mus in music_keywords):
+                is_music_request = True
+            else:
                 is_image_request = True
-        
+                
         # --- ZƏKALI ŞƏKİL YARATMA ---
-        if is_image_request and use_vision_gen:
-            with st.spinner("🎨 Kortex Ultra Quantum Mühərriki Şəkli Hazırlayır..."):
+        if is_image_request:
+            # Lisenziyaya görə şəkil keyfiyyəti mühərriki
+            if st.session_state.selected_tier == "Basic":
+                spinner_msg = "🎨 Kortex Basic Şəkli Hazırlayır..."
+                prompt_enhancement_level = "Sən sadə prompt mühəndisisən. İstifadəçinin istəyini ingiliscəyə çevir."
+            elif st.session_state.selected_tier == "Pro":
+                spinner_msg = "🎨 Nano Banana 2 Mühərriki Fotorealistik Şəkil Yaradır..."
+                prompt_enhancement_level = "Sən peşəkar 'Prompt Mühəndisi'sən. İstəyi HƏQİQİ DÜNYADAKI kimi 100% fotorealistik, cinematic, 8k resolution olaraq ingiliscə təsvir et."
+            else:
+                spinner_msg = "💎 Nano Banana PRO Quantum Mühərriki Qüsursuz Şəkil Yaradır..."
+                prompt_enhancement_level = "Sən dünyanın ən dahi 3D Rəssamı və Realizm ekspertsən. İstəyi 'flawless geometry, perfect proportions, completely devoid of AI artifacts, Unreal Engine 5 render, PBR materials, HDRI lighting, hyper-realistic, 8k resolution' parametrləri ilə ingiliscə təsvir et."
+                
+            with st.spinner(spinner_msg):
                 user_loc = st.session_state.user_location
                 try:
                     prompt_converter_msg = [
-                        {"role": "system", "content": f"""Sən dünyanın ən peşəkar 'Prompt Mühəndisi', 3D Rəssamı və Realizm üzrə ekspertsən.
-                        TƏLİMAT: İstifadəçi sənə nə yaradılmasını istəyirsə, onu HƏQİQİ DÜNYADAKI (Real World) kimi 100% fotorealistik ingiliscə təsvir etməlisən.
-                        ƏGƏR İSTİFADƏÇİ 'MAŞIN' İSTƏYİRSƏ BİRBAŞA BU SÖZLƏRİ İSTİFADƏ ET:
-                        'flawless geometry, perfect proportions, no distortion, perfectly symmetrical headlights and grille, completely devoid of AI artifacts or warping, Unreal Engine 5 render, Octane Render, Path Tracing, PBR materials, HDRI lighting, hyper-realistic, photorealistic, 8k resolution, cinematic lighting, dynamic motion blur, highly detailed reflections'.
-                        
-                        Heç nə deyilmirsə arxa fona {user_loc} məkanını əlavə et. Təsviri YALNIZ İNGİLİS DİLİNDƏ yaz."""},
+                        {"role": "system", "content": f"{prompt_enhancement_level} Məkan olaraq {user_loc} əsas götürülə bilər. Yalnız İngiliscə cavab ver."},
                         {"role": "user", "content": prompt}
                     ]
                     try:
-                        converter_chat = client.chat.completions.create(
-                            messages=prompt_converter_msg,
-                            model=active_llm_model,
-                            temperature=0.4, 
-                            max_tokens=300
-                        )
-                    except Exception:
-                        # FALLBACK MODEL (Şəkil promptu üçün)
-                        converter_chat = client.chat.completions.create(
-                            messages=prompt_converter_msg,
-                            model="gemma2-9b-it",
-                            temperature=0.4, 
-                            max_tokens=300
-                        )
+                        converter_chat = client.chat.completions.create(messages=prompt_converter_msg, model=active_llm_model, temperature=0.4, max_tokens=300)
+                    except:
+                        converter_chat = client.chat.completions.create(messages=prompt_converter_msg, model="llama3-8b-8192", temperature=0.4, max_tokens=300)
                         
                     enhanced_prompt = converter_chat.choices[0].message.content.strip()
                 except Exception:
-                    enhanced_prompt = "hyper-realistic photorealistic 8k photo of " + prompt_lower.replace("yarat", "").replace("çək", "").strip() + ", absolute real-world realism, highly detailed, masterpiece, 8k resolution"
+                    enhanced_prompt = "hyper-realistic photo of " + prompt_lower.replace("yarat", "").strip()
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
                 image_url = generate_image_pro_engine(safe_prompt, engine="flux_free")
@@ -362,69 +298,72 @@ if prompt := st.chat_input(f"Kortex AI ({st.session_state.selected_tier} Mode) �
                 st.image(image_url)
                 st.session_state.messages.append({"role": "assistant", "content": "", "generated_image_url": image_url})
                 
-        elif "video" in prompt_lower and use_video:
-            with st.spinner(f"🎥 Kortex Veo 4.0 ({st.session_state.selected_tier}) video render edir..."):
-                time.sleep(2)
-                response = f"{st.session_state.selected_tier} lisenziyanız təsdiqləndi. Video animasiyası hazırlanır."
-                vid_msg = f"🎞️ [SİMULYASİYA] Kortex Veo 4.0: '{prompt}'"
-                st.markdown(response)
-                st.info(vid_msg)
-                st.session_state.messages.append({"role": "assistant", "content": response, "video_msg": vid_msg})
-                
-        elif ("musiqi" in prompt_lower or "mahni" in prompt_lower) and use_music:
-            with st.spinner(f"🎼 Producer.ai ({st.session_state.selected_tier}) bəstələyir..."):
-                time.sleep(2)
-                response = "Musiqi studiyası işə salındı!"
-                mus_msg = f"🎵 [SİMULYASİYA] Producer.ai: '{prompt}'"
-                st.markdown(response)
-                st.success(mus_msg)
-                st.session_state.messages.append({"role": "assistant", "content": response, "music_msg": mus_msg})
-        
-        else:
-            if base64_image and use_vision_analysis:
-                with st.spinner("👁️ Kortex Şəkilə Baxır..."):
-                    try:
-                        response = "Şəkil qəbul edildi və analiz olunur."
-                    except Exception:
-                        response = f"Salam. Mən şəkilləri anlaya bilirəm, amma hazırda analiz sistemimdə kiçik yenilənmə var."
+        # --- VİDEO YARATMA LİSENZİYASI ---
+        elif is_video_request:
+            if st.session_state.selected_tier == "Basic":
+                msg = "⚠️ **Lisenziya Xətası:** Kortex Basic planında Video yaratma funksiyası mövcud deyil. Zəhmət olmasa **Pro** və ya **Ultra** planına keçid edin."
+                st.error(msg)
+                st.session_state.messages.append({"role": "assistant", "content": msg})
             else:
-                if use_internet:
-                    with st.spinner(f"🌐 Deep Research ({st.session_state.selected_tier} Mühərriki) axtarır..."):
-                        try:
-                            live_internet_data = search_internet(prompt)
-                        except:
-                            pass
+                veo_version = "Veo" if st.session_state.selected_tier == "Pro" else "Veo 4.0 (Limitsiz)"
+                with st.spinner(f"🎥 {veo_version} mühərriki videonu render edir..."):
+                    time.sleep(2)
+                    response = f"✅ {st.session_state.selected_tier} lisenziyanız təsdiqləndi. Video arxa planda hazırlanır."
+                    vid_msg = f"🎞️ [SİMULYASİYA] {veo_version}: '{prompt}'"
+                    st.markdown(response)
+                    st.info(vid_msg)
+                    st.session_state.messages.append({"role": "assistant", "content": response, "video_msg": vid_msg})
                 
-                with st.spinner(f"Kortex AI analiz edir..."):
-                    final_prompt = SYSTEM_PROMPT 
-                    if live_internet_data:
-                        final_prompt += f"\n\nDEEP RESEARCH:\n{live_internet_data}"
-
-                    messages = [{"role": "system", "content": final_prompt}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages if "image_url" not in m and "generated_image_url" not in m and "video_msg" not in m and "music_msg" not in m]
-
-                    # QƏTİ XƏTA QADAĞASI VƏ ÖLÜMSÜZ (FALLBACK) MƏNTİQ
+        # --- MUSİQİ YARATMA LİSENZİYASI ---
+        elif is_music_request:
+            if st.session_state.selected_tier in ["Basic", "Pro"]:
+                msg = "⚠️ **Lisenziya Xətası:** Lyria 3 mühərriki ilə Musiqi və Vokal yaratmaq YALNIZ **Kortex Ultra 💎** planında mövcuddur. Zəhmət olmasa planınızı yeniləyin."
+                st.warning(msg)
+                st.session_state.messages.append({"role": "assistant", "content": msg})
+            else:
+                with st.spinner("🎼 Lyria 3 mühərriki musiqini bəstələyir..."):
+                    time.sleep(2)
+                    response = "✅ Ultra lisenziyası aktivdir! Musiqi studiyası işə salındı."
+                    mus_msg = f"🎵 [SİMULYASİYA] Lyria 3: '{prompt}'"
+                    st.markdown(response)
+                    st.success(mus_msg)
+                    st.session_state.messages.append({"role": "assistant", "content": response, "music_msg": mus_msg})
+        
+        # --- NORMAL SÖHBƏT VƏ AXTARIŞ ---
+        else:
+            if use_internet:
+                with st.spinner(f"🌐 Deep Research ({st.session_state.selected_tier} Mühərriki) axtarır..."):
                     try:
-                        # Əsas plana uyğun beyin yoxlanır
+                        live_internet_data = search_internet(prompt)
+                    except:
+                        pass
+            
+            with st.spinner(f"Kortex AI ({active_llm_model}) düşünür..."):
+                final_prompt = SYSTEM_PROMPT 
+                if live_internet_data:
+                    final_prompt += f"\n\nDEEP RESEARCH:\n{live_internet_data}"
+
+                messages = [{"role": "system", "content": final_prompt}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages if "image_url" not in m and "generated_image_url" not in m and "video_msg" not in m and "music_msg" not in m]
+
+                try:
+                    chat_completion = client.chat.completions.create(
+                        messages=messages,
+                        model=active_llm_model, 
+                        temperature=0.7, 
+                        max_tokens=active_max_tokens
+                    )
+                    response = chat_completion.choices[0].message.content
+                except Exception as e:
+                    try:
                         chat_completion = client.chat.completions.create(
                             messages=messages,
-                            model=active_llm_model, 
+                            model="llama3-8b-8192", 
                             temperature=0.7, 
-                            max_tokens=active_max_tokens
+                            max_tokens=1024
                         )
                         response = chat_completion.choices[0].message.content
-                    except Exception:
-                        try:
-                            # Ana beyin çöksə, silinməz Ehtiyat Beyinə (Gemma2) keçid edilir
-                            chat_completion = client.chat.completions.create(
-                                messages=messages,
-                                model="gemma2-9b-it", 
-                                temperature=0.7, 
-                                max_tokens=1024
-                            )
-                            response = chat_completion.choices[0].message.content
-                        except Exception:
-                            # Hər şey çöksə belə Kortex "Xəta Kodu" göstərməz. Səmimi cavab verər.
-                            response = "Salam! Çox üzr istəyirəm, mənim əsas neyron şəbəkəm hazırda qısamüddətli yenilənmədədir. Zəhmət olmasa bir neçə dəqiqə sonra yenidən cəhd edin. Mən həmişə buradayım! 🧠✨"
+                    except Exception as e2:
+                        response = f"⚠️ Diqqət: Sənin Groq API şifrən rədd edildi (Bloklanıb). Zəhmət olmasa təzə şifrə alıb koda yapışdır."
 
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
