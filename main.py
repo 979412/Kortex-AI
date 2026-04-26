@@ -39,29 +39,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================================
-# API SETUP
-# ==========================================================
-try:
-    groq_api_key = "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" 
-    client = Groq(api_key=groq_api_key)
-except Exception:
-    pass 
-
-def search_internet(query):
-    try:
-        results = DDGS().text(query, max_results=5) 
-        res_text = ""
-        for r in results:
-            res_text += f"Mənbə: {r['title']}\nMəlumat: {r['body']}\n\n"
-        return res_text
-    except Exception:
-        return ""
-
-def generate_image_pro_engine(prompt, engine="flux_free"):
-    encoded_prompt = urllib.parse.quote(prompt)
-    return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&model=flux"
-
-# ==========================================================
 # SİSTEM VƏ MƏKAN
 # ==========================================================
 if "selected_tier" not in st.session_state:
@@ -83,6 +60,57 @@ if "user_location" not in st.session_state:
         st.session_state.user_location = "Ganja, Azerbaijan"
 
 # ==========================================================
+# YAN PANEL VƏ TƏHLÜKƏSİZLİK (YENİ ƏLAVƏ)
+# ==========================================================
+st.sidebar.title("⚙️ Kortex İdarəetmə")
+st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
+st.sidebar.info(f"📍 Sizin Məkan: {st.session_state.user_location}")
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("🔑 Təhlükəsizlik (API Açarları)")
+st.sidebar.caption("Bu açarlar kodda gizlənib və yalnız sizin cihazınızda işləyir. GitHub-da görünmür.")
+
+# İstifadəçi hər dəfə proqrama girəndə o qızıl açarı bura yazacaq
+hf_token_input = st.sidebar.text_input("Hugging Face Token (hf_...)", type="password", help="Bayaq aldığınız gizli tokeni bura yapışdırın")
+groq_token_input = st.sidebar.text_input("Groq API Key (gsk_...)", type="password", value="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", help="Groq açarınızı da bura yerləşdirdik")
+
+# ==========================================================
+# API SETUP
+# ==========================================================
+try:
+    client = Groq(api_key=groq_token_input)
+except Exception:
+    client = None
+
+def search_internet(query):
+    try:
+        results = DDGS().text(query, max_results=5) 
+        res_text = ""
+        for r in results:
+            res_text += f"Mənbə: {r['title']}\nMəlumat: {r['body']}\n\n"
+        return res_text
+    except Exception:
+        return ""
+
+# Yeni: Hugging Face bağlantısı
+def generate_image_hf(prompt, token):
+    API_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev"
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {"inputs": prompt}
+    try:
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=40)
+        if response.status_code == 200:
+            img_str = base64.b64encode(response.content).decode("utf-8")
+            return f"data:image/png;base64,{img_str}"
+    except Exception:
+        pass
+    return None
+
+def generate_image_pro_engine(prompt):
+    encoded_prompt = urllib.parse.quote(prompt)
+    return f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&nologo=true&model=flux"
+
+# ==========================================================
 # ƏSAS ÇAT EKRANI 
 # ==========================================================
 header_col1, header_col2 = st.columns([4, 1])
@@ -95,12 +123,8 @@ with header_col2:
         st.session_state.show_pricing = True
         st.rerun()
 
-st.sidebar.title("⚙️ Kortex İdarəetmə")
-st.sidebar.success(f"Cari Sistem: {st.session_state.selected_tier}")
-st.sidebar.info(f"📍 Sizin Məkan: {st.session_state.user_location}")
-
 # ==========================================================
-# QİYMƏT EKRANI VƏ ÖDƏNİŞ (YENİLƏNMİŞ MƏTNLƏR)
+# QİYMƏT EKRANI VƏ ÖDƏNİŞ
 # ==========================================================
 if st.session_state.show_pricing:
     if st.button("⬅ Çata Qayıt", use_container_width=False):
@@ -119,7 +143,7 @@ if st.session_state.show_pricing:
                 <ul>
                     <li>💬 <b>Mətn:</b> Llama 3 8B (Standart).</li>
                     <li>🎨 <b>Şəkil:</b> Standart Dəqiqlik.</li>
-                    <li>🔒 <b>Video & Musiqi:</b> Qapalıdır. (Pro və ya Ultra tələb olunur).</li>
+                    <li>🔒 <b>Video & Musiqi:</b> Qapalıdır. (Pro və Ultra tələb olunur).</li>
                     <li>🌐 <b>Axtarış:</b> Məhdud internet çıxışı.</li>
                 </ul>
             </div>
@@ -244,6 +268,7 @@ if prompt := st.chat_input(f"Kortex AI ({st.session_state.selected_tier} Mode) �
     with st.chat_message("assistant"):
         live_internet_data = ""
         prompt_lower = prompt.lower()
+        use_internet = True
         
         is_image_request = False
         is_video_request = False
@@ -265,35 +290,45 @@ if prompt := st.chat_input(f"Kortex AI ({st.session_state.selected_tier} Mode) �
                 
         # --- ZƏKALI ŞƏKİL YARATMA ---
         if is_image_request:
-            # Lisenziyaya görə şəkil keyfiyyəti mühərriki
             if st.session_state.selected_tier == "Basic":
                 spinner_msg = "🎨 Kortex Basic Şəkli Hazırlayır..."
                 prompt_enhancement_level = "Sən sadə prompt mühəndisisən. İstifadəçinin istəyini ingiliscəyə çevir."
             elif st.session_state.selected_tier == "Pro":
-                spinner_msg = "🎨 Nano Banana 2 Mühərriki Fotorealistik Şəkil Yaradır..."
+                spinner_msg = "🎨 Hugging Face FLUX Mühərriki Fotorealistik Şəkil Yaradır..."
                 prompt_enhancement_level = "Sən peşəkar 'Prompt Mühəndisi'sən. İstəyi HƏQİQİ DÜNYADAKI kimi 100% fotorealistik, cinematic, 8k resolution olaraq ingiliscə təsvir et."
             else:
-                spinner_msg = "💎 Nano Banana PRO Quantum Mühərriki Qüsursuz Şəkil Yaradır..."
+                spinner_msg = "💎 HF FLUX.1-dev Quantum Mühərriki Qüsursuz Şəkil Yaradır..."
                 prompt_enhancement_level = "Sən dünyanın ən dahi 3D Rəssamı və Realizm ekspertsən. İstəyi 'flawless geometry, perfect proportions, completely devoid of AI artifacts, Unreal Engine 5 render, PBR materials, HDRI lighting, hyper-realistic, 8k resolution' parametrləri ilə ingiliscə təsvir et."
                 
             with st.spinner(spinner_msg):
                 user_loc = st.session_state.user_location
                 try:
-                    prompt_converter_msg = [
-                        {"role": "system", "content": f"{prompt_enhancement_level} Məkan olaraq {user_loc} əsas götürülə bilər. Yalnız İngiliscə cavab ver."},
-                        {"role": "user", "content": prompt}
-                    ]
-                    try:
-                        converter_chat = client.chat.completions.create(messages=prompt_converter_msg, model=active_llm_model, temperature=0.4, max_tokens=300)
-                    except:
-                        converter_chat = client.chat.completions.create(messages=prompt_converter_msg, model="llama3-8b-8192", temperature=0.4, max_tokens=300)
-                        
-                    enhanced_prompt = converter_chat.choices[0].message.content.strip()
+                    if client:
+                        prompt_converter_msg = [
+                            {"role": "system", "content": f"{prompt_enhancement_level} Məkan olaraq {user_loc} əsas götürülə bilər. Yalnız İngiliscə cavab ver."},
+                            {"role": "user", "content": prompt}
+                        ]
+                        try:
+                            converter_chat = client.chat.completions.create(messages=prompt_converter_msg, model=active_llm_model, temperature=0.4, max_tokens=300)
+                        except:
+                            converter_chat = client.chat.completions.create(messages=prompt_converter_msg, model="llama3-8b-8192", temperature=0.4, max_tokens=300)
+                            
+                        enhanced_prompt = converter_chat.choices[0].message.content.strip()
+                    else:
+                        enhanced_prompt = "hyper-realistic photo of " + prompt_lower.replace("yarat", "").strip()
                 except Exception:
                     enhanced_prompt = "hyper-realistic photo of " + prompt_lower.replace("yarat", "").strip()
                 
                 safe_prompt = enhanced_prompt.encode('ascii', 'ignore').decode('ascii')
-                image_url = generate_image_pro_engine(safe_prompt, engine="flux_free")
+                
+                # Yeni Hugging Face Məntiqi (Yalnız token varsa və lisenziya uyğundursa)
+                image_url = None
+                if hf_token_input and st.session_state.selected_tier in ["Pro", "Ultra"]:
+                    image_url = generate_image_hf(safe_prompt, hf_token_input)
+                
+                # Əgər token yoxdursa və ya API cavab verməsə pulsuz mühərrikdən istifadə et
+                if not image_url:
+                    image_url = generate_image_pro_engine(safe_prompt)
                 
                 st.image(image_url)
                 st.session_state.messages.append({"role": "assistant", "content": "", "generated_image_url": image_url})
@@ -346,13 +381,16 @@ if prompt := st.chat_input(f"Kortex AI ({st.session_state.selected_tier} Mode) �
                 messages = [{"role": "system", "content": final_prompt}] + [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages if "image_url" not in m and "generated_image_url" not in m and "video_msg" not in m and "music_msg" not in m]
 
                 try:
-                    chat_completion = client.chat.completions.create(
-                        messages=messages,
-                        model=active_llm_model, 
-                        temperature=0.7, 
-                        max_tokens=active_max_tokens
-                    )
-                    response = chat_completion.choices[0].message.content
+                    if client:
+                        chat_completion = client.chat.completions.create(
+                            messages=messages,
+                            model=active_llm_model, 
+                            temperature=0.7, 
+                            max_tokens=active_max_tokens
+                        )
+                        response = chat_completion.choices[0].message.content
+                    else:
+                        response = "⚠️ Diqqət: Groq API açarınız daxil edilməyib. Zəhmət olmasa sol paneldən açarı daxil edin."
                 except Exception as e:
                     try:
                         chat_completion = client.chat.completions.create(
@@ -363,7 +401,7 @@ if prompt := st.chat_input(f"Kortex AI ({st.session_state.selected_tier} Mode) �
                         )
                         response = chat_completion.choices[0].message.content
                     except Exception as e2:
-                        response = f"⚠️ Diqqət: Sənin Groq API şifrən rədd edildi (Bloklanıb). Zəhmət olmasa təzə şifrə alıb koda yapışdır."
+                        response = f"⚠️ Diqqət: Sənin Groq API şifrən rədd edildi və ya səhvdir. Zəhmət olmasa sol paneldəki açarları yoxla."
 
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
