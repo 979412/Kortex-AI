@@ -60,17 +60,11 @@ if "user_location" not in st.session_state:
         st.session_state.user_location = "Ganja, Azerbaijan"
 
 # ==========================================================
-# GİZLİ KASSA (STREAMLIT SECRETS)
+# BİRBAŞA ŞİFRƏLƏR (KODUN İÇİNDƏ)
 # ==========================================================
-try:
-    groq_token_input = st.secrets["GROQ_API_KEY"]
-except:
-    groq_token_input = None
-
-try:
-    hf_token_input = st.secrets["HF_TOKEN"]
-except:
-    hf_token_input = None
+# Qeyd: Sənin verdiyin şifrələr birbaşa bura qoyuldu. Heç bir ayar lazım deyil.
+groq_token_input = "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"
+hf_token_input = "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"
 
 # ==========================================================
 # YAN PANEL (YALNIZ MƏLUMAT)
@@ -412,7 +406,7 @@ if prompt := st.chat_input(f"Kortex AI ({st.session_state.selected_tier} Mode) �
                         )
                         response = chat_completion.choices[0].message.content
                     except Exception as e2:
-                        response = f"⚠️ Sistem Xətası: Arxa plandakı Groq API şifrəsi bloka düşüb. Kortex-i işlətmək üçün admin yeni şifrə təyin etməlidir."
+                        response = f"⚠️ Sistem Xətası: Arxa plandakı Groq API şifrəsi bloka düşüb. Lütfən GitHub-da yeni şifrə təyin edin."
 
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
