@@ -392,18 +392,21 @@ if prompt := st.chat_input(f"Kortex AI ({st.session_state.selected_tier} Mode) �
                         )
                         response = chat_completion.choices[0].message.content
                     else:
-                        response = "Kortex mühərriki hazırda bağlantı gözləyir. Arxa planda sistem işə salınır..."
-                except Exception as e:
+                        response = "Kortex mühərriki hazırda bağlantı gözləyir. Arxa planda sistem işə salınır... (Diqqət: API şifrənizi daxil etməyi unutmayın)"
+                except Exception:
                     try:
-                        chat_completion = client.chat.completions.create(
-                            messages=messages,
-                            model="llama3-8b-8192", 
-                            temperature=0.7, 
-                            max_tokens=1024
-                        )
-                        response = chat_completion.choices[0].message.content
-                    except Exception as e2:
-                        response = "Kortex mühərriki hazırda bağlantı gözləyir. Arxa planda sistem işə salınır..."
+                        if client:
+                            chat_completion = client.chat.completions.create(
+                                messages=messages,
+                                model="llama3-8b-8192", 
+                                temperature=0.7, 
+                                max_tokens=1024
+                            )
+                            response = chat_completion.choices[0].message.content
+                        else:
+                            response = "Kortex mühərriki hazırda bağlantı gözləyir. Arxa planda sistem işə salınır... (Diqqət: API şifrənizi daxil etməyi unutmayın)"
+                    except Exception:
+                        response = "Kortex mühərriki hazırda bağlantı gözləyir. Arxa planda sistem işə salınır... (Diqqət: API şifrənizi daxil etməyi unutmayın)"
 
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
