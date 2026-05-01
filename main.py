@@ -62,8 +62,8 @@ if "user_location" not in st.session_state:
 # ==========================================================
 # BİRBAŞA ŞİFRƏLƏR (QÜSURSUZ YOL)
 # ==========================================================
-# Qardaşım, sadəcə təzə aldığın şifrələri bu dırnaqların içinə qoy:
-groq_token_input = "BURA_TEZE_GROQ_SIFRESINI_YAZ"
+# Sizin verdiyiniz şifrə bura daxil edildi
+groq_token_input = "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"
 hf_token_input = "BURA_TEZE_HUGGINGFACE_SIFRESINI_YAZ"
 
 # ==========================================================
