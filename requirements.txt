@@ -1,5 +1,0 @@
-streamlit
-groq
-duckduckgo-search
-requests
-openai
