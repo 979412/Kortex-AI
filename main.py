@@ -4,13 +4,12 @@ import google.generativeai as genai
 # Səhifənin dizaynını və adını tənzimləyirik
 st.set_page_config(page_title="Kortex AI", page_icon="🧠")
 
-# Kortex-in oyanması üçün lazım olan API AÇARI
 # DİQQƏT: Aşağıdakı dırnaq içərisinə öz API açarını yazmalısan!
 API_KEY = "SƏNİN_API_AÇARIN_BURADA_OLACAQ" 
 
 genai.configure(api_key=API_KEY)
 
-# Kortex-ə xüsusi bir xarakter və güc veririk (System Instruction)
+# Kortex-ə xüsusi bir xarakter və güc veririk
 kortex_xarakteri = """
 Sən Kortex-sən. Çox güclü, sürətli və ağıllı bir süni intellektsən. 
 Sənin yaradıcın Abdullah adlı gənc və istedadlı bir proqramçıdır. 
@@ -27,7 +26,7 @@ model = genai.GenerativeModel(
 st.title("🧠 Kortex AI")
 st.write("Salam! Mən Kortex. Sizin şəxsi və çox güclü süni intellekt köməkçinizəm. Mənə istədiyiniz sualı verə bilərsiniz.")
 
-# Yaddaş sistemini qururuq (Əvvəlki mesajların silinməməsi üçün)
+# Yaddaş sistemini qururuq
 if "mesajlar" not in st.session_state:
     st.session_state.mesajlar = []
 
@@ -36,9 +35,10 @@ for mesaj in st.session_state.mesajlar:
     with st.chat_message(mesaj["rol"]):
         st.markdown(mesaj["mətn"])
 
-# İstifadəçidən yeni sual alırıq
-if sual = st.chat_input("Kortex-ə sualınızı yazın..."):
-    
+# XƏTANIN DÜZƏLDİLDİYİ YER: Sualı ayrı qəbul edib, sonra if ilə yoxlayırıq
+sual = st.chat_input("Kortex-ə sualınızı yazın...")
+
+if sual:
     # 1. İstifadəçinin sualını ekrana və yaddaşa əlavə edirik
     st.session_state.mesajlar.append({"rol": "user", "mətn": sual})
     with st.chat_message("user"):
@@ -67,4 +67,4 @@ if sual = st.chat_input("Kortex-ə sualınızı yazın..."):
                 st.session_state.mesajlar.append({"rol": "model", "mətn": cavab.text})
                 
         except Exception as e:
-            st.error("Bağışlayın, sistemdə xəta baş verdi. API açarınızın düzgün olduğundan əmin olun.")
+            st.error(f"Bağışlayın, sistemdə xəta baş verdi: {e}")
