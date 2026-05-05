@@ -5,7 +5,7 @@ from groq import Groq
 st.set_page_config(page_title="Kortex AI", page_icon="🧠")
 
 # DİQQƏT: Bura Groq-dan aldığın YENİ API açarını yazmalısan!
-API_KEY = "SƏNİN_GROQ_API_AÇARIN" 
+API_KEY = "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" 
 
 # Kortex-ə xüsusi bir xarakter və güc veririk
 kortex_xarakteri = """
