@@ -1,32 +1,30 @@
+import streamlit as st
 import google.generativeai as genai
 
 # Kortex-in oyanması üçün lazım olan sehrli açar (API Key) bura yazılacaq
+# "SƏNİN_API_AÇARIN_BURADA_OLACAQ" yazısını öz açarınla əvəz etməyi unutma!
 genai.configure(api_key="SƏNİN_API_AÇARIN_BURADA_OLACAQ")
 
-# Kortex-in beyni kimi istifadə edəcəyimiz modeli seçirik
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-def kortex_sistemi():
-    print("*" * 50)
-    print("Salam! Mən Kortex. Sizin şəxsi və çox güclü süni intellekt köməkçinizəm.")
-    print("Sistem tam aktivdir. (Sistemi dayandırmaq üçün 'cixis' yazın)")
-    print("*" * 50)
+# Vebsaytın başlığı və dizaynı
+st.title("🧠 Kortex AI")
+st.write("Salam! Mən Kortex. Sizin şəxsi və çox güclü süni intellekt köməkçinizəm. Mənə istədiyiniz sualı verə bilərsiniz.")
 
-    while True:
-        sual = input("\nSualınızı yazın: ")
-        
-        if sual.lower() == "cixis":
-            print("Kortex: Sistem bağlanır. Yenə görüşərik!")
-            break
-            
-        print("Kortex düşünür...")
-        
-        # Kortex sualı öz beyninə (API-yə) göndərir və avtomatik cavab hazırlayır
+# İstifadəçinin sual yazması üçün qəşəng bir chat qutusu
+sual = st.chat_input("Kortex-ə sualınızı yazın...")
+
+# Əgər istifadəçi sual yazsa, bu hissə işə düşür
+if sual:
+    # İstifadəçinin sualını ekranda göstəririk
+    with st.chat_message("user"):
+        st.write(sual)
+    
+    # Kortex-in cavabını ekranda göstəririk
+    with st.chat_message("assistant"):
         try:
+            # Kortex düşünür və cavab verir
             cavab = model.generate_content(sual)
-            print(f"\nKortex: {cavab.text}")
+            st.write(cavab.text)
         except Exception as e:
-            print("\nKortex: Bağışlayın, nəsə xəta baş verdi. Zəhmət olmasa bir də cəhd edin.")
-
-# Sistemi işə salırıq
-kortex_sistemi()
+            st.error("Bağışlayın, sistemdə xəta baş verdi. API açarınızı düzgün qoyduğunuzdan əmin olun.")
