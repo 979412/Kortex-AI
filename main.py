@@ -5,7 +5,7 @@ import google.generativeai as genai
 st.set_page_config(page_title="Kortex AI", page_icon="🧠")
 
 # DİQQƏT: Aşağıdakı dırnaq içərisinə öz API açarını yazmalısan!
-API_KEY = "SƏNİN_API_AÇARIN_BURADA_OLACAQ" 
+API_KEY = "AIzaSyCzGlsZa7Bjtdomm7ZhCZIucb5FRWmEFEg" 
 
 genai.configure(api_key=API_KEY)
 
