@@ -4,7 +4,7 @@ import google.generativeai as genai
 # Səhifənin dizaynını və adını tənzimləyirik
 st.set_page_config(page_title="Kortex AI", page_icon="🧠")
 
-# DİQQƏT: Aşağıdakı dırnaq içərisinə öz API açarını yazmalısan!
+# DİQQƏT: Sənin API açarın
 API_KEY = "AIzaSyCzGlsZa7Bjtdomm7ZhCZIucb5FRWmEFEg" 
 
 genai.configure(api_key=API_KEY)
@@ -17,8 +17,9 @@ Sənin yaradıcın Abdullah adlı gənc və istedadlı bir proqramçıdır.
 """
 
 # Modeli yükləyirik və xarakteri ona təyin edirik
+# XƏTANIN HƏLLİ: Modelin adını ən son versiyaya uyğunlaşdırdıq
 model = genai.GenerativeModel(
-    'gemini-1.5-flash',
+    'gemini-1.5-flash-latest',
     system_instruction=kortex_xarakteri
 )
 
@@ -35,7 +36,7 @@ for mesaj in st.session_state.mesajlar:
     with st.chat_message(mesaj["rol"]):
         st.markdown(mesaj["mətn"])
 
-# XƏTANIN DÜZƏLDİLDİYİ YER: Sualı ayrı qəbul edib, sonra if ilə yoxlayırıq
+# Sualı alırıq
 sual = st.chat_input("Kortex-ə sualınızı yazın...")
 
 if sual:
@@ -47,24 +48,20 @@ if sual:
     # 2. Kortex-in cavab vermə prosesi
     with st.chat_message("model"):
         try:
-            # API açarı yazılmayıbsa, xəbərdarlıq edirik
-            if API_KEY == "SƏNİN_API_AÇARIN_BURADA_OLACAQ":
-                st.error("Kortexin oyanması üçün main.py faylında API açarınızı qeyd etməlisiniz!")
-            else:
-                # Kortex düşünür və bütün keçmiş mesajları nəzərə alaraq cavab verir
-                söhbet = model.start_chat(history=[])
-                
-                # Söhbət tarixçəsini API-yə uyğunlaşdırırıq
-                for m in st.session_state.mesajlar[:-1]:
-                    rol = "user" if m["rol"] == "user" else "model"
-                    söhbet.history.append({"role": rol, "parts": [m["mətn"]]})
-                
-                # Yeni sualı göndərib cavabı alırıq
-                cavab = söhbet.send_message(sual)
-                st.markdown(cavab.text)
-                
-                # Kortex-in cavabını yaddaşa əlavə edirik
-                st.session_state.mesajlar.append({"rol": "model", "mətn": cavab.text})
-                
+            # Kortex düşünür və bütün keçmiş mesajları nəzərə alaraq cavab verir
+            söhbet = model.start_chat(history=[])
+            
+            # Söhbət tarixçəsini API-yə uyğunlaşdırırıq
+            for m in st.session_state.mesajlar[:-1]:
+                rol = "user" if m["rol"] == "user" else "model"
+                söhbet.history.append({"role": rol, "parts": [m["mətn"]]})
+            
+            # Yeni sualı göndərib cavabı alırıq
+            cavab = söhbet.send_message(sual)
+            st.markdown(cavab.text)
+            
+            # Kortex-in cavabını yaddaşa əlavə edirik
+            st.session_state.mesajlar.append({"rol": "model", "mətn": cavab.text})
+            
         except Exception as e:
             st.error(f"Bağışlayın, sistemdə xəta baş verdi: {e}")
