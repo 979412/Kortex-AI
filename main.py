@@ -1,31 +1,22 @@
 import streamlit as st
-import google.generativeai as genai
+from groq import Groq
 
 # Səhifənin dizaynını və adını tənzimləyirik
 st.set_page_config(page_title="Kortex AI", page_icon="🧠")
 
-# DİQQƏT: Sənin API açarın
-API_KEY = "AIzaSyCzGlsZa7Bjtdomm7ZhCZIucb5FRWmEFEg" 
-
-genai.configure(api_key=API_KEY)
+# DİQQƏT: Bura Groq-dan aldığın YENİ API açarını yazmalısan!
+API_KEY = "SƏNİN_GROQ_API_AÇARIN" 
 
 # Kortex-ə xüsusi bir xarakter və güc veririk
 kortex_xarakteri = """
-Sən Kortex-sən. Çox güclü, sürətli və ağıllı bir süni intellektsən. 
+Sən Kortex-sən. Çox güclü, ildırım sürətli və ağıllı bir süni intellektsən. 
 Sənin yaradıcın Abdullah adlı gənc və istedadlı bir proqramçıdır. 
 İstifadəçilərin suallarına ən dəqiq, anlaşıqlı və peşəkar şəkildə cavab verirsən.
 """
 
-# Modeli yükləyirik və xarakteri ona təyin edirik
-# XƏTANIN HƏLLİ: Modelin adını ən son versiyaya uyğunlaşdırdıq
-model = genai.GenerativeModel(
-    'gemini-1.5-flash-latest',
-    system_instruction=kortex_xarakteri
-)
-
 # Vebsaytın başlığı
-st.title("🧠 Kortex AI")
-st.write("Salam! Mən Kortex. Sizin şəxsi və çox güclü süni intellekt köməkçinizəm. Mənə istədiyiniz sualı verə bilərsiniz.")
+st.title("🧠 Kortex AI (Groq Gücü ilə ⚡)")
+st.write("Salam! Mən Kortex. Sizin şəxsi və çox sürətli süni intellekt köməkçinizəm. Mənə istədiyiniz sualı verə bilərsiniz.")
 
 # Yaddaş sistemini qururuq
 if "mesajlar" not in st.session_state:
@@ -46,22 +37,31 @@ if sual:
         st.markdown(sual)
     
     # 2. Kortex-in cavab vermə prosesi
-    with st.chat_message("model"):
+    with st.chat_message("assistant"):
         try:
-            # Kortex düşünür və bütün keçmiş mesajları nəzərə alaraq cavab verir
-            söhbet = model.start_chat(history=[])
-            
-            # Söhbət tarixçəsini API-yə uyğunlaşdırırıq
-            for m in st.session_state.mesajlar[:-1]:
-                rol = "user" if m["rol"] == "user" else "model"
-                söhbet.history.append({"role": rol, "parts": [m["mətn"]]})
-            
-            # Yeni sualı göndərib cavabı alırıq
-            cavab = söhbet.send_message(sual)
-            st.markdown(cavab.text)
-            
-            # Kortex-in cavabını yaddaşa əlavə edirik
-            st.session_state.mesajlar.append({"rol": "model", "mətn": cavab.text})
-            
+            if API_KEY == "SƏNİN_GROQ_API_AÇARIN":
+                st.error("Kortexin oyanması üçün main.py faylında Groq API açarınızı qeyd etməlisiniz!")
+            else:
+                # Groq sisteminə qoşuluruq
+                client = Groq(api_key=API_KEY)
+                
+                # Bütün yazışmaları Groq-un anladığı formata salırıq
+                api_mesajlar = [{"role": "system", "content": kortex_xarakteri}]
+                for m in st.session_state.mesajlar:
+                    api_mesajlar.append({"role": m["rol"], "content": m["mətn"]})
+                
+                # LLaMA 3 (70B) kimi nəhəng və sürətli modeldən istifadə edirik
+                chat_completion = client.chat.completions.create(
+                    messages=api_mesajlar,
+                    model="llama3-70b-8192", 
+                )
+                
+                # Cavabı ekrana çıxarırıq
+                cavab = chat_completion.choices[0].message.content
+                st.markdown(cavab)
+                
+                # Kortex-in cavabını yaddaşa əlavə edirik
+                st.session_state.mesajlar.append({"rol": "assistant", "mətn": cavab})
+                
         except Exception as e:
             st.error(f"Bağışlayın, sistemdə xəta baş verdi: {e}")
