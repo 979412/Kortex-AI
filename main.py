@@ -1,4 +1,10 @@
-# Kortex Süni İntellekti - main.py faylı
+import google.generativeai as genai
+
+# Kortex-in oyanması üçün lazım olan sehrli açar (API Key) bura yazılacaq
+genai.configure(api_key="SƏNİN_API_AÇARIN_BURADA_OLACAQ")
+
+# Kortex-in beyni kimi istifadə edəcəyimiz modeli seçirik
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 def kortex_sistemi():
     print("*" * 50)
@@ -6,19 +12,21 @@ def kortex_sistemi():
     print("Sistem tam aktivdir. (Sistemi dayandırmaq üçün 'cixis' yazın)")
     print("*" * 50)
 
-    # while True: dövrü sistemin heç vaxt yatmamasını və avtomatik işləməsini təmin edir
     while True:
-        # İstifadəçidən sual alırıq
         sual = input("\nSualınızı yazın: ")
         
-        # Əgər istifadəçi çıxmaq istəsə, sistem dayanır
         if sual.lower() == "cixis":
             print("Kortex: Sistem bağlanır. Yenə görüşərik!")
             break
             
-        # Gələcəkdə bu hissəyə API qoşacağıq ki, hər suala səhvsiz cavab tapsın.
-        # Hələlik isə sistemin avtomatik işlədiyini görmək üçün belə bir cavab veririk:
-        print("Kortex: Mən bu sualı analiz edirəm... (Tezliklə burada əsl ağıllı cavablar olacaq!)")
+        print("Kortex düşünür...")
+        
+        # Kortex sualı öz beyninə (API-yə) göndərir və avtomatik cavab hazırlayır
+        try:
+            cavab = model.generate_content(sual)
+            print(f"\nKortex: {cavab.text}")
+        except Exception as e:
+            print("\nKortex: Bağışlayın, nəsə xəta baş verdi. Zəhmət olmasa bir də cəhd edin.")
 
-# Kodu işə salmaq üçün əmr
+# Sistemi işə salırıq
 kortex_sistemi()
