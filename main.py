@@ -4,7 +4,7 @@ from groq import Groq
 # Səhifənin dizaynını və adını tənzimləyirik
 st.set_page_config(page_title="Kortex AI", page_icon="🧠")
 
-# DİQQƏT: Bura Groq-dan aldığın YENİ API açarını yazmalısan!
+# DİQQƏT: Bura Groq-dan aldığın API açarıdır
 API_KEY = "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" 
 
 # Kortex-ə xüsusi bir xarakter və güc veririk
@@ -50,10 +50,10 @@ if sual:
                 for m in st.session_state.mesajlar:
                     api_mesajlar.append({"role": m["rol"], "content": m["mətn"]})
                 
-                # LLaMA 3 (70B) kimi nəhəng və sürətli modeldən istifadə edirik
+                # YENİ VƏ SÜRƏTLİ MODEL BURADA DƏYİŞDİRİLDİ
                 chat_completion = client.chat.completions.create(
                     messages=api_mesajlar,
-                    model="llama3-70b-8192", 
+                    model="llama-3.3-70b-versatile", 
                 )
                 
                 # Cavabı ekrana çıxarırıq
