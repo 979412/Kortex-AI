@@ -2,69 +2,75 @@ import streamlit as st
 from groq import Groq
 import os
 
-# 1. Səhifənin adını və ikonunu tənzimləyirik
-st.set_page_config(page_title="Kortex AI", page_icon="🧠")
+# 1. Ən sürətli performans üçün səhifə tənzimləmələri
+st.set_page_config(page_title="Kortex AI", page_icon="🧠", layout="centered")
 
-# 2. API açarını təhlükəsiz şəkildə alırıq (Secrets və ya .env-dən)
-API_KEY = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+# 2. API Açarının avtomatik idarə olunması (Xəta verməməsi üçün)
+# Əgər Secrets-də yoxdursa, kodun içinə birbaşa yaza bilərsən (Amma GitHub-a qoyanda sil!)
+API_KEY = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY") or "SƏNİN_API_AÇARIN_BURA_YAZILA_BİLƏR"
 
-# 3. Kortex-in xarakterini müəyyən edirik
-kortex_xarakteri = """
-Sən Kortex-sən. Çox güclü, ildırım sürətli və ağıllı bir süni intellektsən. 
-Sənin yaradıcın Abdullah adlı gənc və istedadlı bir proqramçıdır. 
-"""
+# 3. Kortex-in Beyni və Təlimatı
+kortex_instruksiya = {
+    "role": "system",
+    "content": "Sən Kortex-sən. Yaradıcın Abdullahdır. Çox ağıllı və sürətlisən. Qısa, dəqiq və professional cavablar ver."
+}
 
+# 4. Yaddaşın avtomatik təmizlənməsi və qurulması
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Başlıq
 st.title("🧠 Kortex AI")
+st.caption("⚡ Groq Llama 3.3 tərəfindən gücləndirildi | Yaradıcı: Abdullah")
 
-# 4. Yaddaş sistemini (Session State) qururuq
-if "mesajlar" not in st.session_state:
-    st.session_state.mesajlar = []
+# 5. Mesajların ekranda sürətli göstərilməsi
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-# 5. Köhnə mesajları göstərərkən xəta olmaması üçün təkmilləşdirilmiş dövr
-for mesaj in st.session_state.mesajlar:
-    # Həm köhnə "rol", həm də yeni "role" açarlarını yoxlayırıq ki, KeyError verməsin
-    role = mesaj.get("role") or mesaj.get("rol")
-    content = mesaj.get("content") or mesaj.get("mətn")
-    
-    if role and content:
-        with st.chat_message(role):
-            st.markdown(content)
-
-# 6. İstifadəçidən sualı alırıq
-sual = st.chat_input("Kortex-ə sualınızı yazın...")
+# 6. Sualın qəbulu və dərhal işlənməsi
+sual = st.chat_input("Kortex-ə sual verin...")
 
 if sual:
-    # İstifadəçinin sualını yaddaşa yeni formatda əlavə edirik
-    st.session_state.mesajlar.append({"role": "user", "content": sual})
+    # İstifadəçi sualını yaddaşa atırıq
+    st.session_state.messages.append({"role": "user", "content": sual})
     with st.chat_message("user"):
         st.markdown(sual)
-    
-    # 7. Kortex-in cavab vermə prosesi
+
+    # Cavab hazırlığı
     with st.chat_message("assistant"):
-        if not API_KEY:
-            st.error("API açarı tapılmadı! Lütfən Streamlit Cloud-da 'Secrets' bölməsində GROQ_API_KEY əlavə edin.")
+        # API açarı yoxlaması (Proqramın çökməməsi üçün)
+        if not API_KEY or "SƏNİN_API_AÇARIN" in API_KEY:
+            st.error("🔑 API açarı daxil edilməyib! Lütfən açarı koda və ya Secrets-ə əlavə edin.")
         else:
             try:
+                # Sürətli qoşulma
                 client = Groq(api_key=API_KEY)
                 
-                # API üçün mesajları hazırlayırıq (yalnız düzgün formatda olanları)
-                api_mesajlar = [{"role": "system", "content": kortex_xarakteri}]
-                for m in st.session_state.mesajlar:
-                    r = m.get("role") or m.get("rol")
-                    c = m.get("content") or m.get("mətn")
-                    api_mesajlar.append({"role": r, "content": c})
+                # Mesaj tarixcəsini optimallaşdırırıq (Sürət üçün)
+                full_history = [kortex_instruksiya] + st.session_state.messages
                 
-                # Groq-dan cavab alırıq
-                chat_completion = client.chat.completions.create(
-                    messages=api_mesajlar,
-                    model="llama-3.3-70b-versatile", 
+                # API Çağırışı (Maksimum sürət modeli ilə)
+                response = client.chat.completions.create(
+                    messages=full_history,
+                    model="llama-3.3-70b-versatile",
+                    temperature=0.7, # Yaradıcılıq və sürət balansı
+                    max_tokens=2048,
+                    stream=True # Cavabın yazılaraq gəlməsi (istifadəçi gözləmir)
                 )
-                
-                cavab = chat_completion.choices[0].message.content
-                st.markdown(cavab)
-                
-                # Cavabı yaddaşa əlavə edirik
-                st.session_state.mesajlar.append({"role": "assistant", "content": cavab})
-                
+
+                # Cavabı axın (stream) şəklində ekrana çıxarırıq
+                placeholder = st.empty()
+                tam_cavab = ""
+                for chunk in response:
+                    if chunk.choices[0].delta.content:
+                        tam_cavab += chunk.choices[0].delta.content
+                        placeholder.markdown(tam_cavab + "▌")
+                placeholder.markdown(tam_cavab)
+
+                # Cavabı yaddaşa yazırıq
+                st.session_state.messages.append({"role": "assistant", "content": tam_cavab})
+
             except Exception as e:
-                st.error(f"Sistemdə xəta baş verdi: {e}")
+                # Xətanı tuturuq amma proqramı dayandırmırıq
+                st.warning(f"Sistem bir anlıq durub: {str(e)}")
