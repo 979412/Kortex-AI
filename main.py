@@ -2,12 +2,13 @@ import streamlit as st
 from groq import Groq
 import os
 
-# Səhifə tənzimləmələri
+# 1. Səhifənin adını və ikonunu tənzimləyirik
 st.set_page_config(page_title="Kortex AI", page_icon="🧠")
 
-# API açarını təhlükəsiz şəkildə alırıq
+# 2. API açarını təhlükəsiz şəkildə alırıq (Secrets və ya .env-dən)
 API_KEY = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
 
+# 3. Kortex-in xarakterini müəyyən edirik
 kortex_xarakteri = """
 Sən Kortex-sən. Çox güclü, ildırım sürətli və ağıllı bir süni intellektsən. 
 Sənin yaradıcın Abdullah adlı gənc və istedadlı bir proqramçıdır. 
@@ -15,38 +16,45 @@ Sənin yaradıcın Abdullah adlı gənc və istedadlı bir proqramçıdır.
 
 st.title("🧠 Kortex AI")
 
-# Yaddaş sistemini yoxlayırıq (Standart açarlar: role və content)
+# 4. Yaddaş sistemini (Session State) qururuq
 if "mesajlar" not in st.session_state:
     st.session_state.mesajlar = []
 
-# Köhnə mesajları ekranda göstəririk
+# 5. Köhnə mesajları göstərərkən xəta olmaması üçün təkmilləşdirilmiş dövr
 for mesaj in st.session_state.mesajlar:
-    with st.chat_message(mesaj["role"]):
-        st.markdown(mesaj["content"])
+    # Həm köhnə "rol", həm də yeni "role" açarlarını yoxlayırıq ki, KeyError verməsin
+    role = mesaj.get("role") or mesaj.get("rol")
+    content = mesaj.get("content") or mesaj.get("mətn")
+    
+    if role and content:
+        with st.chat_message(role):
+            st.markdown(content)
 
-# Sualı alırıq
+# 6. İstifadəçidən sualı alırıq
 sual = st.chat_input("Kortex-ə sualınızı yazın...")
 
 if sual:
-    # 1. İstifadəçinin sualını ekrana və yaddaşa əlavə edirik
+    # İstifadəçinin sualını yaddaşa yeni formatda əlavə edirik
     st.session_state.mesajlar.append({"role": "user", "content": sual})
     with st.chat_message("user"):
         st.markdown(sual)
     
-    # 2. Kortex-in cavab vermə prosesi
+    # 7. Kortex-in cavab vermə prosesi
     with st.chat_message("assistant"):
         if not API_KEY:
-            st.error("API açarı tapılmadı! Lütfən Streamlit Secrets və ya .env faylını yoxlayın.")
+            st.error("API açarı tapılmadı! Lütfən Streamlit Cloud-da 'Secrets' bölməsində GROQ_API_KEY əlavə edin.")
         else:
             try:
                 client = Groq(api_key=API_KEY)
                 
-                # Sistem təlimatını və keçmiş mesajları hazırlayırıq
+                # API üçün mesajları hazırlayırıq (yalnız düzgün formatda olanları)
                 api_mesajlar = [{"role": "system", "content": kortex_xarakteri}]
                 for m in st.session_state.mesajlar:
-                    api_mesajlar.append({"role": m["role"], "content": m["content"]})
+                    r = m.get("role") or m.get("rol")
+                    c = m.get("content") or m.get("mətn")
+                    api_mesajlar.append({"role": r, "content": c})
                 
-                # Groq API-dən cavab alırıq
+                # Groq-dan cavab alırıq
                 chat_completion = client.chat.completions.create(
                     messages=api_mesajlar,
                     model="llama-3.3-70b-versatile", 
@@ -55,8 +63,8 @@ if sual:
                 cavab = chat_completion.choices[0].message.content
                 st.markdown(cavab)
                 
-                # Kortex-in cavabını yaddaşa əlavə edirik
+                # Cavabı yaddaşa əlavə edirik
                 st.session_state.mesajlar.append({"role": "assistant", "content": cavab})
                 
             except Exception as e:
-                st.error(f"Xəta baş verdi: {e}")
+                st.error(f"Sistemdə xəta baş verdi: {e}")
