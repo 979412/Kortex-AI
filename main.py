@@ -1,22 +1,18 @@
 import streamlit as st
 from groq import Groq
 import os
+import time
 
 st.set_page_config(page_title="Kortex AI", page_icon="🧠", layout="centered")
 
-# DİQQƏT: BURAYA ÖZ YENİ VƏ İŞLƏYƏN GROQ API AÇARINI YAZ 
-API_KEY = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY") or "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"
+# Açar buraya yazılır
+API_KEY = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY") or "BURAYA_API_AÇARINI_YAZ"
 
-kortex_instruksiya = {
-    "role": "system",
-    "content": "Sən Kortex-sən. Yaradıcın Abdullahdır. Çox ağıllı və sürətlisən. Qısa, dəqiq və professional cavablar ver."
-}
+st.title("🧠 Kortex AI")
+st.caption("Yaradıcı: Abdullah | ⚡ Avtomatik Rejim Aktivdir")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
-
-st.title("🧠 Kortex AI")
-st.caption("⚡ Groq Llama 3.3 | Yaradıcı: Abdullah")
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -25,45 +21,34 @@ for message in st.session_state.messages:
 sual = st.chat_input("Kortex-ə sual verin...")
 
 if sual:
+    # Sənin sualın ekrana çıxır
     st.session_state.messages.append({"role": "user", "content": sual})
     with st.chat_message("user"):
         st.markdown(sual)
 
     with st.chat_message("assistant"):
-        # Əgər açar heç yazılmayıbsa
-        if not API_KEY or API_KEY == "BURAYA_API_AÇARINI_YAZ":
-            cavab = "Salam Abdullah! Mənim işləməyim üçün kodun 8-ci sətrinə həqiqi Groq API açarını yazmağı unutma."
+        try:
+            # 1. Kortex əsl beyninə (Groq-a) qoşulmağa cəhd edir
+            client = Groq(api_key=API_KEY)
+            response = client.chat.completions.create(
+                messages=[{"role": "system", "content": "Sən Kortexsən."}] + st.session_state.messages,
+                model="llama-3.3-70b-versatile"
+            )
+            cavab = response.choices[0].message.content
             st.markdown(cavab)
             st.session_state.messages.append({"role": "assistant", "content": cavab})
-        else:
-            try:
-                client = Groq(api_key=API_KEY)
-                full_history = [kortex_instruksiya] + st.session_state.messages
-                
-                response = client.chat.completions.create(
-                    messages=full_history,
-                    model="llama-3.3-70b-versatile",
-                    temperature=0.7,
-                    max_tokens=2048,
-                    stream=True 
-                )
-
-                placeholder = st.empty()
-                tam_cavab = ""
-                for chunk in response:
-                    if chunk.choices[0].delta.content:
-                        tam_cavab += chunk.choices[0].delta.content
-                        placeholder.markdown(tam_cavab + "▌")
-                placeholder.markdown(tam_cavab)
-
-                st.session_state.messages.append({"role": "assistant", "content": tam_cavab})
-
-            except Exception as e:
-                # BURA BAX: Artıq heç bir qırmızı xəta mesajı çıxmayacaq!
-                if "401" in str(e) or "Invalid API Key" in str(e):
-                    xeta_cavabi = "Abdullah, mənə verdiyin API açarı (şifrə) səhvdir və ya köhnəlib. Lütfən Groq saytından yeni açar alıb koda əlavə et."
-                else:
-                    xeta_cavabi = "Hazırda internetdə və ya sistemdə kiçik bir yüklənmə var. Lütfən bir az sonra yenidən sual ver."
-                
-                st.markdown(xeta_cavabi)
-                st.session_state.messages.append({"role": "assistant", "content": xeta_cavabi})
+            
+        except Exception:
+            # 2. ƏGƏR AÇAR SƏHVDİRSƏ VƏ YA YOXDURSA - AVTOMATİK YEDƏK REJİM İŞƏ DÜŞÜR (XƏTA VERMİR!)
+            offline_cavab = f"Sən məndən soruşdun: **'{sual}'**\n\n🤖 Salam Abdullah! Mən hazırda 'Avtomatik Yedək Rejimdəyəm' və səni eşidirəm. Amma sənə tam ağıllı və həqiqi cavablar verə bilməyim üçün maşınıma 'benzin' lazımdır. Zəhmət olmasa kodun 9-cu sətrinə işləyən bir Groq API açarı qoy ki, əsl gücümü sənə göstərim!"
+            
+            # Kortexin sözləri yazaraq gəlməsi effekti (Gözəl görünüş üçün)
+            placeholder = st.empty()
+            tam_metn = ""
+            for herf in offline_cavab:
+                tam_metn += herf
+                placeholder.markdown(tam_metn + "▌")
+                time.sleep(0.01) # Yazılma sürəti
+            placeholder.markdown(tam_metn)
+            
+            st.session_state.messages.append({"role": "assistant", "content": offline_cavab})
