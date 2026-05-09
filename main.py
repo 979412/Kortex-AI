@@ -6,7 +6,7 @@ import time
 st.set_page_config(page_title="Kortex AI", page_icon="🧠", layout="centered")
 
 # Açar buraya yazılır
-API_KEY = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY") or "BURAYA_API_AÇARINI_YAZ"
+API_KEY = st.secrets.get("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") or os.getenv("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") or "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"
 
 st.title("🧠 Kortex AI")
 st.caption("Yaradıcı: Abdullah | ⚡ Avtomatik Rejim Aktivdir")
